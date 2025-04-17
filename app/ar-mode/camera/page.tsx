@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Camera, X, Mic, Send, Loader2, Sparkles } from 'lucide-react';
+import { Camera, X, Mic, Send, Loader2, Sparkles, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getGroqVisionCompletion } from '@/lib/groq-service'; // Assuming this can be reused
 
@@ -17,56 +17,78 @@ export default function ARModePage() {
   const [lastResponse, setLastResponse] = useState<string | null>(null);
   const [lastImageBase64, setLastImageBase64] = useState<string | null>(null);
   const [userQuery, setUserQuery] = useState<string>(""); // For potential text input alongside image
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment'); // State for camera facing mode
 
-  // Request camera access
-  useEffect(() => {
-    let currentStream: MediaStream | null = null;
+  // Store stream in ref to manage cleanup correctly across re-renders/flips
+  const streamRef = useRef<MediaStream | null>(null);
 
-    const getCameraStream = async () => {
-      setError(null);
-      setIsLoading(true);
-      try {
-        currentStream = await navigator.mediaDevices.getUserMedia({ 
-          video: { 
-            facingMode: "environment", // Prefer rear camera
-            width: { ideal: 1280 }, // Request a reasonable resolution
-            height: { ideal: 720 } 
-          },
-          audio: false // No audio needed for basic frame capture
-        });
-        setStream(currentStream);
-        if (videoRef.current) {
-          videoRef.current.srcObject = currentStream;
-        }
-      } catch (err) {
-        console.error("Error accessing camera:", err);
-        if (err instanceof Error) {
-          if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-             setError("Camera permission denied. Please enable camera access in your browser settings.");
-          } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
-             setError("No camera found. Please ensure a camera is connected and enabled.");
-          } else {
-             setError(`Failed to access camera: ${err.message}`);
-          }
-        } else {
-           setError("An unknown error occurred while accessing the camera.");
-        }
-        setStream(null);
-      } finally {
-        setIsLoading(false);
+  // Function to get camera stream based on facing mode
+  const getCameraStream = async (mode: 'environment' | 'user') => {
+    setError(null);
+    setIsLoading(true);
+    // Stop previous stream if it exists
+    if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        console.log("Previous stream stopped.");
+    }
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: mode, // Use the requested mode
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      });
+      streamRef.current = newStream; // Store in ref
+      setStream(newStream); // Update state to trigger UI changes
+      if (videoRef.current) {
+        videoRef.current.srcObject = newStream;
+        // Attempt to play the video after setting the source
+        videoRef.current.play().catch(err => console.error("Video play failed:", err));
       }
-    };
+      setError(null); // Clear any previous errors
+    } catch (err) {
+      console.error(`Error accessing ${mode} camera:`, err);
+      streamRef.current = null; // Clear ref on error
+      setStream(null); // Clear state on error
+      if (err instanceof Error) {
+        if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+           setError("Camera permission denied. Please enable camera access in your browser settings.");
+        } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+           setError(`No ${mode === 'user' ? 'front' : 'rear'} camera found.`);
+        } else if (err.name === "OverconstrainedError") {
+           setError(`Camera does not support requested constraints (mode: ${mode}). Trying other camera.`);
+           // Optionally try the other facing mode automatically here
+           const otherMode = mode === 'environment' ? 'user' : 'environment';
+           setFacingMode(otherMode); // Update state immediately
+           // We rely on useEffect to retry with the new facingMode
+        } else {
+           setError(`Failed to access camera: ${err.message}`);
+        }
+      } else {
+         setError("An unknown error occurred while accessing the camera.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    getCameraStream();
+
+  // Request initial camera access on mount and when facingMode changes
+  useEffect(() => {
+    getCameraStream(facingMode);
 
     // Cleanup function to stop the stream when the component unmounts
     return () => {
-      if (currentStream) {
-        currentStream.getTracks().forEach(track => track.stop());
-        console.log("Camera stream stopped.");
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        console.log("Camera stream stopped on unmount.");
+        streamRef.current = null;
       }
     };
-  }, []); // Empty dependency array ensures this runs only once on mount
+    // Depend on facingMode to re-run when it changes
+  }, [facingMode]);
 
   const handleClose = () => {
     router.back(); // Go back to the previous page (likely chat)
@@ -126,6 +148,12 @@ export default function ARModePage() {
     }
   };
   
+  // Function to flip the camera
+  const handleFlipCamera = () => {
+    const newFacingMode = facingMode === 'environment' ? 'user' : 'environment';
+    setFacingMode(newFacingMode); // This will trigger the useEffect to get the new stream
+  };
+
   // Placeholder for voice input logic
   const handleVoiceInput = () => {
       console.log("Voice input triggered");
@@ -200,6 +228,19 @@ export default function ARModePage() {
                   className="bg-black/50 border-gray-700 text-white rounded-full"
                /> */}
 
+              {/* Flip Camera Button */}
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full bg-black/50 hover:bg-black/70 text-white w-14 h-14"
+                onClick={handleFlipCamera}
+                aria-label="Flip Camera"
+                disabled={isLoading || isAnalyzing} // Disable while loading or analyzing
+              >
+                <RefreshCw className="h-6 w-6" />
+              </Button>
+
+              {/* Capture Button */}
               <Button
                 variant="outline"
                 size="icon"

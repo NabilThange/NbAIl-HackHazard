@@ -226,6 +226,8 @@ export default function ChatPage() {
 
       mediaRecorderRef.current.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" })
+        // Log the size of the audio blob for debugging
+        console.log(`Audio Blob Size: ${audioBlob.size} bytes`);
         const audioFile = new File([audioBlob], "recording.webm", { type: "audio/webm" })
 
         setIsRecording(false)
@@ -234,6 +236,8 @@ export default function ChatPage() {
 
         try {
           const transcribedText = await getGroqTranscription(audioFile)
+          // Log the raw transcription result
+          console.log("Raw Transcription Result:", transcribedText);
           if (transcribedText && !transcribedText.startsWith("Sorry")) {
             setInput(transcribedText)
           } else {

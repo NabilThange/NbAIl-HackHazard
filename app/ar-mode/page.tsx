@@ -170,52 +170,81 @@ export default function ARModePage() {
     console.log("Starting microphone listener...")
 
     try {
+      // 1. Get Audio Stream
       const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true })
       
-      mediaRecorderRef.current = new MediaRecorder(audioStream)
+      // 2. Create MediaRecorder (try opus codec)
+      const options = { mimeType: 'audio/webm;codecs=opus' };
+      let recorder;
+      try {
+          recorder = new MediaRecorder(audioStream, options);
+      } catch (e1) {
+          console.warn(`MediaRecorder with ${options.mimeType} failed: ${e1}. Trying default.`);
+          try {
+              recorder = new MediaRecorder(audioStream);
+          } catch (e2) {
+              console.error("MediaRecorder creation failed:", e2);
+              alert("Could not create audio recorder.");
+              audioStream.getTracks().forEach(track => track.stop());
+              return;
+          }
+      }
+      mediaRecorderRef.current = recorder;
+      console.log("Using MediaRecorder with MIME type:", mediaRecorderRef.current.mimeType);
+
+      // 3. Clear previous chunks
       audioChunksRef.current = []
       setIsMicListening(true) // Set listening state
       setIsSpeaking(false)
       setIsTranscribing(false)
 
+      // 4. Handle Data Available
       mediaRecorderRef.current.ondataavailable = (event) => {
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data)
         }
       }
 
+      // 5. Handle Recording Stop
       mediaRecorderRef.current.onstop = async () => {
         console.log("Mic listener stopped manually.")
+        const mimeType = mediaRecorderRef.current?.mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+        const blobSize = audioBlob.size;
+        console.log(`Audio Blob Size: ${blobSize} bytes, Type: ${mimeType}`);
+        
+        // Stop tracks *immediately* after creating blob
+        audioStream.getTracks().forEach(track => track.stop());
+
         // Reset listening state *before* processing
         setIsMicListening(false)
-        setStatusMessage("Transcribing...")
-        setIsTranscribing(true)
 
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" })
-        const recordedChunks = [...audioChunksRef.current] // Copy chunks before clearing
-        audioChunksRef.current = [] // Clear chunks immediately
-        
-        // Stop the tracks *after* creating the Blob
-        audioStream.getTracks().forEach(track => track.stop())
-
-        if (recordedChunks.length === 0 || audioBlob.size === 0) {
+        if (blobSize === 0) {
           console.warn("Empty audio recorded.")
           setStatusMessage(null)
-          setIsTranscribing(false)
           setError("Couldn't hear anything. Please try speaking again.")
           return
         }
+        
+        setStatusMessage("Transcribing...")
+        setIsTranscribing(true)
+        
+        const recordedChunks = [...audioChunksRef.current] // Not strictly needed now, but keeping pattern
+        audioChunksRef.current = [] // Clear chunks immediately
 
         try {
-          const audioFile = new File([audioBlob], "recording.webm", { type: "audio/webm" })
+          const fileName = mimeType.includes('opus') ? "recording.opus" : "recording.webm";
+          const audioFile = new File([audioBlob], fileName, { type: mimeType })
           const transcription = await getGroqTranscription(audioFile)
-          console.log("Transcription:", transcription)
+          console.log("Raw Transcription Result:", transcription);
           setIsTranscribing(false)
 
-          if (!transcription || transcription.toLowerCase().startsWith("sorry")) {
-            setError("Could not understand audio. Please try again.")
-            setStatusMessage(null)
-            return
+          // Improved check for invalid transcription
+          if (!transcription || transcription.toLowerCase().startsWith("sorry") || transcription.trim() === "" || transcription.trim().toLowerCase() === "you") {
+            setError("Could not understand audio or transcription was invalid. Please try again.");
+            console.warn("Invalid transcription received:", transcription);
+            setStatusMessage(null);
+            return;
           }
           
           // Now that we have transcription, capture frame and analyze
@@ -229,6 +258,7 @@ export default function ARModePage() {
         }
       }
 
+      // 6. Start Recording
       mediaRecorderRef.current.start(500) // Collect data in chunks
       console.log("Microphone listener started.")
 

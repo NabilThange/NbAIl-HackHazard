@@ -206,87 +206,127 @@ export default function ChatPage() {
     }
   }
 
-  // --- Add Audio Recording Logic --- 
-  const handleMicMouseDown = async () => {
+  // --- Rewritten Audio Recording Logic ---
+
+  // Function to handle starting the recording
+  const startRecording = async () => {
     if (isRecording || typeof navigator === 'undefined' || !navigator.mediaDevices) {
       console.warn("Media devices not available or already recording.")
       return
     }
 
     try {
+      // 1. Get Audio Stream
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      mediaRecorderRef.current = new MediaRecorder(stream)
-      audioChunksRef.current = [] // Reset chunks
 
+      // 2. Create MediaRecorder
+      // Use a specific MIME type if needed and supported, otherwise let the browser choose default (often webm)
+      const options = { mimeType: 'audio/webm;codecs=opus' }; // Try webm with opus codec explicitly
+      let recorder;
+      try {
+          recorder = new MediaRecorder(stream, options);
+      } catch (e1) {
+          console.warn(`MediaRecorder with ${options.mimeType} failed: ${e1}. Trying default.`);
+          try {
+              recorder = new MediaRecorder(stream); // Fallback to browser default
+          } catch (e2) {
+              console.error("MediaRecorder creation failed:", e2);
+              alert("Could not create audio recorder. Your browser might not support it.");
+              stream.getTracks().forEach(track => track.stop()); // Clean up stream
+              return;
+          }
+      }
+      mediaRecorderRef.current = recorder;
+      console.log("Using MediaRecorder with MIME type:", mediaRecorderRef.current.mimeType);
+
+      // 3. Clear previous chunks
+      audioChunksRef.current = []
+
+      // 4. Handle Data Available
       mediaRecorderRef.current.ondataavailable = (event) => {
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data)
         }
       }
 
+      // 5. Handle Recording Stop
       mediaRecorderRef.current.onstop = async () => {
-        // Revert back to audio/webm as opus might not be supported well for recording
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" }) 
-        // Log the size of the audio blob for debugging
-        console.log(`Audio Blob Size: ${audioBlob.size} bytes`);
+        const mimeType = mediaRecorderRef.current?.mimeType || 'audio/webm'; // Get the actual mimeType used
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+        const blobSize = audioBlob.size;
+        console.log(`Audio Blob Size: ${blobSize} bytes, Type: ${mimeType}`);
 
-        // Check if the blob is empty before proceeding
-        if (audioBlob.size === 0) {
+        // Stop tracks *immediately* after creating the blob
+        // We get the stream from the recorder itself if available
+        mediaRecorderRef.current?.stream?.getTracks().forEach(track => track.stop()); 
+
+        // Reset recording state early
+        setIsRecording(false);
+        setIsMicActive(false);
+
+        if (blobSize === 0) {
             console.error("Audio Blob is empty. Skipping transcription.");
             setInput("Error: Failed to record audio. Please try again.");
-            setIsRecording(false);
-            setIsMicActive(false);
-            setIsTranscribing(false); // Ensure transcribing state is reset
-            // Clean up the stream tracks even on error
-            mediaRecorderRef.current?.stream?.getTracks().forEach(track => track.stop());
             return; // Stop execution here
         }
 
-        // Revert File type accordingly
-        const audioFile = new File([audioBlob], "recording.webm", { type: "audio/webm" })
-
-        setIsRecording(false)
-        setIsMicActive(false)
-        setIsTranscribing(true)
+        setIsTranscribing(true); // Set transcribing state only if blob is valid
 
         try {
-          const transcribedText = await getGroqTranscription(audioFile)
-          // Log the raw transcription result
-          console.log("Raw Transcription Result:", transcribedText);
-          if (transcribedText && !transcribedText.startsWith("Sorry")) {
-            setInput(transcribedText)
-          } else {
-            setInput("Transcription failed. Please try again.")
-          }
+            const fileName = mimeType.includes('opus') ? "recording.opus" : "recording.webm";
+            const audioFile = new File([audioBlob], fileName, { type: mimeType });
+            const transcribedText = await getGroqTranscription(audioFile);
+            console.log("Raw Transcription Result:", transcribedText);
+
+            if (transcribedText && !transcribedText.startsWith("Sorry")) {
+                // Check specifically for empty or "you" transcription
+                if (transcribedText.trim() === "" || transcribedText.trim().toLowerCase() === "you") {
+                    setInput("Transcription seems invalid. Please try speaking clearly.");
+                    console.warn("Transcription resulted in empty or 'you'.");
+                } else {
+                    setInput(transcribedText);
+                }
+            } else {
+                setInput("Transcription failed or returned an error message. Please try again.");
+                console.warn("Transcription failed or returned 'Sorry'. Original text:", transcribedText);
+            }
         } catch (error) {
-          console.error("Transcription API call failed:", error)
-          setInput("Transcription failed. Please try again.")
+            console.error("Transcription API call failed:", error);
+            setInput("Transcription failed due to API error. Please try again.");
         } finally {
-          setIsTranscribing(false)
+            setIsTranscribing(false);
         }
+      };
 
-        // Clean up the stream tracks
-        stream.getTracks().forEach(track => track.stop())
-      }
-
+      // 6. Start Recording
       mediaRecorderRef.current.start()
       setIsRecording(true)
       setIsMicActive(true) // Update visual state
+      setInput("") // Clear input field when starting recording
+
     } catch (error) {
-      console.error("Error accessing microphone:", error)
+      console.error("Error accessing microphone or starting recording:", error)
       alert("Could not access microphone. Please check permissions.")
       setIsMicActive(false)
       setIsRecording(false)
     }
   }
 
-  const handleMicMouseUp = () => {
+  // Function to handle stopping the recording
+  const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop()
-      // onstop event handles the rest
+        console.log("Stopping recording...");
+        mediaRecorderRef.current.stop()
+        // onstop event handles the rest (state updates, transcription)
+    } else {
+        console.log("Stop recording called but not currently recording.");
+        // Ensure states are reset if stop is called unexpectedly
+        setIsRecording(false);
+        setIsMicActive(false);
     }
   }
-  // ----------------------------------
+
+  // --- End Rewritten Audio Recording Logic ---
 
   // --- Add File Handling Logic ---
   const handleFileButtonClick = () => {
@@ -838,10 +878,10 @@ export default function ChatPage() {
                       <button
                         type="button"
                         className={`p-2 text-gray-400 hover:text-white rounded-full hover:bg-gray-800/50 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center ${isRecording ? 'bg-red-500/30' : ''} ${isTranscribing ? 'cursor-not-allowed' : ''}`}
-                        onMouseDown={handleMicMouseDown}
-                        onMouseUp={handleMicMouseUp}
-                        onTouchStart={handleMicMouseDown}
-                        onTouchEnd={handleMicMouseUp}
+                        onMouseDown={startRecording}
+                        onMouseUp={stopRecording}
+                        onTouchStart={startRecording}
+                        onTouchEnd={stopRecording}
                         disabled={isTranscribing}
                       >
                         {isTranscribing ? (

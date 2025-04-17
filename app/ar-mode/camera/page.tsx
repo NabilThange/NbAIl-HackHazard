@@ -124,11 +124,11 @@ export default function ARModePage() {
     setIsAnalyzing(true);
     setError(null);
 
-    // Instruct the AI to respond in the first person and read text.
-    const prompt = query || "Describe this image in the first person, starting with 'I see...'. Make sure to read and include any visible text you find (like on books, signs, or screens). pay special attention to humans, their facial gesture, posture,color of clothes,gender, age,accessories, book titles, signs, labels, or screen content"; 
+    // Use the new, more descriptive prompt for blind assistance
+    const prompt = query || "You are an AI that helps blind people by describing what you see in an image.\nSpeak clearly and simply. Write your answer in first person, like you're talking to the user.\n\nStart by saying \u201CI see...\u201D\n\nDescribe the most important things in the image. For example: people, objects, actions, places.\n\nIf there is text in the image (like signs, books, screens), read it out loud in your answer.\n\nSpeak like a helpful friend. Use short sentences.\n\nOnly say what is clearly visible. Do not guess or imagine things."; 
 
     try {
-      console.log("Sending image to Groq Vision...");
+      console.log("Sending image to Groq Vision with new prompt...");
       const response = await getGroqVisionCompletion(prompt, imageBase64, 'image/jpeg');
       console.log("Groq Vision Response:", response);
       setLastResponse(response || "I received the image, but couldn't generate a description.");

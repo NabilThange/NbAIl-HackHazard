@@ -292,10 +292,18 @@ export default function ARModePage() {
     }
 
     setStatusMessage("Analyzing image with your query...")
-    console.log(`Frame captured, analyzing with query: "${transcribedQuery}"`) 
+    console.log(`Frame captured, analyzing with query: \"${transcribedQuery}\"`)
+
+    // Define the base accessibility prompt (same as in handleAnalyzeImage)
+    const basePrompt = "You are an AI that helps blind people by describing what you see in an image.\nSpeak clearly and simply. Write your answer in first person, like you're talking to the user.\n\nStart by saying \u201CI see...\u201D\n\nDescribe the most important things in the image. For example: people, objects, actions, places.\n\nIf there is text in the image (like signs, books, screens), read it out loud in your answer.\n\nSpeak like a helpful friend. Use short sentences.\n\nOnly say what is clearly visible. Do not guess or imagine things.";
+
+    // Combine the base prompt with the user's query
+    const finalPrompt = `${basePrompt}\n\nBased on that description style, the user specifically asked: \"${transcribedQuery}\"`
+    console.log("Combined Vision Prompt:", finalPrompt); // Log the combined prompt
 
     try {
-      const response = await getGroqVisionAnalysis(imageDataUrl, transcribedQuery)
+      // Send the combined prompt to the vision analysis function
+      const response = await getGroqVisionAnalysis(imageDataUrl, finalPrompt)
       setAiResponse(response)
       setStatusMessage("Speaking response...") 
       // Speak the response

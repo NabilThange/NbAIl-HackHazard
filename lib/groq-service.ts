@@ -91,7 +91,6 @@ export const getGroqTranscription = async (audioFile: File) => {
     const transcription = await groq.audio.transcriptions.create({
       file: audioFile,
       model: "whisper-large-v3", // Or your preferred model
-      language: "en", // Add language hint for potentially better accuracy
       response_format: "json", // Get transcription text
     });
     return transcription.text || ""; // Return the transcribed text

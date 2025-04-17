@@ -162,7 +162,7 @@ export default function ChatPage() {
       if (currentImageFile && currentImageBase64) {
         assistantResponse = await getGroqVisionCompletion(
           // Use input or improved default prompt asking to read text.
-          currentInput || "start the response with "I see ".  Describe this image in detail. If there is any readable text in the image (e.g., on signs, books, screens), please include it in your description.", 
+          currentInput || 'start the response with "I see ".  Describe this image in detail. If there is any readable text in the image (e.g., on signs, books, screens), please include it in your description.', 
           currentImageBase64,
           currentImageFile.type
         )

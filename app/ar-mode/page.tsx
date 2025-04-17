@@ -23,6 +23,7 @@ export default function ARModePage() {
   const [isTranscribing, setIsTranscribing] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
+  const [isFrontCamera, setIsFrontCamera] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
 
@@ -31,7 +32,7 @@ export default function ARModePage() {
     setError(null)
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" }, // Prefer back camera
+        video: { facingMode: isFrontCamera ? "user" : "environment" },
         audio: false,
       })
       setStream(mediaStream)
@@ -381,6 +382,20 @@ export default function ARModePage() {
 
       {/* Controls */} 
       <footer className="absolute bottom-0 left-0 right-0 flex items-center justify-center p-6 space-x-6 z-20 bg-gradient-to-t from-black/50 to-transparent">
+         {/* Camera Toggle Button */}
+         <Button
+           size="lg"
+           onClick={() => {
+             setIsFrontCamera(!isFrontCamera);
+             setupCamera();
+           }}
+           disabled={!stream || isAnalyzing || isMicListening || isTranscribing || isSpeaking || !!error}
+           className="group rounded-full w-12 h-12 p-0 bg-white/20 hover:bg-white/30 border border-white/30 text-white disabled:opacity-50 transition-all duration-200 relative shadow-lg hover:shadow-purple-500/30 hover:border-purple-400"
+           aria-label="Toggle Camera"
+         >
+           <FlipHorizontal className="h-5 w-5" />
+         </Button>
+
          {/* Camera Button */} 
          <Button
            size="lg"

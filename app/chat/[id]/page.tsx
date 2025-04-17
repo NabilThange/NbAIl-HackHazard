@@ -225,12 +225,25 @@ export default function ChatPage() {
       }
 
       mediaRecorderRef.current.onstop = async () => {
-        // Change MIME type to audio/opus
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/opus" }) 
+        // Revert back to audio/webm as opus might not be supported well for recording
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" }) 
         // Log the size of the audio blob for debugging
         console.log(`Audio Blob Size: ${audioBlob.size} bytes`);
-        // Change File type accordingly
-        const audioFile = new File([audioBlob], "recording.opus", { type: "audio/opus" })
+
+        // Check if the blob is empty before proceeding
+        if (audioBlob.size === 0) {
+            console.error("Audio Blob is empty. Skipping transcription.");
+            setInput("Error: Failed to record audio. Please try again.");
+            setIsRecording(false);
+            setIsMicActive(false);
+            setIsTranscribing(false); // Ensure transcribing state is reset
+            // Clean up the stream tracks even on error
+            mediaRecorderRef.current?.stream?.getTracks().forEach(track => track.stop());
+            return; // Stop execution here
+        }
+
+        // Revert File type accordingly
+        const audioFile = new File([audioBlob], "recording.webm", { type: "audio/webm" })
 
         setIsRecording(false)
         setIsMicActive(false)
@@ -409,7 +422,8 @@ export default function ChatPage() {
 
         // Only process if we are in overlay mode and have chunks
         if (isVoiceOverlayOpen && audioChunksRef.current.length > 0) {
-            const audioBlob = new Blob(audioChunksRef.current, { type: "audio/opus" })
+            // Revert back to audio/webm
+            const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" })
             // Process the audio for TTS response *without* adding to chat messages
             await processVoiceInput(audioBlob)
         } else {
@@ -449,7 +463,8 @@ export default function ChatPage() {
     setIsSpeaking(true) // Indicate processing/speaking phase
     try {
       console.log("Transcribing...")
-      const audioFile = new File([audioBlob], "recording.opus", { type: "audio/opus" })
+      // Revert back to audio/webm
+      const audioFile = new File([audioBlob], "recording.webm", { type: "audio/webm" })
       const transcription = await getGroqTranscription(audioFile)
       console.log("Transcription:", transcription)
       

@@ -173,21 +173,15 @@ export default function ARModePage() {
       // 1. Get Audio Stream
       const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true })
       
-      // 2. Create MediaRecorder (try opus codec)
-      const options = { mimeType: 'audio/webm;codecs=opus' };
+      // 2. Create MediaRecorder (Let browser choose default MIME type)
       let recorder;
       try {
-          recorder = new MediaRecorder(audioStream, options);
+          recorder = new MediaRecorder(audioStream);
       } catch (e1) {
-          console.warn(`MediaRecorder with ${options.mimeType} failed: ${e1}. Trying default.`);
-          try {
-              recorder = new MediaRecorder(audioStream);
-          } catch (e2) {
-              console.error("MediaRecorder creation failed:", e2);
-              alert("Could not create audio recorder.");
-              audioStream.getTracks().forEach(track => track.stop());
-              return;
-          }
+          console.error("MediaRecorder creation failed:", e1);
+          alert("Could not create audio recorder. Your browser might not support it.");
+          audioStream.getTracks().forEach(track => track.stop());
+          return;
       }
       mediaRecorderRef.current = recorder;
       console.log("Using MediaRecorder with MIME type:", mediaRecorderRef.current.mimeType);

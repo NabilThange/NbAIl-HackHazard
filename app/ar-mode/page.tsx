@@ -125,8 +125,8 @@ export default function ARModePage() {
     console.log("Frame captured, sending for analysis...")
 
     try {
-      // Use the default query when only image is captured, asking it to read text.
-      const response = await getGroqVisionAnalysis(imageDataUrl, "Describe what you see in detail. Pay special attention to reading any text you can find in the image (e.g., human facial gesture, posture, book titles, signs, labels, screen content) and include it in your description.")
+      // Use the specific accessibility prompt when only image is captured.
+      const response = await getGroqVisionAnalysis(imageDataUrl, "You are an AI that helps blind people by describing what you see in an image.\nSpeak clearly and simply. Write your answer in first person, like you're talking to the user.\n\nStart by saying \u201CI see...\u201D\n\nDescribe the most important things in the image. For example: people, objects, actions, places.\n\nIf there is text in the image (like signs, books, screens), read it out loud in your answer.\n\nSpeak like a helpful friend. Use short sentences.\n\nOnly say what is clearly visible. Do not guess or imagine things.")
       setAiResponse(response)
       setStatusMessage(null) // Clear status on success
       // Optionally speak the response

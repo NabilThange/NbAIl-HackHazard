@@ -124,7 +124,8 @@ export default function ARModePage() {
     setIsAnalyzing(true);
     setError(null);
 
-    const prompt = query || "Describe what you see in this image."; // Default prompt
+    // Instruct the AI to respond in the first person and read text.
+    const prompt = query || "Describe this image in the first person, starting with 'I see...'. Make sure to read and include any visible text you find (like on books, signs, or screens). pay special attention to humans, their facial gesture, posture,color of clothes,gender, age,accessories, book titles, signs, labels, or screen content"; 
 
     try {
       console.log("Sending image to Groq Vision...");

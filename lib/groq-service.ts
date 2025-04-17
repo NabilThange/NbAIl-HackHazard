@@ -91,6 +91,7 @@ export const getGroqTranscription = async (audioFile: File) => {
     const transcription = await groq.audio.transcriptions.create({
       file: audioFile,
       model: "whisper-large-v3", // Or your preferred model
+      language: "en", // Add language hint for potentially better accuracy
       response_format: "json", // Get transcription text
     });
     return transcription.text || ""; // Return the transcribed text
@@ -109,6 +110,11 @@ export const getGroqVisionCompletion = async (userPrompt: string, imageBase64: s
     console.log("Sending to Groq Vision..."); // Debug log
     const chatCompletion = await groq.chat.completions.create({
       messages: [
+        // Add a system prompt for general vision tasks
+        {
+            role: "system",
+            content: "You are a highly intelligent, multimodal AI assistant. A user has provided an image. Your task is to:\n\nClearly and accurately describe the visual content of the image in a structured and detailed way.\n\nIdentify and describe any objects, people, environment, or notable visual elements.\n\nIf there is text present in the image (such as on books, screens, signs, labels, or documents), read and include that text in your output.\n\nUse descriptive language to help the user visualize the image through your words, especially if the image contains diagrams, interfaces, screenshots, or real-world scenes"
+        },
         {
           role: "user",
           content: [
@@ -163,7 +169,7 @@ export const getGroqVisionAnalysis = async (
       messages: [
         {
           role: "system",
-          content: "You are an AI assistant with vision capabilities designed for AR Mode. Analyze the provided image based on the user's query and provide a concise, informative response.",
+          content: "You are an AI assistant with vision capabilities designed for AR Mode. Analyze the provided image based on the user's query. Pay close attention to any text visible in the image (like human facial gesture,posture,book titles, signs, labels, or screen content) and include it accurately in your description. Provide a concise, informative response detailing what you see.",
         },
         {
           role: "user",

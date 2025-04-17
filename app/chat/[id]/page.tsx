@@ -161,7 +161,8 @@ export default function ChatPage() {
       // --- Check if it's an image submission ---
       if (currentImageFile && currentImageBase64) {
         assistantResponse = await getGroqVisionCompletion(
-          currentInput || "Describe this image.", // Use input or default prompt
+          // Use input or improved default prompt asking to read text.
+          currentInput || "Describe this image in detail. If there is any readable text in the image (e.g., on signs, books, screens), please include it in your description.", 
           currentImageBase64,
           currentImageFile.type
         )

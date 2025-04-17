@@ -125,8 +125,8 @@ export default function ARModePage() {
     console.log("Frame captured, sending for analysis...")
 
     try {
-      // Use the default query when only image is captured
-      const response = await getGroqVisionAnalysis(imageDataUrl, "Describe what you see in detail.")
+      // Use the default query when only image is captured, asking it to read text.
+      const response = await getGroqVisionAnalysis(imageDataUrl, "Describe what you see in detail. Pay special attention to reading any text you can find in the image (e.g., human facial gesture, posture, book titles, signs, labels, screen content) and include it in your description.")
       setAiResponse(response)
       setStatusMessage(null) // Clear status on success
       // Optionally speak the response

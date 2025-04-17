@@ -212,8 +212,19 @@ export default function ARModePage() {
 
             {/* Response Area (Placeholder) */}
             {lastResponse && (
-                <div className="bg-black/70 backdrop-blur-sm p-4 rounded-lg max-w-lg mx-auto text-center mb-4 pointer-events-auto">
-                    <p>{lastResponse}</p>
+                // Apply terminal-like styling
+                <div className="bg-[#24233b]/90 border border-gray-700 shadow-lg rounded-lg max-w-lg mx-auto mb-4 pointer-events-auto font-mono text-left overflow-hidden">
+                    {/* Optional: Add a title bar like the example */}
+                    <div className="bg-gray-800/50 px-4 py-2 flex items-center space-x-2">
+                        <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+                        <span className="w-3 h-3 bg-yellow-500 rounded-full"></span>
+                        <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                        <span className="text-xs text-gray-400 flex-1 text-center">AI Response</span>
+                    </div>
+                    {/* Response text content */}
+                    <p className="p-4 text-gray-200 text-sm whitespace-pre-wrap break-words">
+                        {lastResponse}
+                    </p>
                 </div>
             )}
 

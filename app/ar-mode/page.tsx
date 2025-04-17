@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Camera, Mic, Loader2, AlertTriangle, Volume2, X } from "lucide-react"
+import { ArrowLeft, Camera, Mic, Loader2, AlertTriangle, Volume2, X, RefreshCw } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 // Import the new service function
 import { getGroqVisionAnalysis, getGroqTranscription } from "@/lib/groq-service"
@@ -30,6 +30,15 @@ export default function ARModePage() {
   // Function to setup camera
   const setupCamera = useCallback(async () => {
     setError(null)
+    // Stop previous stream if it exists (important when flipping)
+    setStream(currentStream => {
+      if (currentStream) {
+        console.log("Stopping previous camera stream...")
+        currentStream.getTracks().forEach((track) => track.stop())
+      }
+      return null;
+    });
+    console.log(`Attempting to access ${isFrontCamera ? 'front' : 'rear'} camera...`)
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: isFrontCamera ? "user" : "environment" },
@@ -53,18 +62,14 @@ export default function ARModePage() {
          setError("An unknown error occurred while accessing the camera.")
       }
     }
-  }, [])
+  }, [isFrontCamera])
 
-  // Setup camera on mount
+  // Setup camera on mount and when isFrontCamera changes
   useEffect(() => {
-    // Only call setupCamera once on mount
-    if (!stream) {
-       setupCamera()
-    }
-    
-    // Cleanup stream on unmount using the stream state variable
+    setupCamera()
+
+    // Cleanup stream on unmount
     return () => {
-      // Access the current value of stream state inside the cleanup function
       setStream(currentStream => {
         if (currentStream) {
           console.log("Cleaning up camera stream...")
@@ -73,9 +78,7 @@ export default function ARModePage() {
         return null; // Ensure stream state is reset
       });
     }
-  // Remove stream from dependencies, rely on mount/unmount behavior
-  // setupCamera is stable due to useCallback([])
-  }, [setupCamera])
+  }, [setupCamera, isFrontCamera])
 
   // Function to capture frame
   const captureFrame = useCallback((): string | null => {
@@ -138,6 +141,13 @@ export default function ARModePage() {
       setIsAnalyzing(false)
     }
   }, [captureFrame])
+
+  // --- Flip Camera ---
+  const handleFlipCamera = () => {
+    console.log("Flipping camera...")
+    setIsFrontCamera((prev) => !prev)
+    // State update will trigger useEffect to call setupCamera
+  }
 
   // --- Microphone Toggle Logic ---
   const handleMicToggle = () => {
@@ -393,7 +403,7 @@ export default function ARModePage() {
            className="group rounded-full w-12 h-12 p-0 bg-white/20 hover:bg-white/30 border border-white/30 text-white disabled:opacity-50 transition-all duration-200 relative shadow-lg hover:shadow-purple-500/30 hover:border-purple-400"
            aria-label="Toggle Camera"
          >
-           <FlipHorizontal className="h-5 w-5" />
+           <RefreshCw className="h-5 w-5" />
          </Button>
 
          {/* Camera Button */} 

@@ -667,7 +667,8 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-black/[0.96] antialiased bg-grid-white/[0.02] relative overflow-hidden">
+    // Use dynamic viewport height (dvh) and remove overflow-hidden for potential debugging
+    <div className="flex flex-col h-dvh bg-black/[0.96] antialiased bg-grid-white/[0.02] relative">
       {/* Black overlay for better readability */}
       <div className="absolute inset-0 bg-black/30 z-0"></div>
       {/* Interactive background with moving particles */}
@@ -684,7 +685,7 @@ export default function ChatPage() {
       </div>
 
       {/* Chat messages */}
-      <main className="flex-1 overflow-y-auto px-4 pt-4 pb-4 md:px-6 md:pt-16 relative z-10">
+      <main className="flex-1 overflow-y-auto px-4 pt-4 pb-0 md:px-6 md:pt-16 relative z-10">
         <div className="max-w-3xl mx-auto space-y-6">
           {messages.length === 0 ? (
             // Simple empty chat message (Spline removed)

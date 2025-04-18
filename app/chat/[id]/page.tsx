@@ -7,7 +7,7 @@ import { useParams, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Glasses, Mic, Paperclip, X, ArrowUp, Plus, Monitor, AudioWaveform, Image as ImageIcon } from "lucide-react"
+import { Glasses, Mic, Paperclip, X, ArrowUp, Plus, Monitor, AudioWaveform, Image as ImageIcon, MessageSquare } from "lucide-react"
 import Link from "next/link"
 import { SparklesCore } from "@/components/sparkles"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -207,89 +207,66 @@ export default function ChatPage() {
     }
   }
 
-  // --- Rewritten Audio Recording Logic ---
-
-  // Function to handle starting the recording
-  const startRecording = async () => {
+  // --- Add Audio Recording Logic --- 
+  const handleMicMouseDown = async () => {
     if (isRecording || typeof navigator === 'undefined' || !navigator.mediaDevices) {
       console.warn("Media devices not available or already recording.")
       return
     }
 
     try {
-      // 1. Get Audio Stream
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      // Ensure explicit MIME type if possible
+      mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+      audioChunksRef.current = [] // Reset chunks
 
-      // 2. Create MediaRecorder
-      // Use a specific MIME type if needed and supported, otherwise let the browser choose default (often webm)
-      const options = { mimeType: 'audio/webm;codecs=opus' }; // Try webm with opus codec explicitly
-      let recorder;
-      try {
-          recorder = new MediaRecorder(stream, options);
-      } catch (e1) {
-          console.warn(`MediaRecorder with ${options.mimeType} failed: ${e1}. Trying default.`);
-          try {
-              recorder = new MediaRecorder(stream); // Fallback to browser default
-          } catch (e2) {
-              console.error("MediaRecorder creation failed:", e2);
-              alert("Could not create audio recorder. Your browser might not support it.");
-              stream.getTracks().forEach(track => track.stop()); // Clean up stream
-              return;
-          }
-      }
-      mediaRecorderRef.current = recorder;
-      console.log("Using MediaRecorder with MIME type:", mediaRecorderRef.current.mimeType);
-
-      // 3. Clear previous chunks
-      audioChunksRef.current = []
-
-      // 4. Handle Data Available
       mediaRecorderRef.current.ondataavailable = (event) => {
         if (event.data.size > 0) {
+          console.log(`[ChatPage] MicInput ondataavailable: chunk size ${event.data.size}`);
           audioChunksRef.current.push(event.data)
         }
       }
 
-      // 5. Handle Recording Stop
       mediaRecorderRef.current.onstop = async () => {
-        const mimeType = mediaRecorderRef.current?.mimeType || 'audio/webm'; // Get the actual mimeType used
-        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
-        const blobSize = audioBlob.size;
-        console.log(`Audio Blob Size: ${blobSize} bytes, Type: ${mimeType}`);
+        // Combine chunks into a single Blob
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm;codecs=opus" }); 
+        const audioFile = new File([audioBlob], "recording.webm", { type: "audio/webm;codecs=opus" });
 
-        // Stop tracks *immediately* after creating the blob
-        // We get the stream from the recorder itself if available
-        mediaRecorderRef.current?.stream?.getTracks().forEach(track => track.stop()); 
+        // Log blob size before sending
+        console.log(`[ChatPage] MicInput onstop: Audio Blob size: ${audioBlob.size}, chunks: ${audioChunksRef.current.length}`);
 
-        // Reset recording state early
-        setIsRecording(false);
-        setIsMicActive(false);
-
-        if (blobSize === 0) {
-            console.error("Audio Blob is empty. Skipping transcription.");
-            setInput("Error: Failed to record audio. Please try again.");
-            return; // Stop execution here
+        // --- Check for empty blob BEFORE proceeding --- 
+        if (audioBlob.size === 0) {
+            console.error("[ChatPage] MicInput onstop: Audio Blob is empty. Skipping transcription.");
+            setInput("Recording failed (empty audio). Please try again."); // User feedback
+            setIsRecording(false)
+            setIsMicActive(false)
+            setIsTranscribing(false) // Ensure this is reset
+            // Clean up stream tracks
+            stream.getTracks().forEach(track => track.stop());
+            return; // Exit early
         }
+        // --------------------------------------------
 
-        setIsTranscribing(true); // Set transcribing state only if blob is valid
+        setIsRecording(false)
+        setIsMicActive(false)
+        setIsTranscribing(true) // Set transcribing state only if blob is valid
 
         try {
-            const fileName = mimeType.includes('opus') ? "recording.opus" : "recording.webm";
-            const audioFile = new File([audioBlob], fileName, { type: mimeType });
-            const transcribedText = await getGroqTranscription(audioFile);
-            console.log("Raw Transcription Result:", transcribedText);
-
-            if (transcribedText && !transcribedText.startsWith("Sorry")) {
+            const transcription = await getGroqTranscription(audioFile)
+            console.log("Transcription:", transcription)
+            
+            if (transcription && !transcription.toLowerCase().startsWith("sorry") && transcription.trim().length > 0) {
                 // Check specifically for empty or "you" transcription
-                if (transcribedText.trim() === "" || transcribedText.trim().toLowerCase() === "you") {
+                if (transcription.trim() === "" || transcription.trim().toLowerCase() === "you") {
                     setInput("Transcription seems invalid. Please try speaking clearly.");
                     console.warn("Transcription resulted in empty or 'you'.");
                 } else {
-                    setInput(transcribedText);
+                    setInput(transcription);
                 }
             } else {
                 setInput("Transcription failed or returned an error message. Please try again.");
-                console.warn("Transcription failed or returned 'Sorry'. Original text:", transcribedText);
+                console.warn("Transcription failed or returned 'Sorry'. Original text:", transcription);
             }
         } catch (error) {
             console.error("Transcription API call failed:", error);
@@ -297,13 +274,14 @@ export default function ChatPage() {
         } finally {
             setIsTranscribing(false);
         }
-      };
+      }
 
-      // 6. Start Recording
-      mediaRecorderRef.current.start()
+      // --- Start recording with a timeslice --- 
+      mediaRecorderRef.current.start(250); // Collect data every 250ms
+      console.log("[ChatPage] MicInput recording started with timeslice.");
+      // --------------------------------------
       setIsRecording(true)
       setIsMicActive(true) // Update visual state
-      setInput("") // Clear input field when starting recording
 
     } catch (error) {
       console.error("Error accessing microphone or starting recording:", error)
@@ -313,21 +291,7 @@ export default function ChatPage() {
     }
   }
 
-  // Function to handle stopping the recording
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-        console.log("Stopping recording...");
-        mediaRecorderRef.current.stop()
-        // onstop event handles the rest (state updates, transcription)
-    } else {
-        console.log("Stop recording called but not currently recording.");
-        // Ensure states are reset if stop is called unexpectedly
-        setIsRecording(false);
-        setIsMicActive(false);
-    }
-  }
-
-  // --- End Rewritten Audio Recording Logic ---
+  // --- End Add Audio Recording Logic ---
 
   // --- Add File Handling Logic ---
   const handleFileButtonClick = () => {
@@ -608,23 +572,13 @@ export default function ChatPage() {
       <main className="flex-1 overflow-y-auto px-4 pt-16 pb-0 md:px-6 md:pt-16 md:pb-0 relative z-10">
         <div className="max-w-3xl mx-auto space-y-6">
           {messages.length === 0 ? (
-            // Replace the empty chat message with the Spline viewer
-            <div className="flex flex-col items-center justify-center min-h-[60vh] md:min-h-[calc(100vh-200px)]">
-              {/* Ensure the script is loaded */}
-              <SplineScript />
-              {/* Spline Viewer Embed */}
-              {/* ts-ignore Property 'spline-viewer' does not exist on type 'JSX.IntrinsicElements'. */}
-              <spline-viewer
-                url="https://prod.spline.design/qCEGpu69o0sy21p3/scene.splinecode"
-                style={{
-                  width: '100%',
-                  height: '600px', // Increased height
-                  maxHeight: '80vh', // Increased max height
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  margin: 'auto', // Center horizontally
-                }}
-              >{/* ts-ignore */}</spline-viewer>
+            // Simple empty chat message (Spline removed)
+            <div className="flex flex-col items-center justify-center min-h-[60vh]">
+              <div className="text-center text-gray-400">
+                <MessageSquare className="h-16 w-16 mx-auto mb-4 text-gray-600" />
+                <h3 className="text-xl font-medium text-white mb-2">Start a conversation</h3>
+                <p>Ask NbAIl anything, or try using the mic!</p>
+              </div>
             </div>
           ) : (
             messages.map((message) => (
@@ -883,10 +837,10 @@ export default function ChatPage() {
                       <button
                         type="button"
                         className={`p-2 text-gray-400 hover:text-white rounded-full hover:bg-gray-800/50 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center ${isRecording ? 'bg-red-500/30' : ''} ${isTranscribing ? 'cursor-not-allowed' : ''}`}
-                        onMouseDown={startRecording}
-                        onMouseUp={stopRecording}
-                        onTouchStart={startRecording}
-                        onTouchEnd={stopRecording}
+                        onMouseDown={handleMicMouseDown}
+                        onMouseUp={() => {}}
+                        onTouchStart={handleMicMouseDown}
+                        onTouchEnd={() => {}}
                         disabled={isTranscribing}
                       >
                         {isTranscribing ? (
@@ -1014,13 +968,6 @@ export default function ChatPage() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Load Spline Viewer Script */}
-      {/* Ensure Spline script loads before the component tries to render it */}
-      <Script
-        src="https://unpkg.com/@splinetool/viewer@1.9.82/build/spline-viewer.js"
-        strategy="beforeInteractive"
-      />
     </div>
   )
 }

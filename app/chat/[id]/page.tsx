@@ -16,6 +16,7 @@ import type { Chat, Message, Attachment } from "@/types/chat"
 import { getGroqChatCompletion, getGroqTranscription, getGroqVisionCompletion } from "@/lib/groq-service"
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import Script from "next/script"
 
 // Import the Spline viewer script - ensure this script tag is placed appropriately,
 // potentially in the head of your document or just before the spline-viewer component.
@@ -1009,6 +1010,13 @@ export default function ChatPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Load Spline Viewer Script */}
+      {/* Ensure Spline script loads before the component tries to render it */}
+      <Script
+        src="https://unpkg.com/@splinetool/viewer@1.9.82/build/spline-viewer.js"
+        strategy="beforeInteractive"
+      />
     </div>
   )
 }

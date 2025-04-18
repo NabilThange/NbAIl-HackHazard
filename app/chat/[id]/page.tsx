@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import Vapi from "@vapi-ai/web"; // Import Vapi
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Glasses, Mic, Paperclip, X, ArrowUp, Plus, Monitor, AudioWaveform, Image as ImageIcon, MessageSquare, PhoneOff } from "lucide-react"
+import { Glasses, Mic, Paperclip, X, ArrowUp, Plus, Monitor, AudioWaveform, Image as ImageIcon, MessageSquare, PhoneOff, Bot } from "lucide-react"
 import Link from "next/link"
 import { SparklesCore } from "@/components/sparkles"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -50,7 +50,10 @@ export default function ChatPage() {
   const [isVoiceRecordingOverlay, setIsVoiceRecordingOverlay] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [isVapiCallActive, setIsVapiCallActive] = useState(false);
-  const vapiInstance = useRef<Vapi | null>(null); // Ref to store Vapi instance
+  const [isUserSpeaking, setIsUserSpeaking] = useState(false);
+  const [isAssistantSpeaking, setIsAssistantSpeaking] = useState(false);
+  const vapiInstance = useRef<Vapi | null>(null);
+  const userSpeakingTimerRef = useRef<NodeJS.Timeout | null>(null); // Timer for user speaking indicator
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
@@ -552,42 +555,76 @@ export default function ChatPage() {
 
   // Initialize Vapi on component mount
   useEffect(() => {
-    // IMPORTANT: Replace with your actual Vapi Public Key
     const vapiPublicKey = "888e74e8-5bc3-4d36-92c9-7e8a414e2291"; 
     if (!vapiPublicKey) {
-        console.error("Vapi Public Key is not set!");
-        return;
+      console.error("Vapi Public Key is not set!");
+      return;
     }
     const vapi = new Vapi(vapiPublicKey);
     vapiInstance.current = vapi;
 
     // --- Vapi Event Listeners ---
     vapi.on("call-start", () => {
-        console.log("[Vapi] Call has started.");
-        setIsVapiCallActive(true);
+      console.log("[Vapi] Call has started.");
+      setIsVapiCallActive(true);
+      setIsUserSpeaking(false); // Reset speaking states on new call
+      setIsAssistantSpeaking(false);
     });
 
     vapi.on("call-end", () => {
-        console.log("[Vapi] Call has ended.");
-        setIsVapiCallActive(false);
+      console.log("[Vapi] Call has ended.");
+      setIsVapiCallActive(false);
+      setIsUserSpeaking(false);
+      setIsAssistantSpeaking(false);
+    });
+    
+    // Assistant Speech Detection
+    vapi.on("speech-start", () => {
+        console.log("[Vapi] Assistant speech started.");
+        setIsAssistantSpeaking(true);
+        setIsUserSpeaking(false); // Assume user stops when assistant starts
+        if (userSpeakingTimerRef.current) clearTimeout(userSpeakingTimerRef.current);
+    });
+
+    vapi.on("speech-end", () => {
+        console.log("[Vapi] Assistant speech ended.");
+        setIsAssistantSpeaking(false);
+    });
+    
+    // User Speech Detection (using volume level)
+    vapi.on("volume-level", (volume) => {
+      // Simple threshold detection - adjust threshold (0.1) as needed
+      const threshold = 0.1;
+      if (volume > threshold && !isAssistantSpeaking) { // Only trigger if assistant isn't speaking
+        setIsUserSpeaking(true);
+        // Reset timer if already running
+        if (userSpeakingTimerRef.current) clearTimeout(userSpeakingTimerRef.current);
+        // Set a timer to turn off user speaking indicator after silence
+        userSpeakingTimerRef.current = setTimeout(() => {
+          setIsUserSpeaking(false);
+        }, 1000); // Adjust timeout (1 second) as needed
+      } 
     });
 
     vapi.on("error", (e) => {
-        console.error("[Vapi] Error:", e);
-        setIsVapiCallActive(false); // Ensure state is reset on error
+      console.error("[Vapi] Error:", e);
+      setIsVapiCallActive(false); 
+      setIsUserSpeaking(false);
+      setIsAssistantSpeaking(false);
     });
     
     // Cleanup listeners on unmount
     return () => {
-        console.log("[Vapi] Cleaning up Vapi listeners and instance.");
-        vapi.removeAllListeners();
-        // Check if stop is needed only if a call might be active
-        // if (vapiInstance.current?.isCallActive) { // Hypothetical check
-        //    vapiInstance.current?.stop(); 
-        // }
-        vapiInstance.current = null; // Clean up the instance ref
+      console.log("[Vapi] Cleaning up Vapi listeners and instance.");
+      vapi.removeAllListeners();
+      if (userSpeakingTimerRef.current) clearTimeout(userSpeakingTimerRef.current);
+      // Optional: Stop call on unmount if active
+      // if (vapiInstance.current && vapiInstance.current.isCallActive) { 
+      //   vapiInstance.current.stop();
+      // }
+      vapiInstance.current = null;
     };
-  }, []); // Empty dependency array ensures this runs only once
+  }, []); // Empty dependency array
 
   // --- Vapi Button Handler ---
   const handleVapiButtonClick = () => {
@@ -983,22 +1020,17 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Voice Assistant Overlay */} 
+      {/* Vapi Call Overlay */} 
       <AnimatePresence>
-        {isVoiceOverlayOpen && (
+        {isVapiCallActive && (
           <motion.div
+            key="vapi-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 p-4"
-            onClick={(e) => { 
-              if (e.target === e.currentTarget) {
-                // closeVoiceOverlay(); // Might be too sensitive
-              }
-            }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           >
             {/* Spline Viewer as Background */} 
-            {/* @ts-ignore */} 
             <spline-viewer
               url="https://prod.spline.design/IuYdAhKFWxs0vp0f/scene.splinecode"
               style={{
@@ -1007,43 +1039,58 @@ export default function ChatPage() {
                 left: 0,
                 width: '100%',
                 height: '100%',
-                zIndex: 1, // Behind controls
+                zIndex: 0, // Behind controls
               }}
+              loading-anim-type="none" // Optional: remove default loading animation
             />
 
-            {/* Close Button (ensure it's above spline) */} 
+            {/* Close Button (Top Right) */} 
             <button
-              onClick={closeVoiceOverlay}
-              className="absolute top-4 right-4 text-gray-300 hover:text-white transition-colors p-2 rounded-full bg-white/10 hover:bg-white/20 z-10" // Increased z-index
-              aria-label="Close voice assistant"
+              onClick={() => vapiInstance.current?.stop()} // Stop call on click
+              className="absolute top-6 right-6 text-gray-300 hover:text-white transition-colors p-2 rounded-full bg-white/10 hover:bg-white/20 z-10"
+              aria-label="End Vapi call"
             >
               <X className="h-6 w-6" />
             </button>
 
-            {/* Microphone/Status Indicator (ensure it's above spline) */} 
-            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center z-10 bg-black/50 backdrop-blur-sm px-4 py-2 rounded-full"> {/* Increased z-index & added background */} 
-              {isVoiceRecordingOverlay && !isSpeaking && (
-                <div className="flex items-center space-x-2 text-purple-300 animate-pulse">
-                  <Mic className="h-5 w-5" />
-                  <span className="text-sm">Listening...</span>
+            {/* Status/Animation Indicator (Bottom Center) */} 
+            <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-center z-10 flex flex-col items-center space-y-2">
+                {/* Speaking Animation */} 
+                <div className="relative h-16 w-16">
+                    {/* Base circle */} 
+                    <div className="absolute inset-0 rounded-full bg-white/10 border border-white/20"></div>
+                    {/* Pulsing animation for speaking */} 
+                    {(isUserSpeaking || isAssistantSpeaking) && (
+                        <motion.div 
+                            className={`absolute inset-0 rounded-full ${isUserSpeaking ? 'bg-blue-500/30 border-blue-400' : 'bg-purple-500/30 border-purple-400'} border-2`}
+                            animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0.8, 0.5] }}
+                            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                    )}
+                    {/* Central Icon */} 
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        {isAssistantSpeaking ? (
+                            <Bot className="h-8 w-8 text-purple-300" /> 
+                        ) : (
+                            <Mic className={`h-8 w-8 ${isUserSpeaking ? 'text-blue-300' : 'text-gray-400'}`} />
+                        )}
+                    </div>
                 </div>
-              )}
-              {isSpeaking && (
-                <div className="flex items-center space-x-2 text-green-300">
-                  <AudioWaveform className="h-5 w-5 animate-pulse" />
-                  <span className="text-sm">Speaking...</span>
-                </div>
-              )}
-              {!isVoiceRecordingOverlay && !isSpeaking && (
-                 <div className="flex items-center space-x-2 text-gray-400">
-                   <Mic className="h-5 w-5" />
-                   <span className="text-sm">Processing...</span> {/* Updated message */} 
-                 </div>
-              )}
+                 {/* Text Indicator */} 
+                <span className="text-sm text-gray-300 px-3 py-1 bg-black/40 rounded-full">
+                    {isAssistantSpeaking ? "Assistant Speaking..." : isUserSpeaking ? "Listening..." : "Connecting..."}
+                </span>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Load Spline Viewer Script (Ensure it's loaded) */}
+      <Script 
+        src="https://unpkg.com/@splinetool/viewer@1.9.82/build/spline-viewer.js" 
+        strategy="lazyOnload" // Or beforeInteractive if needed earlier
+        type="module"
+      />
     </div>
   )
 }

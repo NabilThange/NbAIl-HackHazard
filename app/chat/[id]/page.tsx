@@ -5,9 +5,10 @@ import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
+import Vapi from "@vapi-ai/web"; // Import Vapi
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Glasses, Mic, Paperclip, X, ArrowUp, Plus, Monitor, AudioWaveform, Image as ImageIcon, MessageSquare } from "lucide-react"
+import { Glasses, Mic, Paperclip, X, ArrowUp, Plus, Monitor, AudioWaveform, Image as ImageIcon, MessageSquare, PhoneOff } from "lucide-react"
 import Link from "next/link"
 import { SparklesCore } from "@/components/sparkles"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -48,6 +49,8 @@ export default function ChatPage() {
   const [isVoiceOverlayOpen, setIsVoiceOverlayOpen] = useState(false)
   const [isVoiceRecordingOverlay, setIsVoiceRecordingOverlay] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
+  const [isVapiCallActive, setIsVapiCallActive] = useState(false);
+  const vapiInstance = useRef<Vapi | null>(null); // Ref to store Vapi instance
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
@@ -547,6 +550,68 @@ export default function ChatPage() {
     // No cleanup needed here as closeVoiceOverlay handles stopping
   }, [isVoiceOverlayOpen])
 
+  // Initialize Vapi on component mount
+  useEffect(() => {
+    // IMPORTANT: Replace with your actual Vapi Public Key
+    const vapiPublicKey = "888e74e8-5bc3-4d36-92c9-7e8a414e2291"; 
+    if (!vapiPublicKey) {
+        console.error("Vapi Public Key is not set!");
+        return;
+    }
+    const vapi = new Vapi(vapiPublicKey);
+    vapiInstance.current = vapi;
+
+    // --- Vapi Event Listeners ---
+    vapi.on("call-start", () => {
+        console.log("[Vapi] Call has started.");
+        setIsVapiCallActive(true);
+    });
+
+    vapi.on("call-end", () => {
+        console.log("[Vapi] Call has ended.");
+        setIsVapiCallActive(false);
+    });
+
+    vapi.on("error", (e) => {
+        console.error("[Vapi] Error:", e);
+        setIsVapiCallActive(false); // Ensure state is reset on error
+    });
+    
+    // Cleanup listeners on unmount
+    return () => {
+        console.log("[Vapi] Cleaning up Vapi listeners and instance.");
+        vapi.removeAllListeners();
+        // Check if stop is needed only if a call might be active
+        // if (vapiInstance.current?.isCallActive) { // Hypothetical check
+        //    vapiInstance.current?.stop(); 
+        // }
+        vapiInstance.current = null; // Clean up the instance ref
+    };
+  }, []); // Empty dependency array ensures this runs only once
+
+  // --- Vapi Button Handler ---
+  const handleVapiButtonClick = () => {
+    if (!vapiInstance.current) {
+        console.error("Vapi instance not initialized!");
+        return;
+    }
+    // IMPORTANT: Replace with your actual Vapi Assistant ID
+    const assistantId = "65543920-511e-4639-b0d2-27dd86c41335"; 
+    if (!assistantId) {
+        console.error("Vapi Assistant ID is not set!");
+        return;
+    }
+
+    if (isVapiCallActive) {
+        console.log("[Vapi] Stopping call...");
+        vapiInstance.current.stop();
+    } else {
+        console.log(`[Vapi] Starting call with Assistant ID: ${assistantId}...`);
+        vapiInstance.current.start(assistantId);
+    }
+  };
+  // --------------------------
+
   // If still loading or no chat is found, show loading
   if (isLoading) {
     return (
@@ -878,30 +943,28 @@ export default function ChatPage() {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
-                        type={input.trim() || selectedImageFile ? "submit" : "button"}
-                        onClick={(e) => {
-                          if (input.trim() || selectedImageFile) {
-                            handleSubmit(e)
-                          } else {
-                            setIsVoiceOverlayOpen(true)
-                          }
-                        }}
-                        disabled={isTranscribing || isRecording}
-                        className={`p-2 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-md hover:shadow-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed ${
-                          input.trim() || selectedImageFile
-                            ? "bg-purple-600 hover:bg-purple-700 text-white"
-                            : "bg-gray-700 hover:bg-gray-600 text-purple-400"
+                        type="button"
+                        onClick={handleVapiButtonClick} // Changed onClick handler
+                        disabled={isTranscribing || isRecording} // Keep original disabled conditions
+                        className={`p-2 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-md hover:shadow-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed ${ 
+                          isVapiCallActive
+                            ? "bg-red-600 hover:bg-red-700 text-white animate-pulse" // Active state styling
+                            : input.trim() || selectedImageFile
+                            ? "bg-purple-600 hover:bg-purple-700 text-white" // Send message state
+                            : "bg-gray-700 hover:bg-gray-600 text-purple-400" // Default Vapi state
                         }`}
                       >
-                        {input.trim() || selectedImageFile ? (
-                          <ArrowUp className="h-5 w-5" />
+                        {isVapiCallActive ? (
+                          <PhoneOff className="h-5 w-5" /> // Icon for active call
+                        ) : input.trim() || selectedImageFile ? (
+                          <ArrowUp className="h-5 w-5" /> // Icon for sending message
                         ) : (
-                          <AudioWaveform className="h-5 w-5" />
+                          <AudioWaveform className="h-5 w-5" /> // Default Vapi icon
                         )}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent side="top">
-                      <p>{input.trim() || selectedImageFile ? "Send Message" : "Activate Voice Assistant"}</p>
+                      <p>{isVapiCallActive ? "End Vapi Call" : input.trim() || selectedImageFile ? "Send Message" : "Start Vapi Call"}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

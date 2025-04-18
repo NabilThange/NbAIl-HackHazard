@@ -291,7 +291,18 @@ export default function ChatPage() {
     }
   }
 
-  // --- End Add Audio Recording Logic ---
+  // --- Function to stop recording --- 
+  const handleMicMouseUp = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      console.log("[ChatPage] MicInput mouse/touch up: Stopping recording...");
+      mediaRecorderRef.current.stop(); 
+      // onstop event handles the rest (state updates, transcription)
+    } else {
+      // This might happen if the up event fires before start completes or after stop
+      console.log("[ChatPage] MicInput mouse/touch up: Not recording or recorder not ready.");
+    }
+  }
+  // ----------------------------------
 
   // --- Add File Handling Logic ---
   const handleFileButtonClick = () => {
@@ -838,9 +849,9 @@ export default function ChatPage() {
                         type="button"
                         className={`p-2 text-gray-400 hover:text-white rounded-full hover:bg-gray-800/50 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center ${isRecording ? 'bg-red-500/30' : ''} ${isTranscribing ? 'cursor-not-allowed' : ''}`}
                         onMouseDown={handleMicMouseDown}
-                        onMouseUp={() => {}}
+                        onMouseUp={handleMicMouseUp}
                         onTouchStart={handleMicMouseDown}
-                        onTouchEnd={() => {}}
+                        onTouchEnd={handleMicMouseUp}
                         disabled={isTranscribing}
                       >
                         {isTranscribing ? (

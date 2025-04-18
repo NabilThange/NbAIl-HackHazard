@@ -91,11 +91,17 @@ export const getGroqTranscription = async (audioFile: File) => {
     console.log(`[groq-service] Sending audio file to transcription: ${audioFile.name}, size: ${audioFile.size}, type: ${audioFile.type}`);
     const transcription = await groq.audio.transcriptions.create({
       file: audioFile,
-      model: "whisper-large-v3",
-      response_format: "json",
+      model: "whisper-large-v3-turbo",
+      language: "en",
+      response_format: "verbose_json",
     });
-    console.log("[groq-service] Full transcription response:", JSON.stringify(transcription)); // Log the full response
-    return transcription.text || "";
+    console.log("[groq-service] Full VERBOSE transcription response:", JSON.stringify(transcription));
+    
+    const text = (transcription as any)?.text || "";
+    
+    console.log(`[groq-service] Extracted text: "${text}"`);
+
+    return text;
   } catch (error) {
     console.error("[groq-service] Error getting Groq transcription:", error);
     return "Sorry, there was an error transcribing the audio.";

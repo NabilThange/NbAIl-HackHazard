@@ -463,12 +463,13 @@ export default function ChatPage() {
 
         // Only process if we are in overlay mode and have chunks
         if (isVoiceOverlayOpen && audioChunksRef.current.length > 0) {
-            // Revert back to audio/webm
-            const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" })
+            const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm;codecs=opus" });
+            // Log blob size before processing
+            console.log(`[ChatPage] Overlay onstop: Audio Blob size: ${audioBlob.size}, chunks: ${audioChunksRef.current.length}`);
             // Process the audio for TTS response *without* adding to chat messages
             await processVoiceInput(audioBlob)
         } else {
-            console.log("Skipping processing: Not in overlay mode or no audio chunks.")
+            console.warn("[ChatPage] Overlay onstop: Skipping processing - not in overlay or no audio chunks.");
         }
         
         // Reset state regardless of processing
@@ -492,14 +493,17 @@ export default function ChatPage() {
 
   // Placeholder for handling audio processing and TTS
   const processVoiceInput = async (audioBlob: Blob) => {
-    console.log("Processing voice input... Blob size:", audioBlob.size)
+    // console.log("Processing voice input... Blob size:", audioBlob.size) // Remove log
     if (audioBlob.size === 0) {
-      console.warn("Skipping processing: Empty audio blob.")
+      console.warn("[ChatPage] processVoiceInput: Skipping processing - Empty audio blob.");
       setIsVoiceRecordingOverlay(false) // Ensure state is reset
       setIsSpeaking(false)
       return
     }
     
+    // Log blob size just before API call
+    console.log(`[ChatPage] processVoiceInput: Processing blob size: ${audioBlob.size}`);
+
     setIsVoiceRecordingOverlay(false) // Recording stopped, now processing
     setIsSpeaking(true) // Indicate processing/speaking phase
     try {

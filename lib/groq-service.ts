@@ -88,15 +88,16 @@ Always format your responses using clear Markdown syntax (bold, italics, lists, 
 
 export const getGroqTranscription = async (audioFile: File) => {
   try {
+    console.log(`[groq-service] Sending audio file to transcription: ${audioFile.name}, size: ${audioFile.size}, type: ${audioFile.type}`);
     const transcription = await groq.audio.transcriptions.create({
       file: audioFile,
-      model: "whisper-large-v3-turbo", // Switch back to turbo model
-      language: "en", // Reinstate language hint
-      response_format: "json", // Get transcription text
+      model: "whisper-large-v3",
+      response_format: "json",
     });
-    return transcription.text || ""; // Return the transcribed text
+    console.log("[groq-service] Full transcription response:", JSON.stringify(transcription)); // Log the full response
+    return transcription.text || "";
   } catch (error) {
-    console.error("Error getting Groq transcription:", error);
+    console.error("[groq-service] Error getting Groq transcription:", error);
     return "Sorry, there was an error transcribing the audio.";
   }
 };

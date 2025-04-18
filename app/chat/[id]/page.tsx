@@ -218,6 +218,8 @@ export default function ChatPage() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       // Ensure explicit MIME type if possible
       mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+      // Log the actual mimeType being used
+      console.log("[ChatPage] MediaRecorder created with MIME type:", mediaRecorderRef.current.mimeType);
       audioChunksRef.current = [] // Reset chunks
 
       mediaRecorderRef.current.ondataavailable = (event) => {

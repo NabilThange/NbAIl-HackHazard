@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
     // Vapi sends data as JSON in the request body
     requestBody = await request.json();
     console.log('Vapi Webhook Body:', JSON.stringify(requestBody, null, 2)); // Log the parsed body
+    // Added a comment to trigger redeployment
   } catch (error) {
     console.error('Error parsing JSON body:', error);
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });

@@ -29,6 +29,22 @@ export async function POST(request: NextRequest) {
   return NextResponse.json(responsePayload);
 }
 
+export async function PATCH(request: NextRequest) {
+  console.log('✅ Received PATCH request on /api/vapi-handler');
+
+  let requestBody;
+  try {
+    requestBody = await request.json();
+    console.log('PATCH Body:', JSON.stringify(requestBody, null, 2));
+  } catch (error) {
+    console.error('Error parsing PATCH JSON:', error);
+    return NextResponse.json({ error: 'Invalid PATCH body' }, { status: 400 });
+  }
+
+  // Acknowledge receipt of the PATCH request
+  return NextResponse.json({ status: "PATCH received" });
+}
+
 // Optional: Handle GET requests or other methods if needed, or return 405 Method Not Allowed
 export async function GET() {
   return NextResponse.json({ error: 'Method Not Allowed' }, { status: 405 });

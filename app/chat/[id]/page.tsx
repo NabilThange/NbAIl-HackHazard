@@ -596,7 +596,11 @@ export default function ChatPage() {
       // Simple threshold detection - adjust threshold (0.1) as needed
       const threshold = 0.1;
       if (volume > threshold && !isAssistantSpeaking) { // Only trigger if assistant isn't speaking
-        setIsUserSpeaking(true);
+        // --- Optimization: Only set state if it's not already true --- 
+        if (!isUserSpeaking) {
+          setIsUserSpeaking(true);
+        }
+        // ------------------------------------------------------------
         // Reset timer if already running
         if (userSpeakingTimerRef.current) clearTimeout(userSpeakingTimerRef.current);
         // Set a timer to turn off user speaking indicator after silence

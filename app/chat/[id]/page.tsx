@@ -705,13 +705,13 @@ export default function ChatPage() {
       <main className="flex-1 overflow-y-auto px-4 pt-4 pb-0 md:px-6 md:pt-16 relative z-10">
         <div className="max-w-3xl mx-auto space-y-6">
           {messages.length === 0 ? (
-            // Simple empty chat message (Spline removed)
+            // Replace empty chat message with Spline Viewer
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
-              <div className="text-center text-gray-400">
-                <MessageSquare className="h-16 w-16 mx-auto mb-4 text-gray-600" />
-                <h3 className="text-xl font-medium text-white mb-2">Start a conversation</h3>
-                <p>Ask NbAIl anything, or try using the mic!</p>
-              </div>
+              <spline-viewer
+                url="https://prod.spline.design/qCEGpu69o0sy21p3/scene.splinecode"
+                style={{ width: '100%', height: '100%' }} // Changed height to 100%
+                loading-anim-type="none" // Optional: remove default loading animation
+              />
             </div>
           ) : (
             messages.map((message) => (

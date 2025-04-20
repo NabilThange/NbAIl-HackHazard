@@ -649,6 +649,19 @@ export default function ChatPage() {
   };
   // --------------------------
 
+  // --- Combined Send/Vapi Button Handler ---
+  const handleSendOrVapiClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (input.trim() || selectedImageFile) {
+      // If there's text input or an image selected, treat as submit
+      // We need to simulate a form event for handleSubmit
+      handleSubmit(e as unknown as React.FormEvent);
+    } else {
+      // Otherwise, treat as Vapi button click
+      handleVapiButtonClick();
+    }
+  };
+  // --------------------------------------
+
   // If still loading or no chat is found, show loading
   if (isLoading) {
     return (
@@ -982,7 +995,7 @@ export default function ChatPage() {
                     <TooltipTrigger asChild>
                       <Button
                         type="button"
-                        onClick={handleVapiButtonClick} // Changed onClick handler
+                        onClick={handleSendOrVapiClick} // Use the new combined handler
                         disabled={isTranscribing || isRecording} // Keep original disabled conditions
                         className={`p-2 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-md hover:shadow-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed ${ 
                           isVapiCallActive

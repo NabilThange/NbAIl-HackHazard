@@ -177,12 +177,12 @@ export default function Hero() {
                 <div className="w-3 h-3 rounded-full bg-green-500" />
               </div>
             </div>
-            {/* Replace with placeholder.svg */}
+            {/* Replace placeholder image with Spline viewer */}
             <div className="w-full h-[400px] md:h-[500px] lg:h-[600px] bg-gray-900 flex items-center justify-center">
-              <img
-                src="/placeholder.svg?height=600&width=800"
-                alt="NbAIl AI Assistant"
-                className="w-full h-full object-cover"
+              <spline-viewer
+                loading-anim-type="spinner-small-dark"
+                url="https://prod.spline.design/ygyeQTRpiCESn5yD/scene.splinecode"
+                style={{ width: '100%', height: '100%' }} // Use container height
               />
             </div>
           </div>

@@ -1019,7 +1019,7 @@ export default function ChatPage() {
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent side="top">
-                      <p>{isVapiCallActive ? "End Vapi Call" : input.trim() || selectedImageFile ? "Send Message" : "Start Vapi Call"}</p>
+                      <p>{isVapiCallActive ? "End Vapi Call" : input.trim() || selectedImageFile ? "Send Message" : "Talk with NbAIl"}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -1096,7 +1096,7 @@ export default function ChatPage() {
                 </div>
                  {/* Text Indicator */} 
                 <span className="text-sm text-gray-300 px-3 py-1 bg-black/40 rounded-full">
-                    {isAssistantSpeaking ? "Assistant Speaking..." : isUserSpeaking ? "Listening..." : "Connecting..."}
+                    {isAssistantSpeaking ? "Assistant Speaking..." : isUserSpeaking ? "Listening..." : "NbAIl is Listening"}
                 </span>
             </div>
           </motion.div>

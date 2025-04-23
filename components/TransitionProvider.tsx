@@ -63,8 +63,9 @@ export default function TransitionProvider({ children }: { children: React.React
 
       barba.init({
         // debug: true, // Enable more verbose Barba logs if needed
-        prevent: () => false, // TEMPORARILY DISABLED custom prevent logic for debugging
-        /* // Original prevent logic commented out for testing
+        // Restore original prevent logic
+        // prevent: () => false, // TEMPORARILY DISABLED custom prevent logic for debugging - REMOVED
+        // /* // Original prevent logic commented out for testing - REMOVED
         prevent: ({ el, href }: { el: any; href: string }) => { // Function to check if Barba should handle the link
           // Check if the link itself has a 'data-barba-prevent' attribute
           if (el && el.hasAttribute('data-barba-prevent')) {
@@ -74,25 +75,48 @@ export default function TransitionProvider({ children }: { children: React.React
 
           // Check if the TARGET href is one of the routes to exclude
           const excludedRoutes = ['/login', '/signup', '/chat'];
-          const shouldPrevent = excludedRoutes.some(route => href.includes(route));
+          // Use full URL comparison or stricter path checking if needed
+          const targetUrl = new URL(href);
+          const shouldPrevent = excludedRoutes.some(route => targetUrl.pathname === route);
 
           if (shouldPrevent) {
-            console.log(`[Barba Prevent] Preventing transition to excluded route: ${href}`);
+            console.log(`[Barba Prevent] Preventing transition to excluded route: ${targetUrl.pathname}`);
             return true; // Prevent Barba from handling this link
           }
 
           // Allow transitions for all other links
-          console.log(`[Barba Prevent] Allowing transition to: ${href}`);
+          console.log(`[Barba Prevent] Allowing transition to: ${targetUrl.pathname}`);
           return false;
         },
-        */
+        // */ // REMOVED
         transitions: [
-          // --- NEW FADE/SLIDE TRANSITION ---
+          // --- Sliding Panel Transition (Features) ---
+          {
+            name: 'overlay-transition',
+            // Only apply when going TO or FROM the 'features' namespace
+            // If you want it ONLY when going TO features, remove the from rule.
+            // If you want it ONLY when going FROM features, remove the to rule.
+            // If you want it ONLY when navigating BETWEEN features pages, use both.
+            // For now, let's apply it whenever 'features' is involved.
+            from: { namespace: ['features'] },
+            to: { namespace: ['features'] },
+            // Use the overlayLeave/Enter functions defined above
+            async leave(data: any) { // Using async/await based on original commented code
+                console.log('[Barba Transition] overlay-transition: leave hook fired.', { from: data.current.namespace });
+                await overlayLeave(data.current.container);
+            },
+            async enter(data: any) {
+                console.log('[Barba Transition] overlay-transition: enter hook fired.', { to: data.next.namespace });
+                await overlayEnter(data.next.container);
+            }
+          },
+          // --- Default Fade/Slide Transition (Home, Use Cases, Others) ---
+          // This will act as a fallback for any namespaces not matching the overlay transition
           {
             name: 'fade-slide',
             sync: true, // Keep sync mode for overlapping animations
             leave(data: any) {
-              console.log("[Barba Transition] LEAVING:", data.current.namespace);
+              console.log("[Barba Transition - Default] LEAVING:", data.current.namespace);
               // Fade out and slide down
               return gsap.to(data.current.container, {
                 opacity: 0,
@@ -102,7 +126,7 @@ export default function TransitionProvider({ children }: { children: React.React
               }).then(() => {});
             },
             enter(data: any) {
-              console.log("[Barba Transition] ENTERING:", data.next.namespace);
+              console.log("[Barba Transition - Default] ENTERING:", data.next.namespace);
               window.scrollTo(0, 0); // Reset scroll position
               // Set initial state (faded out, slid down)
               gsap.set(data.next.container, {

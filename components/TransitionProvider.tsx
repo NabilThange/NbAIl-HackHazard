@@ -68,37 +68,46 @@ export default function TransitionProvider({ children }: { children: React.React
       barba.init({
         // debug: true, // Enable more verbose Barba logs if needed
         prevent: ({ el, href }: { el: any; href: string }) => {
-          // Check if the link itself has a 'data-barba-prevent' attribute
+          // 1. Prevent via element attribute
           if (el && el.hasAttribute('data-barba-prevent')) {
             console.log(`[Barba Prevent] Preventing via attribute on element:`, el);
-            return true;
+            return true; // Prevent Barba
           }
 
-          // Check if the TARGET href includes one of the routes to exclude
-          const excludedRoutes = [
-            '/login',
-            '/signup',
-            '/chat',
-            '/dashboard',
-            '/profile',
-            '/billing',
-            '/settings', // Assuming '/settings' is correct path
-            '/ar-mode', // Assuming '/ar' or similar for AR mode
-            '/screen-aware' // Assuming '/screen' or similar for screen aware mode
+          // 2. Allow specific routes (allow-list approach)
+          const includedRoutes = [
+            '/', // Home page
+            '/features',
+            '/pricing',
+            '/research',
+            '/use-cases'
           ];
-          // Using href.includes() as per latest instructions
-          // Also checking if href is null or undefined just in case
-          const shouldPrevent = href && excludedRoutes.some(path => href.includes(path));
 
-          if (shouldPrevent) {
-            // Log the full href to see what was matched
-            console.log(`[Barba Prevent] Preventing transition to excluded route: ${href}`);
-            return true; // Prevent Barba from handling this link
+          try {
+            // Check if href is valid and parse its pathname
+            if (!href) {
+                console.log(`[Barba Prevent] Preventing due to empty href.`);
+                return true; // Prevent if href is empty/null
+            }
+            // Use window.location.origin as base for relative URLs
+            const url = new URL(href, window.location.origin);
+            const pathname = url.pathname;
+
+            // Check if the pathname exactly matches one of the included routes
+            const shouldAllow = includedRoutes.some(path => pathname === path);
+
+            if (shouldAllow) {
+              console.log(`[Barba Prevent] ALLOWING transition to included route: ${pathname}`);
+              return false; // Allow Barba to handle this link
+            } else {
+              console.log(`[Barba Prevent] PREVENTING transition to non-included route: ${pathname}`);
+              return true; // Prevent Barba for all other links
+            }
+          } catch (e) {
+            // Handle cases where href might be invalid URL format
+            console.error(`[Barba Prevent] Error parsing href '${href}'. Preventing transition.`, e);
+            return true; // Prevent on error
           }
-
-          // Allow transitions for all other links
-          console.log(`[Barba Prevent] Allowing transition to: ${href}`);
-          return false;
         },
         transitions: [
           // --- Default Fade/Slide Transition (Applied to all allowed pages) ---

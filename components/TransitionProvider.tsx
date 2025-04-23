@@ -83,8 +83,8 @@ export default function TransitionProvider({ children }: { children: React.React
             '/profile',
             '/billing',
             '/settings', // Assuming '/settings' is correct path
-            '/ar', // Assuming '/ar' or similar for AR mode
-            '/screen' // Assuming '/screen' or similar for screen aware mode
+            '/ar-mode', // Assuming '/ar' or similar for AR mode
+            '/screen-aware' // Assuming '/screen' or similar for screen aware mode
           ];
           // Using href.includes() as per latest instructions
           // Also checking if href is null or undefined just in case

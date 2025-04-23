@@ -5,9 +5,13 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import ScrollToTop from "@/components/scroll-to-top"
 import { SpeedInsights } from "@vercel/speed-insights/next"
-import TransitionProvider from "@/components/TransitionProvider"
+import dynamic from 'next/dynamic'
 
 const inter = Inter({ subsets: ["latin"], display: "swap" })
+
+const TransitionProvider = dynamic(() => import('@/components/TransitionProvider'), {
+  ssr: false,
+})
 
 export const metadata: Metadata = {
   title: "NbAIl – Your Multimodal AI Assistant",

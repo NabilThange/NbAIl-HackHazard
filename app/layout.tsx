@@ -5,6 +5,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import ScrollToTop from "@/components/scroll-to-top"
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import TransitionProvider from "@/components/TransitionProvider"
 
 const inter = Inter({ subsets: ["latin"], display: "swap" })
 
@@ -33,9 +34,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className="scroll-smooth">
       <body className={`${inter.className} overflow-x-hidden`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <ScrollToTop />
-          {children}
-          <SpeedInsights />
+          <TransitionProvider>
+            <ScrollToTop />
+            {children}
+            <SpeedInsights />
+          </TransitionProvider>
         </ThemeProvider>
       </body>
     </html>

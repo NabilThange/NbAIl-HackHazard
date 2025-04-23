@@ -85,7 +85,11 @@ export default function UseCasesPage() {
   ]
 
   return (
-    <main className="min-h-screen bg-black/[0.96] antialiased bg-grid-white/[0.02] relative overflow-hidden">
+    <main
+      className="min-h-screen bg-black/[0.96] antialiased bg-grid-white/[0.02] relative overflow-hidden"
+      data-barba="container"
+      data-barba-namespace="use-cases"
+    >
       {/* Interactive background with moving particles */}
       <div className="h-full w-full absolute inset-0 z-0">
         <SparklesCore

@@ -5,13 +5,9 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import ScrollToTop from "@/components/scroll-to-top"
 import { SpeedInsights } from "@vercel/speed-insights/next"
-import dynamic from 'next/dynamic'
+import DynamicTransitionProvider from "@/components/DynamicTransitionProvider"
 
 const inter = Inter({ subsets: ["latin"], display: "swap" })
-
-const TransitionProvider = dynamic(() => import('@/components/TransitionProvider'), {
-  ssr: false,
-})
 
 export const metadata: Metadata = {
   title: "NbAIl – Your Multimodal AI Assistant",
@@ -38,11 +34,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className="scroll-smooth">
       <body className={`${inter.className} overflow-x-hidden`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <TransitionProvider>
+          <DynamicTransitionProvider>
             <ScrollToTop />
             {children}
             <SpeedInsights />
-          </TransitionProvider>
+          </DynamicTransitionProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -65,31 +65,34 @@ export default function TransitionProvider({ children }: { children: React.React
         // debug: true, // Enable more verbose Barba logs if needed
         prevent: () => false, // Keep this to allow all transitions for testing
         transitions: [
-          // --- CATCH-ALL TRANSITION FOR DEBUGGING ---
+          // --- NEW FADE/SLIDE TRANSITION ---
           {
-            name: 'debug-catch-all',
-            sync: true, // Add sync mode
+            name: 'fade-slide',
+            sync: true, // Keep sync mode for overlapping animations
             leave(data) {
-              console.log('[Barba Debug] catch-all: LEAVE triggered', data.current.namespace);
-              document.body.style.backgroundColor = 'rgba(255, 0, 0, 0.2)'; // Red bg flash
-              // Simple fade out
+              console.log("[Barba Transition] LEAVING:", data.current.namespace);
+              // Fade out and slide down
               return gsap.to(data.current.container, {
                 opacity: 0,
-                duration: 0.3
+                y: 50, // Slide down
+                duration: 0.5,
+                ease: 'power1.in'
               }).then();
             },
             enter(data) {
-              console.log('[Barba Debug] catch-all: ENTER triggered', data.next.namespace);
-              document.body.style.backgroundColor = 'rgba(0, 255, 0, 0.2)'; // Green bg flash
-              window.scrollTo(0, 0); // Reset scroll
-              // Simple fade in
-              gsap.set(data.next.container, { opacity: 0 });
+              console.log("[Barba Transition] ENTERING:", data.next.namespace);
+              window.scrollTo(0, 0); // Reset scroll position
+              // Set initial state (faded out, slid down)
+              gsap.set(data.next.container, {
+                opacity: 0,
+                y: 50
+              });
+              // Fade in and slide up
               return gsap.to(data.next.container, {
                 opacity: 1,
-                duration: 0.3,
-                onComplete: () => {
-                   document.body.style.backgroundColor = ''; // Reset bg color
-                }
+                y: 0, // Slide up to original position
+                duration: 0.5,
+                ease: 'power1.out'
               }).then();
             }
           }

@@ -28,17 +28,17 @@ export default function TransitionProvider({ children }: { children: React.React
         // Keep debug false in production unless needed, use manual logs
         // debug: process.env.NODE_ENV === 'development',
         prevent: ({ el }) => {
-          // Log 3: Link checking
           const href = el.getAttribute('href');
-          const preventAttr = el.getAttribute('data-barba-prevent');
-          console.log(`Barba checking link: href=${href}, data-barba-prevent=${preventAttr}`);
+          console.log(`Barba checking link: href=${href}`); // Keep log
 
-          // Explicitly allow links with data-barba-prevent="false"
-          const allowTransition = el.hasAttribute('data-barba-prevent') && preventAttr === 'false';
-          console.log(`Barba decision: Allow transition=${allowTransition}`);
+          // Only allow transitions IF the href explicitly targets /features or /use-cases
+          const isTransitionTarget = href === '/features' || href === '/use-cases';
 
-          // Prevent everything *except* those explicitly allowed
-          return !allowTransition;
+          // Prevent the transition if it's NOT one of the targets
+          const shouldPrevent = !isTransitionTarget;
+          console.log(`Barba decision: Is target=${isTransitionTarget}, Preventing=${shouldPrevent}`);
+
+          return shouldPrevent; // Return true (prevent) if NOT a target link
         },
         transitions: [{
           name: 'overlay-transition',

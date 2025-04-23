@@ -52,7 +52,6 @@ export default function Footer() {
                 <Link
                   href="/features"
                   className="text-gray-400 hover:text-white transition-colors"
-                  data-barba-prevent="false"
                 >
                   Features
                 </Link>
@@ -71,7 +70,6 @@ export default function Footer() {
                 <Link
                   href="/use-cases"
                   className="text-gray-400 hover:text-white transition-colors"
-                  data-barba-prevent="false"
                 >
                   Use Cases
                 </Link>

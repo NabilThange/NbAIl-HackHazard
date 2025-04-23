@@ -79,7 +79,7 @@ export default function UseCases() {
                 ))}
               </ul>
               <Button variant="outline" className="text-purple-500 border-purple-500 hover:bg-purple-500/10" asChild>
-                <Link href="/use-cases" data-barba-prevent="false">Learn More</Link>
+                <Link href="/use-cases">Learn More</Link>
               </Button>
             </motion.div>
           ))}

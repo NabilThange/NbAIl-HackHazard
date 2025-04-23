@@ -5,137 +5,165 @@ import { useRouter } from 'next/navigation'; // Keep for potential future use, t
 import barba from '@barba/core';
 import gsap from 'gsap';
 
-// Define the namespaces for pages that should have the special transition
-const TRANSITION_NAMESPACES = ['features', 'use-cases'];
+// Namespaces for the special overlay transition
+const OVERLAY_TRANSITION_NAMESPACES = ['features', 'use-cases'];
+// Namespaces for the default fade/slide transition
+const DEFAULT_TRANSITION_NAMESPACES = ['home', 'pricing', 'research'];
+
+// --- Default Fade/Slide Transition Logic ---
+const defaultLeave = (container: HTMLElement): Promise<void> => {
+  console.log("Default transition: LEAVE");
+  return gsap.to(container, { opacity: 0, duration: 0.4, ease: 'power1.in' }).then();
+};
+const defaultEnter = (container: HTMLElement): Promise<void> => {
+  console.log("Default transition: ENTER");
+  window.scrollTo(0, 0);
+  gsap.set(container, { opacity: 0, y: 30 }); // Start slightly down
+  return gsap.to(container, { opacity: 1, y: 0, duration: 0.5, ease: 'power1.out', delay: 0.1 }).then();
+};
+
+// --- Overlay Transition Logic ---
+const overlayLeave = (container: HTMLElement): Promise<void> => {
+  console.log("Overlay transition: LEAVE");
+  const tl = gsap.timeline();
+  tl.to('#transition-panel', { duration: 0.8, yPercent: 0, ease: 'power4.inOut' });
+  tl.to(container, { opacity: 0, duration: 0.4, ease: 'power1.in' }, "-=0.5");
+  return tl.then();
+};
+const overlayEnter = (container: HTMLElement): Promise<void> => {
+  console.log("Overlay transition: ENTER");
+  window.scrollTo(0, 0);
+  const tl = gsap.timeline();
+  gsap.set(container, { opacity: 0, y: 50 }); // Start further down
+  tl.to('#transition-panel', { duration: 0.8, yPercent: -100, ease: 'power4.inOut' });
+  tl.to(container, { opacity: 1, y: 0, duration: 0.6, ease: 'power1.out' }, "-=0.6");
+  tl.set('#transition-panel', { yPercent: 100 }); // Reset panel AFTER animation
+  return tl.then();
+};
 
 export default function TransitionProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      console.log('TransitionProvider: useEffect running (client-side check passed)'); // Log 1: Confirm client-side execution
+      console.log('[Barba Debug] useEffect: Running (Client Side)');
+
+      // Set scroll restoration to manual
+      if (history.scrollRestoration) {
+        history.scrollRestoration = 'manual';
+        console.log('[Barba Debug] useEffect: Set history.scrollRestoration to manual');
+      }
 
       if (document.body.hasAttribute('data-barba-initialized')) {
-         console.log('TransitionProvider: Barba already initialized, skipping.');
+         console.log('[Barba Debug] useEffect: Already initialized, skipping.');
          return;
       }
       document.body.setAttribute('data-barba-initialized', 'true');
-      console.log('TransitionProvider: Initializing Barba...'); // Log 2: Confirm init attempt
-
-      const tl = gsap.timeline(); // Reusable timeline
+      console.log('[Barba Debug] useEffect: Initializing Barba...');
 
       barba.init({
-        // Keep debug false in production unless needed, use manual logs
-        // debug: process.env.NODE_ENV === 'development',
-        prevent: ({ el }) => {
-          const href = el.getAttribute('href');
-          console.log(`Barba checking link: href=${href}`); // Keep log
+        // debug: true, // Enable more verbose Barba logs if needed
+        prevent: ({ el, href }) => {
+          // Check the clicked element itself for the attribute
+          const hasPreventAttribute = el.hasAttribute('data-barba-prevent');
+          const preventValue = el.getAttribute('data-barba-prevent');
+          // Allow if attribute exists and is exactly "false"
+          const allowTransition = hasPreventAttribute && preventValue === 'false';
 
-          // Only allow transitions IF the href explicitly targets /features or /use-cases
-          const isTransitionTarget = href === '/features' || href === '/use-cases';
+          console.log(`[Barba Debug] prevent: Checking link... href=${href}, el=${el.tagName}, data-barba-prevent=${preventValue}, hasAttr=${hasPreventAttribute}. Allowing transition = ${allowTransition}`);
 
-          // Prevent the transition if it's NOT one of the targets
-          const shouldPrevent = !isTransitionTarget;
-          console.log(`Barba decision: Is target=${isTransitionTarget}, Preventing=${shouldPrevent}`);
-
-          return shouldPrevent; // Return true (prevent) if NOT a target link
+          // Prevent if attribute is not present OR is not exactly "false"
+          return !allowTransition;
         },
-        transitions: [{
-          name: 'overlay-transition',
-          // Only run between 'features' and 'use-cases'
-          from: { namespace: TRANSITION_NAMESPACES },
-          to: { namespace: TRANSITION_NAMESPACES },
-
-          // --- Leave Animation ---
-          async leave(data) {
-             // Log 4: Leave hook triggered
-            console.log(`Overlay transition: LEAVE triggered from ${data.current.namespace} to ${data.next.namespace}`);
-            const done = this.async(); // Tell Barba to wait for animation
-            tl.clear(); // Clear previous timeline animations
-
-            // Panel UP
-            tl.to('#transition-panel', {
-              duration: 0.8,
-              yPercent: 0, // Slide panel fully into view
-              ease: 'power4.inOut',
-            });
-
-            // Fade out content *after* panel starts moving or is mostly up
-            tl.to(data.current.container, {
-              opacity: 0,
-              duration: 0.4,
-              ease: 'power1.in',
-            }, "-=0.5"); // Start fade slightly before panel animation ends
-
-            await tl.then(); // Wait for timeline to complete
-            done(); // Signal Barba leave is done
+        transitions: [
+          // Specific Overlay Transition (Features <-> Use Cases)
+          {
+            name: 'overlay-transition',
+            from: { namespace: OVERLAY_TRANSITION_NAMESPACES },
+            to: { namespace: OVERLAY_TRANSITION_NAMESPACES },
+            async leave({ current }) {
+                console.log('[Barba Debug] overlay-transition: leave hook fired.', { from: current.namespace });
+                await overlayLeave(current.container);
+            },
+            async enter({ next }) {
+                console.log('[Barba Debug] overlay-transition: enter hook fired.', { to: next.namespace });
+                await overlayEnter(next.container);
+            }
           },
-
-          // --- Enter Animation ---
-          async enter(data) {
-             // Log 5: Enter hook triggered
-            console.log(`Overlay transition: ENTER triggered into ${data.next.namespace} from ${data.current.namespace}`);
-            const done = this.async();
-            tl.clear();
-
-            // Ensure scroll to top
-            window.scrollTo(0, 0);
-
-            // Initial state of new content (before panel moves)
-            gsap.set(data.next.container, {
-              opacity: 0,
-              y: '50px', // Start slightly down
-            });
-
-            // Panel DOWN
-            tl.to('#transition-panel', {
-              duration: 0.8,
-              yPercent: -100, // Slide panel UP and away
-              ease: 'power4.inOut',
-            });
-
-            // Fade/Slide in content as panel moves away
-            tl.to(data.next.container, {
-              opacity: 1,
-              y: '0px',
-              duration: 0.6,
-              ease: 'power1.out',
-            }, "-=0.6"); // Start slightly before panel animation ends
-
-            await tl.then();
-
-            // Reset panel state for next transition AFTER animation
-            gsap.set('#transition-panel', { yPercent: 100 }); // Reset off-screen (bottom)
-
-            done();
-          },
-        }],
+          // Default Fade/Slide Transition (Explicit rules)
+          {
+            name: 'default-transition',
+            // Explicitly define transitions involving home, pricing, or research
+            // This covers:
+            // - home <-> pricing
+            // - home <-> research
+            // - pricing <-> research
+            // - home -> features/use-cases (and vice-versa)
+            // - pricing -> features/use-cases (and vice-versa)
+            // - research -> features/use-cases (and vice-versa)
+            // Note: It WON'T cover features <-> use-cases as that's handled above.
+            from: { namespace: [...DEFAULT_TRANSITION_NAMESPACES, ...OVERLAY_TRANSITION_NAMESPACES] },
+            to: { namespace: [...DEFAULT_TRANSITION_NAMESPACES, ...OVERLAY_TRANSITION_NAMESPACES] },
+            // We add a condition here to ensure this transition doesn't run
+            // when the overlay transition should (i.e., features <-> use-cases)
+            custom: ({ current, next }) => {
+                const isOverlayFrom = OVERLAY_TRANSITION_NAMESPACES.includes(current.namespace);
+                const isOverlayTo = OVERLAY_TRANSITION_NAMESPACES.includes(next.namespace);
+                // Only run default if it's NOT an overlay-to-overlay transition
+                return !(isOverlayFrom && isOverlayTo);
+            },
+            async leave({ current }) {
+                console.log('[Barba Debug] default-transition: leave hook fired.', { from: current.namespace });
+                await defaultLeave(current.container);
+            },
+            async enter({ next }) {
+                console.log('[Barba Debug] default-transition: enter hook fired.', { to: next.namespace });
+                await defaultEnter(next.container);
+            }
+          }
+        ],
       });
 
-      console.log('TransitionProvider: Barba initialization complete.'); // Log 6: Confirm init finished
+      console.log('[Barba Debug] useEffect: Barba initialization complete.');
 
-      // Cleanup
+      // Add global hook logs for more insight
+      barba.hooks.beforeLeave((data) => {
+          console.log('[Barba Hook] beforeLeave', data?.current?.namespace);
+      });
+      barba.hooks.afterLeave((data) => {
+          console.log('[Barba Hook] afterLeave', data?.current?.namespace);
+      });
+       barba.hooks.beforeEnter((data) => {
+          console.log('[Barba Hook] beforeEnter', data?.next?.namespace);
+      });
+       barba.hooks.afterEnter((data) => {
+          console.log('[Barba Hook] afterEnter', data?.next?.namespace);
+      });
+       barba.hooks.before((data) => {
+          console.log('[Barba Hook] before (overall)', data?.trigger);
+      });
+       barba.hooks.after((data) => {
+          console.log('[Barba Hook] after (overall)', data?.next?.namespace);
+      });
+
       return () => {
         if (barba.destroy) {
-          console.log('TransitionProvider: Cleaning up Barba instance.'); // Log 7: Cleanup
+          console.log('[Barba Debug] useEffect: Cleaning up Barba instance.');
           barba.destroy();
           document.body.removeAttribute('data-barba-initialized');
         }
       };
     } else {
-       console.log('TransitionProvider: Skipping Barba init (not in browser).'); // Log if SSR check fails
+       console.log('[Barba Debug] useEffect: Skipping Barba init (not in browser).');
     }
-  }, [router]); // Dependency array
+  }, [router]);
 
   return (
-    <div data-barba="wrapper" className="relative"> {/* Ensure wrapper has relative positioning context if needed */}
-      {/* The Transition Panel */}
+    <div data-barba="wrapper" className="relative">
       <div
         id="transition-panel"
-        className="fixed inset-0 z-50 bg-black transform translate-y-full" // Start off-screen (bottom)
-        // Consider adding bg-opacity if needed e.g., bg-black/90
+        className="fixed inset-0 z-[100] bg-gray-950 transform translate-y-full pointer-events-none" // High z-index, ensure pointer-events none when hidden
       ></div>
-      {/* Page Content */}
       {children}
     </div>
   );

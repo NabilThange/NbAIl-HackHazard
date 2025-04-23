@@ -12,18 +12,34 @@ export default function TransitionProvider({ children }: { children: React.React
   const router = useRouter();
 
   useEffect(() => {
-    // Ensure this code runs only in the browser
     if (typeof window !== 'undefined') {
-      // Prevent double initialization
-      if (document.body.hasAttribute('data-barba-initialized')) return;
+      console.log('TransitionProvider: useEffect running (client-side check passed)'); // Log 1: Confirm client-side execution
+
+      if (document.body.hasAttribute('data-barba-initialized')) {
+         console.log('TransitionProvider: Barba already initialized, skipping.');
+         return;
+      }
       document.body.setAttribute('data-barba-initialized', 'true');
+      console.log('TransitionProvider: Initializing Barba...'); // Log 2: Confirm init attempt
 
       const tl = gsap.timeline(); // Reusable timeline
 
       barba.init({
-        debug: process.env.NODE_ENV === 'development', // Enable debug in dev
-        // Prevent links unless they have data-barba-prevent="false"
-        prevent: ({ el }) => el.hasAttribute('data-barba-prevent') && el.getAttribute('data-barba-prevent') !== 'false',
+        // Keep debug false in production unless needed, use manual logs
+        // debug: process.env.NODE_ENV === 'development',
+        prevent: ({ el }) => {
+          // Log 3: Link checking
+          const href = el.getAttribute('href');
+          const preventAttr = el.getAttribute('data-barba-prevent');
+          console.log(`Barba checking link: href=${href}, data-barba-prevent=${preventAttr}`);
+
+          // Explicitly allow links with data-barba-prevent="false"
+          const allowTransition = el.hasAttribute('data-barba-prevent') && preventAttr === 'false';
+          console.log(`Barba decision: Allow transition=${allowTransition}`);
+
+          // Prevent everything *except* those explicitly allowed
+          return !allowTransition;
+        },
         transitions: [{
           name: 'overlay-transition',
           // Only run between 'features' and 'use-cases'
@@ -32,6 +48,8 @@ export default function TransitionProvider({ children }: { children: React.React
 
           // --- Leave Animation ---
           async leave(data) {
+             // Log 4: Leave hook triggered
+            console.log(`Overlay transition: LEAVE triggered from ${data.current.namespace} to ${data.next.namespace}`);
             const done = this.async(); // Tell Barba to wait for animation
             tl.clear(); // Clear previous timeline animations
 
@@ -55,6 +73,8 @@ export default function TransitionProvider({ children }: { children: React.React
 
           // --- Enter Animation ---
           async enter(data) {
+             // Log 5: Enter hook triggered
+            console.log(`Overlay transition: ENTER triggered into ${data.next.namespace} from ${data.current.namespace}`);
             const done = this.async();
             tl.clear();
 
@@ -92,13 +112,18 @@ export default function TransitionProvider({ children }: { children: React.React
         }],
       });
 
+      console.log('TransitionProvider: Barba initialization complete.'); // Log 6: Confirm init finished
+
       // Cleanup
       return () => {
         if (barba.destroy) {
+          console.log('TransitionProvider: Cleaning up Barba instance.'); // Log 7: Cleanup
           barba.destroy();
           document.body.removeAttribute('data-barba-initialized');
         }
       };
+    } else {
+       console.log('TransitionProvider: Skipping Barba init (not in browser).'); // Log if SSR check fails
     }
   }, [router]); // Dependency array
 

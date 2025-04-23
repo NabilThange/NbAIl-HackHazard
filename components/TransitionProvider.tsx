@@ -75,9 +75,20 @@ export default function TransitionProvider({ children }: { children: React.React
           }
 
           // Check if the TARGET href includes one of the routes to exclude
-          const excludedRoutes = ['/login', '/signup', '/chat'];
+          const excludedRoutes = [
+            '/login',
+            '/signup',
+            '/chat',
+            '/dashboard',
+            '/profile',
+            '/billing',
+            '/settings', // Assuming '/settings' is correct path
+            '/ar', // Assuming '/ar' or similar for AR mode
+            '/screen' // Assuming '/screen' or similar for screen aware mode
+          ];
           // Using href.includes() as per latest instructions
-          const shouldPrevent = excludedRoutes.some(path => href.includes(path));
+          // Also checking if href is null or undefined just in case
+          const shouldPrevent = href && excludedRoutes.some(path => href.includes(path));
 
           if (shouldPrevent) {
             // Log the full href to see what was matched

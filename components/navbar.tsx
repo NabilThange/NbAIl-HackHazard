@@ -46,10 +46,10 @@ export default function Navbar() {
               className="fixed top-0 left-2 right-2 backdrop-blur-md bg-black/30 rounded-md shadow-lg z-40 md:hidden mt-16"
             >
               <div className="px-4 py-4 space-y-2 text-center">
-                <MobileNavLink href="/features">Features</MobileNavLink>
-                <MobileNavLink href="/pricing">Pricing</MobileNavLink>
-                <MobileNavLink href="/research">Research</MobileNavLink>
-                <MobileNavLink href="/use-cases">Use Cases</MobileNavLink>
+                <MobileNavLink href="/features" data-barba-prevent="false">Features</MobileNavLink>
+                <MobileNavLink href="/pricing" data-barba-prevent="false">Pricing</MobileNavLink>
+                <MobileNavLink href="/research" data-barba-prevent="false">Research</MobileNavLink>
+                <MobileNavLink href="/use-cases" data-barba-prevent="false">Use Cases</MobileNavLink>
                 <div className="pt-4 flex flex-col space-y-2">
                   <Button variant="outline" className="w-full justify-center" asChild>
                     <Link href="/login">Login</Link>
@@ -72,17 +72,17 @@ export default function Navbar() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2">
+            <Link href="/" className="flex items-center space-x-2" data-barba-prevent="false">
               <Brain className="h-8 w-8 text-purple-500" />
               <span className="text-white font-bold text-xl">NbAIl</span>
             </Link>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
-              <NavLink href="/features">Features</NavLink>
-              <NavLink href="/pricing">Pricing</NavLink>
-              <NavLink href="/research">Research</NavLink>
-              <NavLink href="/use-cases">Use Cases</NavLink>
+              <NavLink href="/features" data-barba-prevent="false">Features</NavLink>
+              <NavLink href="/pricing" data-barba-prevent="false">Pricing</NavLink>
+              <NavLink href="/research" data-barba-prevent="false">Research</NavLink>
+              <NavLink href="/use-cases" data-barba-prevent="false">Use Cases</NavLink>
             </div>
 
             {/* Auth Buttons */}
@@ -133,7 +133,7 @@ export default function Navbar() {
   )
 }
 
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+function NavLink({ href, children, ...props }: { href: string; children: React.ReactNode; [key: string]: any }) {
   const pathname = usePathname()
   const isActive = pathname === href
 
@@ -141,6 +141,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
     <Link
       href={href}
       className={`text-sm font-medium relative group overflow-hidden ${isActive ? "text-white" : "text-gray-300"}`}
+      {...props}
     >
       <span className="relative z-10 transition-colors duration-300 group-hover:text-white">{children}</span>
       {isActive ? (
@@ -152,7 +153,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   )
 }
 
-function MobileNavLink({ href, children }: { href: string; children: React.ReactNode }) {
+function MobileNavLink({ href, children, ...props }: { href: string; children: React.ReactNode; [key: string]: any }) {
   const pathname = usePathname()
   const isActive = pathname === href
 
@@ -162,6 +163,7 @@ function MobileNavLink({ href, children }: { href: string; children: React.React
       className={`block py-2 px-3 rounded-md text-lg font-medium ${
         isActive ? "text-white font-semibold" : "text-gray-300"
       } hover:text-purple-500 hover:underline`}
+      {...props}
     >
       {children}
     </Link>

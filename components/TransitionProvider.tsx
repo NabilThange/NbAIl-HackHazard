@@ -63,18 +63,7 @@ export default function TransitionProvider({ children }: { children: React.React
 
       barba.init({
         // debug: true, // Enable more verbose Barba logs if needed
-        prevent: ({ el, href }) => {
-          // Check the clicked element itself for the attribute
-          const hasPreventAttribute = el.hasAttribute('data-barba-prevent');
-          const preventValue = el.getAttribute('data-barba-prevent');
-          // Allow if attribute exists and is exactly "false"
-          const allowTransition = hasPreventAttribute && preventValue === 'false';
-
-          console.log(`[Barba Debug] prevent: Checking link... href=${href}, el=${el.tagName}, data-barba-prevent=${preventValue}, hasAttr=${hasPreventAttribute}. Allowing transition = ${allowTransition}`);
-
-          // Prevent if attribute is not present OR is not exactly "false"
-          return !allowTransition;
-        },
+        prevent: () => false, // Allow all transitions for testing
         transitions: [
           // Specific Overlay Transition (Features <-> Use Cases)
           {

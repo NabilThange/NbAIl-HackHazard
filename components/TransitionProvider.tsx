@@ -63,6 +63,8 @@ export default function TransitionProvider({ children }: { children: React.React
 
       barba.init({
         // debug: true, // Enable more verbose Barba logs if needed
+        prevent: () => false, // TEMPORARILY DISABLED custom prevent logic for debugging
+        /* // Original prevent logic commented out for testing
         prevent: ({ el, href }: { el: any; href: string }) => { // Function to check if Barba should handle the link
           // Check if the link itself has a 'data-barba-prevent' attribute
           if (el && el.hasAttribute('data-barba-prevent')) {
@@ -83,6 +85,7 @@ export default function TransitionProvider({ children }: { children: React.React
           console.log(`[Barba Prevent] Allowing transition to: ${href}`);
           return false;
         },
+        */
         transitions: [
           // --- NEW FADE/SLIDE TRANSITION ---
           {

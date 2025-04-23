@@ -63,8 +63,38 @@ export default function TransitionProvider({ children }: { children: React.React
 
       barba.init({
         // debug: true, // Enable more verbose Barba logs if needed
-        prevent: () => false, // Allow all transitions for testing
+        prevent: () => false, // Keep this to allow all transitions for testing
         transitions: [
+          // --- CATCH-ALL TRANSITION FOR DEBUGGING ---
+          {
+            name: 'debug-catch-all',
+            sync: true, // Add sync mode
+            leave(data) {
+              console.log('[Barba Debug] catch-all: LEAVE triggered', data.current.namespace);
+              document.body.style.backgroundColor = 'rgba(255, 0, 0, 0.2)'; // Red bg flash
+              // Simple fade out
+              return gsap.to(data.current.container, {
+                opacity: 0,
+                duration: 0.3
+              }).then();
+            },
+            enter(data) {
+              console.log('[Barba Debug] catch-all: ENTER triggered', data.next.namespace);
+              document.body.style.backgroundColor = 'rgba(0, 255, 0, 0.2)'; // Green bg flash
+              window.scrollTo(0, 0); // Reset scroll
+              // Simple fade in
+              gsap.set(data.next.container, { opacity: 0 });
+              return gsap.to(data.next.container, {
+                opacity: 1,
+                duration: 0.3,
+                onComplete: () => {
+                   document.body.style.backgroundColor = ''; // Reset bg color
+                }
+              }).then();
+            }
+          }
+          // --- ORIGINAL TRANSITIONS (COMMENTED OUT FOR DEBUGGING) ---
+          /*
           // Specific Overlay Transition (Features <-> Use Cases)
           {
             name: 'overlay-transition',
@@ -82,23 +112,11 @@ export default function TransitionProvider({ children }: { children: React.React
           // Default Fade/Slide Transition (Explicit rules)
           {
             name: 'default-transition',
-            // Explicitly define transitions involving home, pricing, or research
-            // This covers:
-            // - home <-> pricing
-            // - home <-> research
-            // - pricing <-> research
-            // - home -> features/use-cases (and vice-versa)
-            // - pricing -> features/use-cases (and vice-versa)
-            // - research -> features/use-cases (and vice-versa)
-            // Note: It WON'T cover features <-> use-cases as that's handled above.
             from: { namespace: [...DEFAULT_TRANSITION_NAMESPACES, ...OVERLAY_TRANSITION_NAMESPACES] },
             to: { namespace: [...DEFAULT_TRANSITION_NAMESPACES, ...OVERLAY_TRANSITION_NAMESPACES] },
-            // We add a condition here to ensure this transition doesn't run
-            // when the overlay transition should (i.e., features <-> use-cases)
             custom: ({ current, next }) => {
                 const isOverlayFrom = OVERLAY_TRANSITION_NAMESPACES.includes(current.namespace);
                 const isOverlayTo = OVERLAY_TRANSITION_NAMESPACES.includes(next.namespace);
-                // Only run default if it's NOT an overlay-to-overlay transition
                 return !(isOverlayFrom && isOverlayTo);
             },
             async leave({ current }) {
@@ -110,6 +128,7 @@ export default function TransitionProvider({ children }: { children: React.React
                 await defaultEnter(next.container);
             }
           }
+          */
         ],
       });
 
@@ -137,7 +156,7 @@ export default function TransitionProvider({ children }: { children: React.React
 
       return () => {
         if (barba.destroy) {
-          console.log('[Barba Debug] useEffect: Cleaning up Barba instance.');
+          console.log('[Barba Debug] useEffect CLEANUP: Destroying Barba instance.');
           barba.destroy();
           document.body.removeAttribute('data-barba-initialized');
         }

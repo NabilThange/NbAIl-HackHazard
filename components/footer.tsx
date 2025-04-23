@@ -51,37 +51,57 @@ export default function Footer() {
               <li>
                 <Link
                   href="/features"
-                  className="text-gray-400 hover:text-white transition-colors"
-                  data-barba-prevent="false"
+                  passHref
+                  prefetch={false}
                 >
-                  Features
+                  <a
+                    className="text-gray-400 hover:text-white transition-colors"
+                    data-barba-prevent="false"
+                  >
+                    Features
+                  </a>
                 </Link>
               </li>
               <li>
                 <Link
                   href="/pricing"
-                  className="text-gray-400 hover:text-white transition-colors"
-                  data-barba-prevent="false"
+                  passHref
+                  prefetch={false}
                 >
-                  Pricing
+                  <a
+                    className="text-gray-400 hover:text-white transition-colors"
+                    data-barba-prevent="false"
+                  >
+                    Pricing
+                  </a>
                 </Link>
               </li>
               <li>
                 <Link
                   href="/research"
-                  className="text-gray-400 hover:text-white transition-colors"
-                  data-barba-prevent="false"
+                  passHref
+                  prefetch={false}
                 >
-                  Research
+                  <a
+                    className="text-gray-400 hover:text-white transition-colors"
+                    data-barba-prevent="false"
+                  >
+                    Research
+                  </a>
                 </Link>
               </li>
               <li>
                 <Link
                   href="/use-cases"
-                  className="text-gray-400 hover:text-white transition-colors"
-                  data-barba-prevent="false"
+                  passHref
+                  prefetch={false}
                 >
-                  Use Cases
+                  <a
+                    className="text-gray-400 hover:text-white transition-colors"
+                    data-barba-prevent="false"
+                  >
+                    Use Cases
+                  </a>
                 </Link>
               </li>
             </ul>

@@ -72,9 +72,11 @@ export default function Navbar() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2" data-barba-prevent="false">
-              <Brain className="h-8 w-8 text-purple-500" />
-              <span className="text-white font-bold text-xl">NbAIl</span>
+            <Link href="/" passHref prefetch={false}>
+              <a className="flex items-center space-x-2" data-barba-prevent="false">
+                <Brain className="h-8 w-8 text-purple-500" />
+                <span className="text-white font-bold text-xl">NbAIl</span>
+              </a>
             </Link>
 
             {/* Desktop Navigation */}
@@ -141,14 +143,17 @@ function NavLink({ href, children, ...props }: { href: string; children: React.R
     <Link
       href={href}
       className={`text-sm font-medium relative group overflow-hidden ${isActive ? "text-white" : "text-gray-300"}`}
-      {...props}
+      passHref
+      prefetch={false}
     >
-      <span className="relative z-10 transition-colors duration-300 group-hover:text-white">{children}</span>
-      {isActive ? (
-        <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-purple-500 rounded-full" />
-      ) : (
-        <span className="absolute -bottom-1 left-1/2 w-0 h-0.5 bg-purple-500 rounded-full transition-all duration-300 group-hover:w-full group-hover:left-0" />
-      )}
+      <a {...props} data-barba-prevent="false">
+        <span className="relative z-10 transition-colors duration-300 group-hover:text-white">{children}</span>
+        {isActive ? (
+          <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-purple-500 rounded-full" />
+        ) : (
+          <span className="absolute -bottom-1 left-1/2 w-0 h-0.5 bg-purple-500 rounded-full transition-all duration-300 group-hover:w-full group-hover:left-0" />
+        )}
+      </a>
     </Link>
   )
 }
@@ -163,9 +168,12 @@ function MobileNavLink({ href, children, ...props }: { href: string; children: R
       className={`block py-2 px-3 rounded-md text-lg font-medium ${
         isActive ? "text-white font-semibold" : "text-gray-300"
       } hover:text-purple-500 hover:underline`}
-      {...props}
+      passHref
+      prefetch={false}
     >
-      {children}
+      <a {...props} data-barba-prevent="false">
+        {children}
+      </a>
     </Link>
   )
 }

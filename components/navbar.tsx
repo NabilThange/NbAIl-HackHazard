@@ -136,11 +136,13 @@ export default function Navbar() {
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
   const pathname = usePathname()
   const isActive = pathname === href
+  const addBarbaAttribute = href === '/features' || href === '/use-cases'; // Check if it's a target link
 
   return (
     <Link
       href={href}
       className={`text-sm font-medium relative group overflow-hidden ${isActive ? "text-white" : "text-gray-300"}`}
+      {...(addBarbaAttribute ? { 'data-barba-prevent': 'false' } : {})}
     >
       <span className="relative z-10 transition-colors duration-300 group-hover:text-white">{children}</span>
       {isActive ? (
@@ -155,6 +157,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
 function MobileNavLink({ href, children }: { href: string; children: React.ReactNode }) {
   const pathname = usePathname()
   const isActive = pathname === href
+  const addBarbaAttribute = href === '/features' || href === '/use-cases'; // Check if it's a target link
 
   return (
     <Link
@@ -162,6 +165,7 @@ function MobileNavLink({ href, children }: { href: string; children: React.React
       className={`block py-2 px-3 rounded-md text-lg font-medium ${
         isActive ? "text-white font-semibold" : "text-gray-300"
       } hover:text-purple-500 hover:underline`}
+      {...(addBarbaAttribute ? { 'data-barba-prevent': 'false' } : {})}
     >
       {children}
     </Link>

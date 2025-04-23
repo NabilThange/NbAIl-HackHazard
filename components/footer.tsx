@@ -49,7 +49,11 @@ export default function Footer() {
             <h3 className="text-white font-semibold mb-4">Product</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/features" className="text-gray-400 hover:text-white transition-colors">
+                <Link
+                  href="/features"
+                  className="text-gray-400 hover:text-white transition-colors"
+                  data-barba-prevent="false"
+                >
                   Features
                 </Link>
               </li>
@@ -64,7 +68,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/use-cases" className="text-gray-400 hover:text-white transition-colors">
+                <Link
+                  href="/use-cases"
+                  className="text-gray-400 hover:text-white transition-colors"
+                  data-barba-prevent="false"
+                >
                   Use Cases
                 </Link>
               </li>

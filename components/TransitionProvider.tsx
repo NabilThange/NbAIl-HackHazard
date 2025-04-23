@@ -11,26 +11,30 @@ const OVERLAY_TRANSITION_NAMESPACES = ['features', 'use-cases'];
 const DEFAULT_TRANSITION_NAMESPACES = ['home', 'pricing', 'research'];
 
 // --- Default Fade/Slide Transition Logic ---
-const defaultLeave = (container: HTMLElement): Promise<void> => {
+// Make async and use await
+const defaultLeave = async (container: HTMLElement): Promise<void> => {
   console.log("Default transition: LEAVE");
-  return gsap.to(container, { opacity: 0, duration: 0.4, ease: 'power1.in' }).then(() => {});
+  await gsap.to(container, { opacity: 0, duration: 0.4, ease: 'power1.in' });
 };
-const defaultEnter = (container: HTMLElement): Promise<void> => {
+// Make async and use await
+const defaultEnter = async (container: HTMLElement): Promise<void> => {
   console.log("Default transition: ENTER");
   window.scrollTo(0, 0);
   gsap.set(container, { opacity: 0, y: 30 }); // Start slightly down
-  return gsap.to(container, { opacity: 1, y: 0, duration: 0.5, ease: 'power1.out', delay: 0.1 }).then(() => {});
+  await gsap.to(container, { opacity: 1, y: 0, duration: 0.5, ease: 'power1.out', delay: 0.1 });
 };
 
 // --- Overlay Transition Logic ---
-const overlayLeave = (container: HTMLElement): Promise<void> => {
+// Make async and use await
+const overlayLeave = async (container: HTMLElement): Promise<void> => {
   console.log("Overlay transition: LEAVE");
   const tl = gsap.timeline();
   tl.to('#transition-panel', { duration: 0.8, yPercent: 0, ease: 'power4.inOut' });
   tl.to(container, { opacity: 0, duration: 0.4, ease: 'power1.in' }, "-=0.5");
-  return tl.then(() => {});
+  await tl; // Await the timeline itself
 };
-const overlayEnter = (container: HTMLElement): Promise<void> => {
+// Make async and use await
+const overlayEnter = async (container: HTMLElement): Promise<void> => {
   console.log("Overlay transition: ENTER");
   window.scrollTo(0, 0);
   const tl = gsap.timeline();
@@ -38,7 +42,7 @@ const overlayEnter = (container: HTMLElement): Promise<void> => {
   tl.to('#transition-panel', { duration: 0.8, yPercent: -100, ease: 'power4.inOut' });
   tl.to(container, { opacity: 1, y: 0, duration: 0.6, ease: 'power1.out' }, "-=0.6");
   tl.set('#transition-panel', { yPercent: 100 }); // Reset panel AFTER animation
-  return tl.then(() => {});
+  await tl; // Await the timeline itself
 };
 
 export default function TransitionProvider({ children }: { children: React.ReactNode }) {
@@ -55,129 +59,66 @@ export default function TransitionProvider({ children }: { children: React.React
       }
 
       if (document.body.hasAttribute('data-barba-initialized')) {
-         console.log('[Barba Debug] useEffect: Already initialized, skipping.');
-         return;
+        console.log('[Barba Debug] useEffect: Already initialized, skipping.');
+        return;
       }
       document.body.setAttribute('data-barba-initialized', 'true');
       console.log('[Barba Debug] useEffect: Initializing Barba...');
 
       barba.init({
         // debug: true, // Enable more verbose Barba logs if needed
-        // Restore original prevent logic
-        // prevent: () => false, // TEMPORARILY DISABLED custom prevent logic for debugging - REMOVED
-        // /* // Original prevent logic commented out for testing - REMOVED
-        prevent: ({ el, href }: { el: any; href: string }) => { // Function to check if Barba should handle the link
+        prevent: ({ el, href }: { el: any; href: string }) => {
           // Check if the link itself has a 'data-barba-prevent' attribute
           if (el && el.hasAttribute('data-barba-prevent')) {
             console.log(`[Barba Prevent] Preventing via attribute on element:`, el);
             return true;
           }
 
-          // Check if the TARGET href is one of the routes to exclude
+          // Check if the TARGET href includes one of the routes to exclude
           const excludedRoutes = ['/login', '/signup', '/chat'];
-          // Use full URL comparison or stricter path checking if needed
-          const targetUrl = new URL(href);
-          const shouldPrevent = excludedRoutes.some(route => targetUrl.pathname === route);
+          // Using href.includes() as per latest instructions
+          const shouldPrevent = excludedRoutes.some(path => href.includes(path));
 
           if (shouldPrevent) {
-            console.log(`[Barba Prevent] Preventing transition to excluded route: ${targetUrl.pathname}`);
+            // Log the full href to see what was matched
+            console.log(`[Barba Prevent] Preventing transition to excluded route: ${href}`);
             return true; // Prevent Barba from handling this link
           }
 
           // Allow transitions for all other links
-          console.log(`[Barba Prevent] Allowing transition to: ${targetUrl.pathname}`);
+          console.log(`[Barba Prevent] Allowing transition to: ${href}`);
           return false;
         },
-        // */ // REMOVED
         transitions: [
-          // --- Sliding Panel Transition (Features) ---
+          // --- Default Fade/Slide Transition (Applied to all allowed pages) ---
           {
-            name: 'overlay-transition',
-            // Only apply when going TO or FROM the 'features' namespace
-            // If you want it ONLY when going TO features, remove the from rule.
-            // If you want it ONLY when going FROM features, remove the to rule.
-            // If you want it ONLY when navigating BETWEEN features pages, use both.
-            // For now, let's apply it whenever 'features' is involved.
-            from: { namespace: ['features'] },
-            to: { namespace: ['features'] },
-            // Use the overlayLeave/Enter functions defined above
-            async leave(data: any) { // Using async/await based on original commented code
-                console.log('[Barba Transition] overlay-transition: leave hook fired.', { from: data.current.namespace });
-                await overlayLeave(data.current.container);
-            },
-            async enter(data: any) {
-                console.log('[Barba Transition] overlay-transition: enter hook fired.', { to: data.next.namespace });
-                await overlayEnter(data.next.container);
-            }
-          },
-          // --- Default Fade/Slide Transition (Home, Use Cases, Others) ---
-          // This will act as a fallback for any namespaces not matching the overlay transition
-          {
-            name: 'fade-slide',
-            sync: true, // Keep sync mode for overlapping animations
-            leave(data: any) {
+            name: 'default-transition', // Renamed for clarity
+            sync: false, // Set sync false for standard leave-then-enter animation
+            // Make leave async and use await
+            async leave(data: any) {
               console.log("[Barba Transition - Default] LEAVING:", data.current.namespace);
-              // Fade out and slide down
-              return gsap.to(data.current.container, {
+              // Fade out and slide down slightly
+              await gsap.to(data.current.container, {
                 opacity: 0,
                 y: 50, // Slide down
-                duration: 0.5,
+                duration: 0.4, // Faster leave
                 ease: 'power1.in'
-              }).then(() => {});
+              }); // Removed .then(() => {})
             },
-            enter(data: any) {
+            // Make enter async and use await
+            async enter(data: any) {
               console.log("[Barba Transition - Default] ENTERING:", data.next.namespace);
               window.scrollTo(0, 0); // Reset scroll position
-              // Set initial state (faded out, slid down)
-              gsap.set(data.next.container, {
+              // Use gsap.from() to animate IN from a starting state
+              await gsap.from(data.next.container, {
                 opacity: 0,
-                y: 50
-              });
-              // Fade in and slide up
-              return gsap.to(data.next.container, {
-                opacity: 1,
-                y: 0, // Slide up to original position
-                duration: 0.5,
+                y: 50, // Start slid down
+                duration: 0.5, // Slightly longer enter
                 ease: 'power1.out'
-              }).then(() => {});
+              }); // Removed .then(() => {})
             }
           }
-          // --- ORIGINAL TRANSITIONS (COMMENTED OUT FOR DEBUGGING) ---
-          /*
-          // Specific Overlay Transition (Features <-> Use Cases)
-          {
-            name: 'overlay-transition',
-            from: { namespace: OVERLAY_TRANSITION_NAMESPACES },
-            to: { namespace: OVERLAY_TRANSITION_NAMESPACES },
-            async leave({ current }) {
-                console.log('[Barba Debug] overlay-transition: leave hook fired.', { from: current.namespace });
-                await overlayLeave(current.container);
-            },
-            async enter({ next }) {
-                console.log('[Barba Debug] overlay-transition: enter hook fired.', { to: next.namespace });
-                await overlayEnter(next.container);
-            }
-          },
-          // Default Fade/Slide Transition (Explicit rules)
-          {
-            name: 'default-transition',
-            from: { namespace: [...DEFAULT_TRANSITION_NAMESPACES, ...OVERLAY_TRANSITION_NAMESPACES] },
-            to: { namespace: [...DEFAULT_TRANSITION_NAMESPACES, ...OVERLAY_TRANSITION_NAMESPACES] },
-            custom: ({ current, next }) => {
-                const isOverlayFrom = OVERLAY_TRANSITION_NAMESPACES.includes(current.namespace);
-                const isOverlayTo = OVERLAY_TRANSITION_NAMESPACES.includes(next.namespace);
-                return !(isOverlayFrom && isOverlayTo);
-            },
-            async leave({ current }) {
-                console.log('[Barba Debug] default-transition: leave hook fired.', { from: current.namespace });
-                await defaultLeave(current.container);
-            },
-            async enter({ next }) {
-                console.log('[Barba Debug] default-transition: enter hook fired.', { to: next.namespace });
-                await defaultEnter(next.container);
-            }
-          }
-          */
+          // Removed the specific overlay-transition
         ],
       });
 
@@ -211,7 +152,7 @@ export default function TransitionProvider({ children }: { children: React.React
         }
       };
     } else {
-       console.log('[Barba Debug] useEffect: Skipping Barba init (not in browser).');
+      console.log('[Barba Debug] useEffect: Skipping Barba init (not in browser).');
     }
   }, [router]);
 

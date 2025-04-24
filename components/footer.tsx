@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link"
 import { Brain, Github, Twitter, Linkedin, Mail } from "lucide-react"
 import { useTransitionContext } from "@/contexts/TransitionContext";

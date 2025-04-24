@@ -226,3 +226,7 @@ const ScheduleItem = ({
     </motion.div>
   );
 };
+
+export default function BucketListPage() {
+  return <SmoothScrollHero />;
+}

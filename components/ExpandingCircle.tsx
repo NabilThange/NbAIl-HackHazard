@@ -1,16 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useTransitionContext } from "@/contexts/TransitionContext";
 
 interface ExpandingCircleProps {
   origin: { x: number; y: number } | null;
-  onComplete: () => void;
+  onEnterComplete: () => void;
 }
 
-export default function ExpandingCircle({ origin, onComplete }: ExpandingCircleProps) {
-  const { endTransition } = useTransitionContext();
-
+export default function ExpandingCircle({ origin, onEnterComplete }: ExpandingCircleProps) {
   // Variants for the expanding circle
   const circleVariants = {
     initial: {
@@ -41,15 +38,10 @@ export default function ExpandingCircle({ origin, onComplete }: ExpandingCircleP
       animate="animate"
       exit="exit"
       onAnimationComplete={(definition) => {
-        // Trigger navigation when 'animate' (enter) animation completes
+        // Trigger navigation only when 'animate' (enter) completes
         if (definition === 'animate') {
-             console.log("[ExpandingCircle] Animate animation complete. Calling onComplete (navigation).");
-            onComplete();
-        }
-         // End the entire transition process *only* when the 'exit' animation completes
-        if (definition === 'exit') {
-             console.log("[ExpandingCircle] Exit animation complete. Ending transition.");
-            endTransition();
+             console.log("[ExpandingCircle] Animate (enter) complete. Calling onEnterComplete (navigation).");
+            onEnterComplete();
         }
       }}
       className="pointer-events-none fixed z-[9998] aspect-square w-4 rounded-full bg-purple-600 origin-center"

@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useTransitionContext } from "@/contexts/TransitionContext";
 import React from "react";
 
 // UPDATED: Pillar count
@@ -36,22 +35,15 @@ interface FallingPillarsProps {
 }
 
 export default function FallingPillars({ onEnterComplete }: FallingPillarsProps) {
-  const { endTransition } = useTransitionContext();
-  const [exitCompleted, setExitCompleted] = React.useState(false);
+  // Removed endTransition logic and state
 
-  // We need to call endTransition only *once* after all pillars have exited.
-  // We can track the completion of the last pillar's exit animation.
+  // Only call onEnterComplete when the *last* pillar finishes entering.
   const handlePillarAnimationComplete = (definition: string, pillarIndex: number) => {
-    if (definition === 'exit' && pillarIndex === pillarCount - 1) {
-      console.log("[FallingPillars] Last pillar exit complete. Ending transition.");
-      endTransition();
-      setExitCompleted(true); // Prevent potential multiple calls
-    }
-     // Trigger navigation callback when the last pillar's ENTER animation completes
      if (definition === 'enter' && pillarIndex === pillarCount - 1) {
          console.log("[FallingPillars] Last pillar enter complete. Calling onEnterComplete (navigation).");
          onEnterComplete(); 
      }
+     // No longer handles exit cleanup
   };
 
   return (
@@ -68,7 +60,7 @@ export default function FallingPillars({ onEnterComplete }: FallingPillarsProps)
         <motion.div
           key={`pillar-${i}`}
           variants={pillarVariants}
-          onAnimationComplete={(definition) => !exitCompleted && handlePillarAnimationComplete(definition, i)}
+          onAnimationComplete={(definition) => handlePillarAnimationComplete(definition, i)}
           className="relative h-full bg-black rounded-lg"
           style={{ width: `${100 / pillarCount}vw` }}
         />

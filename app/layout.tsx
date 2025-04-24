@@ -35,7 +35,11 @@ export default function RootLayout({
       <body className={`${inter.className} overflow-x-hidden`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <DynamicTransitionProvider>
-            <div data-barba="wrapper">
+            <div data-barba="wrapper" className="relative">
+              <div
+                id="transition-panel"
+                className="fixed inset-0 z-[100] bg-gray-900 pointer-events-none translate-y-full"
+              ></div>
               <ScrollToTop />
               {children}
               <SpeedInsights />

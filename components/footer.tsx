@@ -7,9 +7,11 @@ export default function Footer() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1">
-            <Link href="/" className="flex items-center space-x-2 mb-4">
-              <Brain className="h-8 w-8 text-purple-500" />
-              <span className="text-white font-bold text-xl">NbAIl</span>
+            <Link href="/" passHref prefetch={false}>
+              <a className="flex items-center space-x-2 mb-4" data-barba-prevent="false">
+                <Brain className="h-8 w-8 text-purple-500" />
+                <span className="text-white font-bold text-xl">NbAIl</span>
+              </a>
             </Link>
             <p className="text-gray-400 mb-4">
               Your intelligent partner that understands voice, screen, documents, and more.

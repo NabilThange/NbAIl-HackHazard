@@ -11,13 +11,13 @@ const containerVariants = {
   initial: {},
   enter: {
     transition: { 
-        staggerChildren: 0.08, // Adjust stagger to match target duration
-        delayChildren: 0.1   // Keep a small initial delay
+        staggerChildren: 0.04, // FASTER stagger
+        delayChildren: 0.05   // Minimal initial delay
     },
   },
   exit: {
     transition: { 
-        staggerChildren: 0.08, // Match enter stagger for symmetry
+        staggerChildren: 0.04, // FASTER stagger (match enter)
         staggerDirection: 1 
     }, 
   },
@@ -29,17 +29,14 @@ const pillarVariants = {
   enter: { 
     y: "0%", 
     transition: { 
-        // Total enter time = delayChildren + (pillarCount * staggerChildren) + duration 
-        // Target ~0.6s => 0.1 + (5 * 0.08) + duration = 0.6 => 0.1 + 0.4 + duration = 0.6 => duration = 0.1 ? (too fast)
-        // Let's aim for duration 0.25 => 0.1 + 0.4 + 0.25 = 0.75s (adjust stagger if needed)
-        duration: 0.25, 
+        duration: 0.2, // FASTER duration
         ease: [0.22, 1, 0.36, 1] 
     }
   },
   exit: { 
     y: "100%", 
     transition: { 
-        duration: 0.25, // Match enter duration
+        duration: 0.2, // FASTER duration (match enter)
         ease: [0.64, 0, 0.78, 0] 
     }
   },

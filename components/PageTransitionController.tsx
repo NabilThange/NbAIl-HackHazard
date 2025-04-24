@@ -7,10 +7,16 @@ import { useTransitionContext } from "@/contexts/TransitionContext"; // Adjust p
 import FallingPillars from "./FallingPillars";
 import ExpandingCircle from "./ExpandingCircle";
 
-// Default variants for content when overlay is used
+// Variants for default content (fade) used with overlays
 const overlayContentVariants = {
   initial: { opacity: 0 },
-  animate: { opacity: 1, transition: { duration: 0.4, delay: 0.8 } }, 
+  animate: { 
+      opacity: 1, 
+      transition: { 
+          duration: 0.4, 
+          delay: 0.5 // FASTER: Reduced delay to match faster overlay
+      } 
+  },
   exit: { opacity: 0, transition: { duration: 0.2 } }, 
 };
 

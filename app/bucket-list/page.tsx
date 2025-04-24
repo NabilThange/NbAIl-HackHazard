@@ -115,8 +115,8 @@ const ParallaxImages = () => {
         className="w-1/2"
       />
         <ParallaxImg
-          src="/shot3.svg"
-        alt="shot3"
+          src="/shot7.png"
+        alt="shot7"
         start={200}
         end={-250}
         className="mx-auto w-1/4"

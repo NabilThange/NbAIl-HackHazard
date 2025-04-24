@@ -5,10 +5,10 @@ import { motion } from "framer-motion";
 
 export default function CTA() {
   return (
-    <section className="grid place-content-center gap-2 bg-green-300 px-8 py-24 text-black">
-      <FlipLink href="#">Twitter</FlipLink>
-      <FlipLink href="#">Linkedin</FlipLink>
-      <FlipLink href="#">Facebook</FlipLink>
+    <section className="grid place-content-center gap-2 bg-black px-8 py-24 text-white">
+      <FlipLink href="https://x.com/NabilThange">Twitter</FlipLink>
+      <FlipLink href="https://www.linkedin.com/in/nabil-thange/">Linkedin</FlipLink>
+      <FlipLink href="https://github.com/NabilThange">Github</FlipLink>
       <FlipLink href="#">Instagram</FlipLink>
     </section>
   );

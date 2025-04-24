@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import ScrollToTop from "@/components/scroll-to-top"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import PageTransitionWrapper from "@/components/PageTransitionWrapper"
+import Cursor from "@/components/magicui/cursor"
 
 const inter = Inter({ subsets: ["latin"], display: "swap" })
 
@@ -33,6 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="scroll-smooth">
       <body className={inter.className}>
+        <Cursor />
         <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.85/build/spline-viewer.js" async></script>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <ScrollToTop />

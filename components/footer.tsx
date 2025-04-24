@@ -1,13 +1,45 @@
 import Link from "next/link"
 import { Brain, Github, Twitter, Linkedin, Mail } from "lucide-react"
+import { useTransitionContext } from "@/contexts/TransitionContext";
 
 export default function Footer() {
+  const { startTransition, isTransitioning } = useTransitionContext();
+
+  const handleTransitionClick = (event: React.MouseEvent<HTMLAnchorElement>, href: string, type: 'pillars' | 'circle') => {
+    if (isTransitioning) {
+      console.log("[Footer] Transition already in progress, ignoring click.");
+      event.preventDefault();
+      return;
+    }
+    console.log(`[Footer] handleTransitionClick called for href: ${href}, type: ${type}`);
+    event.preventDefault();
+    let origin = undefined;
+    if (type === 'circle') {
+      origin = { x: event.clientX, y: event.clientY };
+    }
+    startTransition(type, href, origin);
+  };
+
+  const pillarsPages = ['/', '/features', '/use-cases'];
+  const circlePages = ['/pricing', '/research'];
+
+  const getTransitionType = (href: string): 'pillars' | 'circle' | null => {
+      if (pillarsPages.includes(href)) return 'pillars';
+      if (circlePages.includes(href)) return 'circle';
+      return null;
+  }
+
   return (
     <footer className="bg-black/[0.96] border-t border-gray-800">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1">
-            <Link href="/" className="flex items-center space-x-2 mb-4">
+            <Link 
+              href="/"
+              onClick={(e) => handleTransitionClick(e, "/", 'pillars')}
+              className="flex items-center space-x-2 mb-4"
+              aria-disabled={isTransitioning}
+            >
               <Brain className="h-8 w-8 text-purple-500" />
               <span className="text-white font-bold text-xl">NbAIl</span>
             </Link>
@@ -51,7 +83,9 @@ export default function Footer() {
               <li>
                 <Link
                   href="/features"
+                  onClick={(e) => handleTransitionClick(e, "/features", 'pillars')}
                   className="text-gray-400 hover:text-white transition-colors"
+                  aria-disabled={isTransitioning}
                 >
                   Features
                 </Link>
@@ -59,7 +93,9 @@ export default function Footer() {
               <li>
                 <Link
                   href="/pricing"
+                  onClick={(e) => handleTransitionClick(e, "/pricing", 'circle')}
                   className="text-gray-400 hover:text-white transition-colors"
+                  aria-disabled={isTransitioning}
                 >
                   Pricing
                 </Link>
@@ -67,7 +103,9 @@ export default function Footer() {
               <li>
                 <Link
                   href="/research"
+                  onClick={(e) => handleTransitionClick(e, "/research", 'circle')}
                   className="text-gray-400 hover:text-white transition-colors"
+                  aria-disabled={isTransitioning}
                 >
                   Research
                 </Link>
@@ -75,7 +113,9 @@ export default function Footer() {
               <li>
                 <Link
                   href="/use-cases"
+                  onClick={(e) => handleTransitionClick(e, "/use-cases", 'pillars')}
                   className="text-gray-400 hover:text-white transition-colors"
+                  aria-disabled={isTransitioning}
                 >
                   Use Cases
                 </Link>

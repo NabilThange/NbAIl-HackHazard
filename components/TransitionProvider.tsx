@@ -5,12 +5,13 @@ import barba from '@barba/core';
 import gsap from 'gsap';
 
 // Define namespaces for each transition type
-const SLIDING_PANEL_NAMESPACES = ['home', 'features', 'use-cases'];
-const FADE_SLIDE_NAMESPACES = ['pricing', 'research'];
+const SLIDING_PANEL_NAMESPACES = ['home', 'use-cases']; // Removed 'features'
+const FADE_SLIDE_NAMESPACES = ['pricing']; // Removed 'research'
+const SLIDE_HORIZONTAL_NAMESPACES = ['features', 'research']; // New group
 
 // --- Transition Logic Functions ---
 
-// Sliding Panel - Leave Animation
+// Sliding Panel (Up/Down) - Leave Animation
 const slideLeave = async (container: HTMLElement): Promise<void> => {
   console.log("[Barba Transition - Sliding Panel] LEAVING:", container.dataset.barbaNamespace);
   const tl = gsap.timeline();
@@ -29,7 +30,7 @@ const slideLeave = async (container: HTMLElement): Promise<void> => {
   await tl;
 };
 
-// Sliding Panel - Enter Animation
+// Sliding Panel (Up/Down) - Enter Animation
 const slideEnter = async (container: HTMLElement): Promise<void> => {
   console.log("[Barba Transition - Sliding Panel] ENTERING:", container.dataset.barbaNamespace);
   window.scrollTo(0, 0);
@@ -53,9 +54,9 @@ const slideEnter = async (container: HTMLElement): Promise<void> => {
   await tl;
 };
 
-// Fade + Slide - Leave Animation
+// Fade + Slide (Vertical) - Leave Animation
 const fadeSlideLeave = async (container: HTMLElement): Promise<void> => {
-  console.log("[Barba Transition - Fade+Slide] LEAVING:", container.dataset.barbaNamespace);
+  console.log("[Barba Transition - Fade+Slide Vertical] LEAVING:", container.dataset.barbaNamespace);
   await gsap.to(container, {
     opacity: 0,
     y: 50, // Slide down
@@ -64,9 +65,9 @@ const fadeSlideLeave = async (container: HTMLElement): Promise<void> => {
   });
 };
 
-// Fade + Slide - Enter Animation
+// Fade + Slide (Vertical) - Enter Animation
 const fadeSlideEnter = async (container: HTMLElement): Promise<void> => {
-  console.log("[Barba Transition - Fade+Slide] ENTERING:", container.dataset.barbaNamespace);
+  console.log("[Barba Transition - Fade+Slide Vertical] ENTERING:", container.dataset.barbaNamespace);
   window.scrollTo(0, 0);
   // Use gsap.from to animate IN from a starting state
   await gsap.from(container, {
@@ -74,6 +75,31 @@ const fadeSlideEnter = async (container: HTMLElement): Promise<void> => {
     y: 50, // Start slid down
     duration: 0.5,
     ease: 'power1.out'
+  });
+};
+
+// NEW: Slide Horizontal - Leave Animation
+const slideHorizontalLeave = async (container: HTMLElement): Promise<void> => {
+  console.log("[Barba Transition - Slide Horizontal] LEAVING:", container.dataset.barbaNamespace);
+  // Slide current container out to the left
+  await gsap.to(container, {
+    x: "-100%", // Slide left
+    opacity: 0, // Fade out simultaneously
+    duration: 0.5,
+    ease: 'power2.in'
+  });
+};
+
+// NEW: Slide Horizontal - Enter Animation
+const slideHorizontalEnter = async (container: HTMLElement): Promise<void> => {
+  console.log("[Barba Transition - Slide Horizontal] ENTERING:", container.dataset.barbaNamespace);
+  window.scrollTo(0, 0);
+  // Start new container off-screen to the right and bring it in
+  await gsap.from(container, {
+    x: "100%", // Start from right
+    opacity: 0,
+    duration: 0.5,
+    ease: 'power2.out'
   });
 };
 
@@ -130,33 +156,41 @@ export default function TransitionProvider({ children }: { children: React.React
       },
       transitions: [
         {
-          // --- Transition A: Sliding Panel ---
+          // --- Transition A: Sliding Panel (home <-> use-cases) ---
           name: 'sliding-panel',
-          sync: false, // Standard leave-then-enter flow
-          // Rule: Use this transition if BOTH the 'from' and 'to' pages are in the SLIDING_PANEL_NAMESPACES list
+          sync: false,
           from: { namespace: SLIDING_PANEL_NAMESPACES },
           to: { namespace: SLIDING_PANEL_NAMESPACES },
           leave: async (data: any) => await slideLeave(data.current.container),
           enter: async (data: any) => await slideEnter(data.next.container),
         },
         {
-          // --- Transition B: Fade + Slide ---
-          name: 'fade-slide',
+          // --- Transition B: Fade + Slide Vertical (pricing <-> pricing) ---
+          // This now only applies if navigating from pricing to pricing (or other pages added later)
+          name: 'fade-slide-vertical',
           sync: false,
-          // Rule: Use this transition if BOTH the 'from' and 'to' pages are in the FADE_SLIDE_NAMESPACES list
           from: { namespace: FADE_SLIDE_NAMESPACES },
           to: { namespace: FADE_SLIDE_NAMESPACES },
           leave: async (data: any) => await fadeSlideLeave(data.current.container),
           enter: async (data: any) => await fadeSlideEnter(data.next.container),
         },
         {
-           // --- Default/Fallback Transition (Fade + Slide) ---
-           // Rule: Use this if none of the specific rules above match (e.g., home -> pricing)
-           name: 'default-fallback',
+          // --- NEW Transition C: Slide Horizontal (features <-> research) ---
+          name: 'slide-horizontal',
+          sync: false,
+          from: { namespace: SLIDE_HORIZONTAL_NAMESPACES },
+          to: { namespace: SLIDE_HORIZONTAL_NAMESPACES },
+          leave: async (data: any) => await slideHorizontalLeave(data.current.container),
+          enter: async (data: any) => await slideHorizontalEnter(data.next.container),
+        },
+        {
+           // --- Default/Fallback Transition (Fade + Slide Vertical) ---
+           // Rule: Use this if none of the specific rules above match
+           // (e.g., home -> features, features -> pricing, research -> use-cases, etc.)
+           name: 'default-fallback-fade-slide',
            sync: false,
-           // No specific 'from' or 'to' rules, making it the fallback
-           leave: async (data: any) => await fadeSlideLeave(data.current.container), // Use fade-slide logic
-           enter: async (data: any) => await fadeSlideEnter(data.next.container),  // Use fade-slide logic
+           leave: async (data: any) => await fadeSlideLeave(data.current.container),
+           enter: async (data: any) => await fadeSlideEnter(data.next.container),
         }
       ],
     });

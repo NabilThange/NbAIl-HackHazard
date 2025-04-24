@@ -10,24 +10,28 @@ import {
 import { SiSpacex } from "react-icons/si";
 import { FiArrowRight, FiMapPin } from "react-icons/fi";
 import { useRef } from "react";
+import Navbar from "@/components/navbar";
 
 export const SmoothScrollHero = () => {
   return (
-    <div className="bg-zinc-950">
-      <ReactLenis
-        root
-        options={{
-          // Learn more -> https://github.com/darkroomengineering/lenis?tab=readme-ov-file#instance-settings
-          lerp: 0.05,
-          //   infinite: true,
-          //   syncTouch: true,
-        }}
-      >
-        <Nav />
-        <Hero />
-        <Schedule />
-      </ReactLenis>
-    </div>
+    <>
+      <Navbar />
+      <div className="bg-zinc-950">
+        <ReactLenis
+          root
+          options={{
+            // Learn more -> https://github.com/darkroomengineering/lenis?tab=readme-ov-file#instance-settings
+            lerp: 0.05,
+            //   infinite: true,
+            //   syncTouch: true,
+          }}
+        >
+          <Nav />
+          <Hero />
+          <Schedule />
+        </ReactLenis>
+      </div>
+    </>
   );
 };
 

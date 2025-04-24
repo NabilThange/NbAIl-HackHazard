@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useTransitionContext } from "@/contexts/TransitionContext";
+import React from "react";
 
 // UPDATED: Pillar count
 const pillarCount = 6; 
@@ -9,12 +10,11 @@ const pillarCount = 6;
 // UPDATED: Container variants - only need exit now, enter handled by pillars
 const containerVariants = {
   initial: {},
-  animate: {},
+  enter: {
+    transition: { staggerChildren: 0.07, delayChildren: 0.1 },
+  },
   exit: {
-    transition: {
-      staggerChildren: 0.06, // Stagger pillars falling down
-      // staggerDirection: -1, // No longer needed for exit
-    },
+    transition: { staggerChildren: 0.07, staggerDirection: 1 }, // Stagger exit downwards
   },
 };
 
@@ -32,47 +32,45 @@ const pillarVariants = {
 };
 
 interface FallingPillarsProps {
-  onComplete: () => void;
+  onEnterComplete: () => void; // Renamed for clarity
 }
 
-export default function FallingPillars({ onComplete }: FallingPillarsProps) {
+export default function FallingPillars({ onEnterComplete }: FallingPillarsProps) {
   const { endTransition } = useTransitionContext();
+  const [exitCompleted, setExitCompleted] = React.useState(false);
+
+  // We need to call endTransition only *once* after all pillars have exited.
+  // We can track the completion of the last pillar's exit animation.
+  const handlePillarAnimationComplete = (definition: string, pillarIndex: number) => {
+    if (definition === 'exit' && pillarIndex === pillarCount - 1) {
+      console.log("[FallingPillars] Last pillar exit complete. Ending transition.");
+      endTransition();
+      setExitCompleted(true); // Prevent potential multiple calls
+    }
+     // Trigger navigation callback when the last pillar's ENTER animation completes
+     if (definition === 'enter' && pillarIndex === pillarCount - 1) {
+         console.log("[FallingPillars] Last pillar enter complete. Calling onEnterComplete (navigation).");
+         onEnterComplete(); 
+     }
+  };
 
   return (
     <motion.div
       key="pillars-container"
-      variants={containerVariants} // Staggers the exit animation
+      variants={containerVariants}
       initial="initial"
       animate="enter"
-      exit="exit" // Trigger exit variant on container
-      onAnimationComplete={(definition) => {
-        // Trigger navigation when ENTER animation of the LAST pillar theoretically completes
-        // We approximate this by using a timeout based on stagger and duration
-        if (definition === 'enter') {
-            const totalEnterDuration = 0.1 + (pillarCount * 0.07) + 0.4; // delayChildren + stagger + pillar duration
-            console.log(`[FallingPillars] Enter animation started. Triggering navigation in ~${totalEnterDuration.toFixed(2)}s`);
-            setTimeout(() => {
-                console.log("[FallingPillars] Calling onComplete (navigation)...");
-                onComplete(); 
-            }, totalEnterDuration * 1000);
-        }
-         // End the transition process when the container's EXIT animation completes
-         // which happens after all children have finished their exit
-        if (definition === 'exit') {
-            console.log("[FallingPillars] Exit animation complete. Ending transition.");
-            endTransition();
-        }
-      }}
-      // UPDATED: Styling
+      exit="exit"
+      // onAnimationComplete is less reliable here due to staggerChildren on exit
       className="pointer-events-none fixed inset-0 z-[9999] flex overflow-hidden"
     >
       {[...Array(pillarCount)].map((_, i) => (
         <motion.div
           key={`pillar-${i}`}
-          variants={pillarVariants} // Pillars animate based on container stagger
-          // UPDATED: Styling
-          className="relative h-full bg-black rounded-lg" // Black bg, rounded
-          style={{ width: `${100 / pillarCount}vw` }} // Wider pillars
+          variants={pillarVariants}
+          onAnimationComplete={(definition) => !exitCompleted && handlePillarAnimationComplete(definition, i)}
+          className="relative h-full bg-black rounded-lg"
+          style={{ width: `${100 / pillarCount}vw` }}
         />
       ))}
     </motion.div>

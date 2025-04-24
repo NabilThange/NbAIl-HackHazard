@@ -31,7 +31,11 @@ export default function PageTransitionController({ children }: { children: React
     if (!isTransitioning) {
         window.scrollTo(0, 0);
     }
-  }, [pathname, isTransitioning]);
+    // Disable body scroll during transition
+    document.body.style.overflow = isTransitioning ? 'hidden' : '';
+    // Cleanup function to restore scroll on unmount or when transition ends
+    return () => { document.body.style.overflow = ''; };
+  }, [isTransitioning]); // Rerun when transition state changes
 
   // Renamed for clarity: This function is called by the overlay when its ENTER animation is done.
   const handleOverlayEnterComplete = () => {
@@ -48,20 +52,19 @@ export default function PageTransitionController({ children }: { children: React
 
   // Render the correct overlay based on the context
   const renderTransitionOverlay = () => {
-    if (!isTransitioning) return null;
-
+    // No need to check isTransitioning here, AnimatePresence handles it
     console.log(`[Controller] Rendering overlay: ${transitionType}`);
 
     switch (transitionType) {
       case 'pillars':
         // Pass the navigation callback
-        return <FallingPillars onComplete={handleOverlayEnterComplete} />;
+        return <FallingPillars onEnterComplete={handleOverlayEnterComplete} />;
       case 'circle':
         // Pass origin and navigation callback
         return (
             <ExpandingCircle 
                 origin={transitionOrigin}
-                onComplete={handleOverlayEnterComplete} 
+                onEnterComplete={handleOverlayEnterComplete} 
             />
         );
       default:
@@ -72,10 +75,11 @@ export default function PageTransitionController({ children }: { children: React
 
   return (
     <>
-      {/* AnimatePresence for the OVERLAY component. */} 
-      {/* The overlay component itself controls its enter/exit based on isTransitioning */}
-      {/* It will call handleOverlayEnterComplete on enter, and endTransition on exit */} 
+      {/* AnimatePresence for the OVERLAY */} 
       <AnimatePresence mode="wait">
+        {/* Conditionally render the overlay based on isTransitioning */} 
+        {/* The overlay component defines its own enter/exit animations */} 
+        {/* It calls endTransition via context on exit animation complete */} 
         {isTransitioning && renderTransitionOverlay()}
       </AnimatePresence>
 

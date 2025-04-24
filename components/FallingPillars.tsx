@@ -10,10 +10,16 @@ const pillarCount = 6;
 const containerVariants = {
   initial: {},
   enter: {
-    transition: { staggerChildren: 0.07, delayChildren: 0.1 },
+    transition: { 
+        staggerChildren: 0.05, // FASTER: Reduced stagger delay
+        delayChildren: 0.05 // FASTER: Reduced initial delay
+    },
   },
   exit: {
-    transition: { staggerChildren: 0.07, staggerDirection: 1 }, // Stagger exit downwards
+    transition: { 
+        staggerChildren: 0.07, // Keep exit stagger as is, or adjust if needed
+        staggerDirection: 1 
+    }, 
   },
 };
 
@@ -22,11 +28,17 @@ const pillarVariants = {
   initial: { y: "-100%" }, // Start above screen
   enter: { 
     y: "0%", 
-    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } // Faster fall
+    transition: { 
+        duration: 0.3, // FASTER: Reduced fall duration
+        ease: [0.22, 1, 0.36, 1] 
+    }
   },
   exit: { 
     y: "100%", // Fall down off screen
-    transition: { duration: 0.4, ease: [0.64, 0, 0.78, 0] } // Different ease for exit
+    transition: { 
+        duration: 0.4, 
+        ease: [0.64, 0, 0.78, 0] 
+    }
   },
 };
 

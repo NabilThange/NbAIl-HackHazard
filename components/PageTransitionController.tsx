@@ -10,7 +10,13 @@ import ExpandingCircle from "./ExpandingCircle";
 // Default variants (fade) for content
 const defaultContentVariants = {
   initial: { opacity: 0 },
-  animate: { opacity: 1, transition: { duration: 0.4, delay: 0.6 } }, // Delay to match overlay approx end
+  animate: { 
+      opacity: 1, 
+      transition: { 
+          duration: 0.4, 
+          delay: 0.8 // LONGER DELAY: Increased delay before content fades in
+      } 
+  },
   exit: { opacity: 0, transition: { duration: 0.2 } }, 
 };
 

@@ -115,7 +115,7 @@ const ParallaxImages = () => {
         className="w-1/2"
       />
       <ParallaxImg
-        src="/shot3.png"
+        src="/shot3.svg"
         alt="An example of a space launch oooo"
         start={200}
         end={-250}
@@ -189,15 +189,12 @@ const Schedule = () => {
         transition={{ ease: "easeInOut", duration: 0.75 }}
         className="mb-20 text-4xl font-black uppercase text-zinc-50"
       >
-        Launch Schedule
+        Next Big Additions
       </motion.h1>
-      <ScheduleItem title="NG-21" date="Dec 9th" location="Florida" />
-      <ScheduleItem title="Starlink" date="Dec 20th" location="Texas" />
-      <ScheduleItem title="Starlink" date="Jan 13th" location="Florida" />
-      <ScheduleItem title="Turksat 6A" date="Feb 22nd" location="Florida" />
-      <ScheduleItem title="NROL-186" date="Mar 1st" location="California" />
-      <ScheduleItem title="GOES-U" date="Mar 8th" location="California" />
-      <ScheduleItem title="ASTRA 1P" date="Apr 8th" location="Texas" />
+      <ScheduleItem title="ScreenPipe ScreenAware Integration" date="AI that sees screen" location="Will do" />
+      <ScheduleItem title="Voice-Controlled App Launcher (Terminator Mode)" date="Open apps by voice" location="Working on" />
+      <ScheduleItem title="User Data & Auth: Real Database Setup" date="Store real user data" location="Will do" />
+      <ScheduleItem title="Revamped AR Mode UI" date="Smoother, sharper AR visuals, GUI Like Iron Man" location="Will do" />
     </section>
   );
 };

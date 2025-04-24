@@ -7,11 +7,18 @@ import { useTransitionContext } from "@/contexts/TransitionContext"; // Adjust p
 import FallingPillars from "./FallingPillars";
 import ExpandingCircle from "./ExpandingCircle";
 
-// Default variants (fade) for content when overlay is used
+// Default variants for content when overlay is used
 const overlayContentVariants = {
   initial: { opacity: 0 },
   animate: { opacity: 1, transition: { duration: 0.4, delay: 0.8 } }, 
   exit: { opacity: 0, transition: { duration: 0.2 } }, 
+};
+
+// RE-ADD: Variants for Fade & Slide transition
+const fadeSlideVariants = {
+  initial: { opacity: 0, y: 30 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeInOut" } },
+  exit: { opacity: 0, y: 30, transition: { duration: 0.4, ease: "easeInOut" } },
 };
 
 export default function PageTransitionController({ children }: { children: React.ReactNode }) {
@@ -19,22 +26,28 @@ export default function PageTransitionController({ children }: { children: React
   const router = useRouter();
   const { 
     isTransitioning, 
-    transitionType, // Should now only be 'pillars' or 'circle' when isTransitioning is true
+    transitionType, // Type includes fade-slide again
     transitionOrigin,
     targetHref,
     endTransition 
   } = useTransitionContext();
 
-  // State to track if content has finished animating IN (used to trigger overlay exit)
+  // RE-ADD: activeContentType state
+  const [activeContentType, setActiveContentType] = useState<'overlay' | 'fade-slide' | null>(null);
+  
   const [contentHasAnimatedIn, setContentHasAnimatedIn] = useState(false);
 
   useEffect(() => {
     if (isTransitioning) {
-       // Reset animation flag when a new transition starts
+       // RE-ADD: Logic to set activeContentType based on transitionType
+       setActiveContentType(transitionType === 'fade-slide' ? 'fade-slide' : 'overlay');
        setContentHasAnimatedIn(false);
-       console.log(`[Controller] Transition START. Type: ${transitionType}, Target: ${targetHref}`);
-    } 
-  }, [isTransitioning, transitionType, targetHref]);
+       console.log(`[Controller] Transition START. Type: ${transitionType}, ActiveContentType: ${activeContentType}, Target: ${targetHref}`);
+    } else {
+        setActiveContentType(null); // Reset on end
+    }
+    // Added activeContentType back to dependency array
+  }, [isTransitioning, transitionType, targetHref, activeContentType]); 
 
   useEffect(() => {
     // Scroll lock logic
@@ -54,28 +67,39 @@ export default function PageTransitionController({ children }: { children: React
     }
   };
 
-  // Callback for content animations - ONLY for overlay logic now
-  const handleContentAnimationComplete = (definition: string) => {
-     console.log(`[Controller] Content animation complete: ${definition}`);
-     // If new content finished animating IN (after overlay), flag it to trigger overlay exit
-     if (definition === 'animate') {
-        console.log("[Controller] Overlay content finished entering. Flagging for overlay exit.");
-        setContentHasAnimatedIn(true);
-     }
-  };
-  
-  // Effect to trigger overlay exit *after* content has animated in
+  // Re-introduce handleExitComplete for fade-slide navigation
+  const handleExitComplete = () => {
+      console.log("[Controller] handleExitComplete called.");
+      if (activeContentType === 'fade-slide' && targetHref) {
+         console.log("[Controller] Fade-Slide exit complete. Navigating...");
+         router.push(targetHref);
+      }
+  }
+
+  // Re-introduce handleAnimateComplete logic for fade-slide cleanup
+  const handleAnimateComplete = () => {
+      console.log(`[Controller] handleAnimateComplete called. ActiveType: ${activeContentType}`);
+      if (activeContentType === 'overlay') {
+         console.log("[Controller] Overlay content finished entering. Flagging for overlay exit.");
+         setContentHasAnimatedIn(true);
+      }
+      else if (activeContentType === 'fade-slide') {
+          console.log("[Controller] Fade-Slide enter complete. Ending transition.");
+          endTransition();
+      }
+  }
+
+  // Effect to trigger overlay exit (no changes here)
   useEffect(() => {
-    // Simplified condition: Only check if content is in and an overlay transition is active
-    if (contentHasAnimatedIn && isTransitioning) {
+    if (contentHasAnimatedIn && isTransitioning && activeContentType === 'overlay') {
       console.log("[Controller] Content entered. Calling endTransition() to trigger overlay exit.");
       endTransition(); 
-      setContentHasAnimatedIn(false); // Reset flag
+      setContentHasAnimatedIn(false);
     }
-  }, [contentHasAnimatedIn, isTransitioning, endTransition]);
+  }, [contentHasAnimatedIn, isTransitioning, activeContentType, endTransition]);
 
   const renderTransitionOverlay = () => {
-    // Guard: Only render when an overlay transition is active
+    // Re-add guard against fade-slide
     if (!isTransitioning || !transitionType || transitionType === 'fade-slide') return null; 
 
     console.log(`[Controller] Rendering overlay: ${transitionType}`);
@@ -83,36 +107,35 @@ export default function PageTransitionController({ children }: { children: React
       case 'pillars':
         return <FallingPillars onEnterComplete={navigateAfterOverlayEnter} />;
       case 'circle':
-        return (
-            <ExpandingCircle 
-                origin={transitionOrigin}
-                onEnterComplete={navigateAfterOverlayEnter} 
-            />
-        );
+        return <ExpandingCircle origin={transitionOrigin} onEnterComplete={navigateAfterOverlayEnter} />;
       default:
         return null;
     }
   };
 
-  // Variants are now always the overlay content variants
-  const currentContentVariants = overlayContentVariants;
+  // Re-add logic to select variants based on activeContentType
+  const currentContentVariants = activeContentType === 'fade-slide' ? fadeSlideVariants : overlayContentVariants;
 
   return (
     <>
-      {/* OVERLAY AnimatePresence */} 
+      {/* OVERLAY AnimatePresence (no changes) */} 
       <AnimatePresence mode="wait" onExitComplete={() => console.log("[Controller] Overlay exit complete.")}>
         {isTransitioning && renderTransitionOverlay()} 
       </AnimatePresence>
 
-      {/* PAGE CONTENT AnimatePresence */} 
-      <AnimatePresence mode="wait" initial={false} onExitComplete={() => console.log("[Controller] Content exit complete.")}>
+      {/* PAGE CONTENT AnimatePresence (re-add onExitComplete) */} 
+      <AnimatePresence 
+         mode="wait" 
+         initial={false} 
+         onExitComplete={handleExitComplete} // RE-ADDED
+      >
           <motion.div
             key={pathname} 
             initial="initial"
             animate="animate"
             exit="exit"
-            variants={currentContentVariants} // Always use overlay variants
-            onAnimationComplete={handleContentAnimationComplete} 
+            variants={currentContentVariants} // Use dynamic variants again
+            onAnimationComplete={handleAnimateComplete} 
             className="flex-grow"
             style={{ pointerEvents: isTransitioning ? 'none' : 'auto' }}
           >

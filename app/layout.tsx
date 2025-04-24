@@ -5,7 +5,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import ScrollToTop from "@/components/scroll-to-top"
 import { SpeedInsights } from "@vercel/speed-insights/next"
-import TransitionWrapper from "@/components/TransitionWrapper"
+import PageTransitionWrapper from "@/components/PageTransitionWrapper"
 
 const inter = Inter({ subsets: ["latin"], display: "swap" })
 
@@ -35,9 +35,9 @@ export default function RootLayout({
       <body className={`${inter.className} overflow-x-hidden flex flex-col min-h-screen`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <ScrollToTop />
-          <TransitionWrapper>
+          <PageTransitionWrapper>
             {children}
-          </TransitionWrapper>
+          </PageTransitionWrapper>
           <SpeedInsights />
         </ThemeProvider>
       </body>

@@ -83,8 +83,8 @@ const DefaultCursorSVG: FC = () => {
 export function SmoothCursor({
   cursor = <DefaultCursorSVG />,
   springConfig = {
-    damping: 45,
-    stiffness: 400,
+    damping: 30,
+    stiffness: 500,
     mass: 1,
     restDelta: 0.001,
   },
@@ -100,13 +100,13 @@ export function SmoothCursor({
   const cursorY = useSpring(0, springConfig);
   const rotation = useSpring(0, {
     ...springConfig,
-    damping: 60,
-    stiffness: 300,
+    damping: 30,
+    stiffness: 500,
   });
   const scale = useSpring(1, {
     ...springConfig,
     stiffness: 500,
-    damping: 35,
+    damping: 30,
   });
 
   useEffect(() => {

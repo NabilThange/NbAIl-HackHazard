@@ -50,12 +50,11 @@ export default function Navbar() {
 
   const pillarsPages = ['/', '/features'];
   const circlePages = ['/pricing'];
-  const fadeSlidePages = ['/use-cases', '/research'];
+  const fadeSlidePages: string[] = [];
 
-  const getTransitionType = (href: string): 'pillars' | 'circle' | 'fade-slide' | null => {
+  const getTransitionType = (href: string): 'pillars' | 'circle' | null => {
       if (pillarsPages.includes(href)) return 'pillars';
       if (circlePages.includes(href)) return 'circle';
-      if (fadeSlidePages.includes(href)) return 'fade-slide';
       return null;
   }
 
@@ -165,24 +164,26 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
 
   const pillarsPages = ['/', '/features']
   const circlePages = ['/pricing']
-  const fadeSlidePages = ['/use-cases', '/research']
 
   const transitionType = pillarsPages.includes(href) ? 'pillars' : 
                          circlePages.includes(href) ? 'circle' : 
-                         fadeSlidePages.includes(href) ? 'fade-slide' : null
+                         null
 
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    if (!transitionType || isTransitioning) {
-        if (isTransitioning) event.preventDefault()
-        return
+    if (!transitionType) {
+        console.log(`[NavLink] No custom transition for ${href}. Allowing default navigation.`);
+        return;
     }
-    console.log(`[NavLink] Handling click for ${href}, type: ${transitionType}`)
-    event.preventDefault()
-    let origin = undefined
+    
+    event.preventDefault();
+    if (isTransitioning) return;
+    
+    console.log(`[NavLink] Handling click for ${href}, type: ${transitionType}`);
+    let origin = undefined;
     if (transitionType === 'circle') {
-        origin = { x: event.clientX, y: event.clientY }
+        origin = { x: event.clientX, y: event.clientY };
     }
-    startTransition(transitionType, href, origin)
+    startTransition(transitionType as 'pillars' | 'circle', href, origin);
   }
 
   return (
@@ -209,25 +210,27 @@ function MobileNavLink({ href, children }: { href: string; children: React.React
 
   const pillarsPages = ['/', '/features']
   const circlePages = ['/pricing']
-  const fadeSlidePages = ['/use-cases', '/research']
 
   const transitionType = pillarsPages.includes(href) ? 'pillars' : 
                          circlePages.includes(href) ? 'circle' : 
-                         fadeSlidePages.includes(href) ? 'fade-slide' : null
+                         null
 
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-     if (!transitionType || isTransitioning) {
-         if (isTransitioning) event.preventDefault()
-         return
-     }
-     console.log(`[MobileNavLink] Handling click for ${href}, type: ${transitionType}`)
-     event.preventDefault()
-     let origin = undefined
-     if (transitionType === 'circle') {
-         origin = { x: event.clientX, y: event.clientY }
-     }
-     startTransition(transitionType, href, origin)
-   }
+    if (!transitionType) {
+        console.log(`[MobileNavLink] No custom transition for ${href}. Allowing default navigation.`);
+        return;
+    }
+    
+    event.preventDefault();
+    if (isTransitioning) return;
+
+    console.log(`[MobileNavLink] Handling click for ${href}, type: ${transitionType}`);
+    let origin = undefined;
+    if (transitionType === 'circle') {
+        origin = { x: event.clientX, y: event.clientY };
+    }
+    startTransition(transitionType as 'pillars' | 'circle', href, origin);
+  }
 
   return (
     <Link

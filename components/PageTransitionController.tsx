@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useTransitionContext } from "@/contexts/TransitionContext"; // Adjust path if needed
 import FallingPillars from "./FallingPillars";
 import ExpandingCircle from "./ExpandingCircle";
@@ -42,11 +42,11 @@ export default function PageTransitionController({ children }: { children: React
        // Determine content animation type
        setActiveContentType(transitionType === 'fade-slide' ? 'fade-slide' : 'overlay');
        setContentHasAnimatedIn(false);
-       console.log(`[Controller] Transition START. Type: ${transitionType}, ActiveContentType: ${transitionType === 'fade-slide' ? 'fade-slide' : 'overlay'}`);
+       console.log(`[Controller] Transition START. Type: ${transitionType}, ActiveContentType: ${activeContentType}, Target: ${targetHref}`);
     } else {
         setActiveContentType(null);
     }
-  }, [isTransitioning, transitionType]);
+  }, [isTransitioning, transitionType, targetHref, activeContentType]);
 
   useEffect(() => {
     // Scroll lock logic
@@ -66,38 +66,37 @@ export default function PageTransitionController({ children }: { children: React
     }
   };
 
-  // Callback for content animations
-  const handleContentAnimationComplete = (definition: string) => {
-     console.log(`[Controller] Content animation complete: ${definition}, ActiveType: ${activeContentType}`);
-     // --- Fade-Slide Logic ---
-     if (activeContentType === 'fade-slide') {
-       // If exiting page finished, trigger navigation
-       if (definition === 'exit' && targetHref) {
+  // Separate handler specifically for the EXITING content's completion
+  const handleExitComplete = () => {
+      console.log("[Controller] handleExitComplete called.");
+      // Trigger navigation ONLY if it was a fade-slide transition
+      if (activeContentType === 'fade-slide' && targetHref) {
          console.log("[Controller] Fade-Slide exit complete. Navigating...");
          router.push(targetHref);
-       }
-       // If entering page finished, end the transition
-       else if (definition === 'animate') {
-         console.log("[Controller] Fade-Slide enter complete. Ending transition.");
-         endTransition();
-       }
-     }
-     // --- Overlay Logic --- 
-     else if (activeContentType === 'overlay') {
-       // If new content finished animating IN (after overlay), flag it to trigger overlay exit
-       if (definition === 'animate') {
-          console.log("[Controller] Overlay content finished entering. Flagging for overlay exit.");
-          setContentHasAnimatedIn(true);
-       }
-     }
-  };
-  
+      }
+  }
+
+  // Handler for the ENTERING content's completion
+  const handleAnimateComplete = () => {
+      console.log(`[Controller] handleAnimateComplete called. ActiveType: ${activeContentType}`);
+      // If new content finished animating IN (after overlay), flag it to trigger overlay exit
+      if (activeContentType === 'overlay') {
+         console.log("[Controller] Overlay content finished entering. Flagging for overlay exit.");
+         setContentHasAnimatedIn(true);
+      }
+      // If entering page finished (fade-slide), end the transition
+      else if (activeContentType === 'fade-slide') {
+          console.log("[Controller] Fade-Slide enter complete. Ending transition.");
+          endTransition();
+      }
+  }
+
   // Effect to trigger overlay exit *after* content has animated in
   useEffect(() => {
     if (contentHasAnimatedIn && isTransitioning && activeContentType === 'overlay') {
       console.log("[Controller] Content entered. Calling endTransition() to trigger overlay exit.");
       endTransition(); 
-      setContentHasAnimatedIn(false); // Reset flag
+      setContentHasAnimatedIn(false);
     }
   }, [contentHasAnimatedIn, isTransitioning, activeContentType, endTransition]);
 
@@ -132,14 +131,18 @@ export default function PageTransitionController({ children }: { children: React
       </AnimatePresence>
 
       {/* PAGE CONTENT AnimatePresence */} 
-      <AnimatePresence mode="wait" initial={false} onExitComplete={() => console.log("[Controller] Content exit complete.")}>
+      <AnimatePresence 
+         mode="wait" 
+         initial={false} 
+         onExitComplete={handleExitComplete} // Use onExitComplete for exit logic
+      >
           <motion.div
             key={pathname} 
             initial="initial"
             animate="animate"
             exit="exit"
-            variants={currentContentVariants} // Use correct variants
-            onAnimationComplete={handleContentAnimationComplete} 
+            variants={currentContentVariants}
+            onAnimationComplete={handleAnimateComplete} // Use onAnimationComplete for enter logic
             className="flex-grow"
             style={{ pointerEvents: isTransitioning ? 'none' : 'auto' }}
           >

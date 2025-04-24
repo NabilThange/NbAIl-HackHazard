@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useState } from "react"
 import { SparklesCore } from "@/components/sparkles"
-import { AuroraText } from "@/components/ui/aurora-text"
 
 export default function PricingPage() {
   const [annual, setAnnual] = useState(true)
@@ -111,7 +110,10 @@ export default function PricingPage() {
               >
                 <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
                   Simple, Transparent
-                  <AuroraText colors={["#a855f7", "#ec4899"]}> Pricing</AuroraText>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
+                    {" "}
+                    Pricing
+                  </span>
                 </h1>
                 <p className="text-gray-300 text-xl mb-8">
                   Choose the plan that works best for you. No hidden fees or surprises.

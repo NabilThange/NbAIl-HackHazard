@@ -8,7 +8,6 @@ import { GraduationCap, Code, Palette, Users, Briefcase, Stethoscope, ShoppingBa
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { SparklesCore } from "@/components/sparkles"
-import { AuroraText } from "@/components/ui/aurora-text"
 
 export default function UseCasesPage() {
   const categories = [
@@ -26,7 +25,7 @@ export default function UseCasesPage() {
           title: "Smart Note-Taking",
           description:
             "Take notes with voice while NbAIl organizes, categorizes, and enhances them with relevant information.",
-          image: "https://cdn.dribbble.com/userupload/15224764/file/original-182272d0ab55e2f0645565aa70a1b799.png",
+          image: "https://images.pexels.com/photos/3359003/pexels-photo-3359003.jpeg?auto=compress&cs=tinysrgb&w=600",
         },
       ],
     },
@@ -39,12 +38,12 @@ export default function UseCasesPage() {
           title: "Code Explanation",
           description:
             "NbAIl can analyze code on your screen and explain how it works, suggest improvements, or identify bugs.",
-          image: "https://www.codesee.io/wp-content/uploads/2023/12/code-visualization-tools.webp",
+          image: "https://images.pexels.com/photos/546819/pexels-photo-546819.jpeg?auto=compress&cs=tinysrgb&w=600",
         },
         {
           title: "Documentation Assistant",
           description: "Ask questions about APIs, libraries, or frameworks and get instant, contextual answers.",
-          image: "https://miro.medium.com/v2/resize:fit:1400/1*3nZ1yY5Z0ZQzX5X_r3b9wQ.png",
+          image: "https://images.pexels.com/photos/5475814/pexels-photo-5475814.jpeg",
         },
       ],
     },
@@ -57,13 +56,13 @@ export default function UseCasesPage() {
           title: "Design Critique",
           description:
             "NbAIl can analyze your designs in real-time and provide feedback on usability, accessibility, and aesthetics.",
-          image: "https://miro.medium.com/v2/resize:fit:1400/1*3nZ1yY5Z0ZQzX5X_r3b9wQ.png",
+          image: "https://images.pexels.com/photos/10003549/pexels-photo-10003549.jpeg?auto=compress&cs=tinysrgb&w=600",
         },
         {
           title: "Creative Inspiration",
           description:
             "Generate ideas, color palettes, and design concepts based on your requirements and preferences.",
-          image: "https://images.ctfassets.net/hzpvrjcy6p8s/3xK4rB0F7Y4S4WwE2Gwi8O/b89222776e1b07c4753200626f0e730d/how-to-make-a-mood-board-step3.png",
+          image: "https://images.pexels.com/photos/17561470/pexels-photo-17561470/free-photo-of-smartphone-and-laptop-creative-electronic-devices.jpeg?auto=compress&cs=tinysrgb&w=600",
         },
       ],
     },
@@ -75,12 +74,12 @@ export default function UseCasesPage() {
         {
           title: "Meeting Assistant",
           description: "NbAIl can join your meetings, take notes, summarize discussions, and create action items.",
-          image: "https://fellow.app/wp-content/uploads/2023/11/fellow-ai-meeting-assistant-1.webp",
+          image: "https://images.pexels.com/photos/3205403/pexels-photo-3205403.jpeg?auto=compress&cs=tinysrgb&w=600",
         },
         {
           title: "Data Analysis",
           description: "Upload spreadsheets or data visualizations and get instant insights and recommendations.",
-          image: "https://dashthis.com/wp-content/uploads/2021/08/data-visualization-dashboard.gif",
+          image: "https://images.pexels.com/photos/7947999/pexels-photo-7947999.jpeg?auto=compress&cs=tinysrgb&w=600",
         },
       ],
     },
@@ -122,7 +121,7 @@ export default function UseCasesPage() {
               >
                 <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
                   Discover What
-                  <AuroraText colors={["#a855f7", "#ec4899"]}> NbAIl Can Do</AuroraText>
+                  <span className="text-gradient"> NbAIl Can Do</span>
                 </h1>
                 <p className="text-gray-300 text-xl mb-8">
                   Explore how our multimodal AI assistant can transform your workflow across different domains.

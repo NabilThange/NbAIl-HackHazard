@@ -916,18 +916,3 @@
   /* #transition-card { ... } */
   /* body.is-transitioning { ... } */
 }
-
-@layer utilities {
-  /* Add Aurora animation keyframes */
-  @keyframes aurora {
-    from {
-      background-position: 0% 50%;
-    }
-    to {
-      background-position: 200% 50%;
-    }
-  }
-  .animate-aurora {
-    animation: aurora 6s linear infinite;
-  }
-}

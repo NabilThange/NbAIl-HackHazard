@@ -7,7 +7,6 @@ import Link from "next/link"
 import { SparklesCore } from "@/components/sparkles"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
-import { AuroraText } from "@/components/ui/aurora-text"
 
 export default function ResearchPage() {
   const researchAreas = [
@@ -115,7 +114,10 @@ export default function ResearchPage() {
             >
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
                 Our
-                <AuroraText colors={["#a855f7", "#ec4899"]}> Research</AuroraText>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
+                  {" "}
+                  Research
+                </span>
               </h1>
               <p className="text-gray-300 text-xl mb-8">
                 Explore the cutting-edge AI research that powers NbAIl's multimodal capabilities.

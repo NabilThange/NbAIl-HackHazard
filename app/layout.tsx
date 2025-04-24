@@ -40,6 +40,11 @@ export default function RootLayout({
                 id="transition-panel"
                 className="fixed inset-0 z-[100] bg-gray-900 pointer-events-none translate-y-full"
               ></div>
+              <div
+                id="transition-card"
+                className="fixed"
+                style={{ /* Styles will be applied via CSS or GSAP */ }}
+              ></div>
               <ScrollToTop />
               {children}
               <SpeedInsights />

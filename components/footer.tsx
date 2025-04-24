@@ -7,7 +7,7 @@ import { useTransitionContext } from "@/contexts/TransitionContext";
 export default function Footer() {
   const { startTransition, isTransitioning } = useTransitionContext();
 
-  const handleTransitionClick = (event: React.MouseEvent<HTMLAnchorElement>, href: string, type: 'pillars' | 'circle' | 'fade-slide') => {
+  const handleTransitionClick = (event: React.MouseEvent<HTMLAnchorElement>, href: string, type: 'pillars' | 'circle') => {
     if (isTransitioning) {
       console.log("[Footer] Transition already in progress, ignoring click.");
       event.preventDefault();
@@ -24,7 +24,6 @@ export default function Footer() {
 
   const pillarsPages = ['/', '/features'];
   const circlePages = ['/pricing'];
-  const fadeSlidePages = ['/use-cases', '/research'];
 
   return (
     <footer className="bg-black/[0.96] border-t border-gray-800">
@@ -100,7 +99,6 @@ export default function Footer() {
               <li>
                 <Link 
                   href="/research" 
-                  onClick={(e) => handleTransitionClick(e, "/research", 'fade-slide')}
                   className="text-gray-400 hover:text-white transition-colors"
                   aria-disabled={isTransitioning}
                 >
@@ -110,7 +108,6 @@ export default function Footer() {
               <li>
                 <Link 
                   href="/use-cases" 
-                  onClick={(e) => handleTransitionClick(e, "/use-cases", 'fade-slide')}
                   className="text-gray-400 hover:text-white transition-colors"
                   aria-disabled={isTransitioning}
                 >

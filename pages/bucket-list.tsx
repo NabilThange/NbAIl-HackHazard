@@ -1,6 +1,8 @@
 "use client"; // Add this line if using App Router
 
-import { ReactLenis } from "lenis/dist/lenis-react";
+import { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import { ReactLenis } from '@studio-freight/react-lenis';
 import {
   motion,
   useMotionTemplate,
@@ -9,20 +11,21 @@ import {
 } from "framer-motion";
 import { SiSpacex } from "react-icons/si";
 import { FiArrowRight, FiMapPin } from "react-icons/fi";
-import { useRef } from "react";
+import { MdOutlineClose } from "react-icons/md";
 
-// Changed component name to avoid conflict and export default
-export default function BucketListPage() { 
+export const SmoothScrollHero = () => {
   return (
     <div className="bg-zinc-950">
       <ReactLenis
         root
         options={{
+          // Learn more -> https://github.com/darkroomengineering/lenis?tab=readme-ov-file#instance-settings
           lerp: 0.05,
+          //   infinite: true,
+          //   syncTouch: true,
         }}
       >
-        {/* Consider integrating with your existing Navbar component */}
-        {/* <Nav /> */}
+        <Nav />
         <Hero />
         <Schedule />
       </ReactLenis>
@@ -30,8 +33,23 @@ export default function BucketListPage() {
   );
 };
 
-// Removed Nav component as it should likely be handled by the main layout
-// const Nav = () => { ... };
+const Nav = () => {
+  return (
+    <nav className="fixed left-0 right-0 top-0 z-50 flex items-center justify-between px-6 py-3 text-white">
+      <SiSpacex className="text-3xl mix-blend-difference" />
+      <button
+        onClick={() => {
+          document.getElementById("launch-schedule")?.scrollIntoView({
+            behavior: "smooth",
+          });
+        }}
+        className="flex items-center gap-1 text-xs text-zinc-400"
+      >
+        LAUNCH SCHEDULE <FiArrowRight />
+      </button>
+    </nav>
+  );
+};
 
 const SECTION_HEIGHT = 1500;
 
@@ -39,10 +57,12 @@ const Hero = () => {
   return (
     <div
       style={{ height: `calc(${SECTION_HEIGHT}px + 100vh)` }}
-      className="relative w-full pt-16" // Added pt-16 assuming fixed navbar height
+      className="relative w-full"
     >
       <CenterImage />
+
       <ParallaxImages />
+
       <div className="absolute bottom-0 left-0 right-0 h-96 bg-gradient-to-b from-zinc-950/0 to-zinc-950" />
     </div>
   );
@@ -59,7 +79,7 @@ const CenterImage = () => {
   const backgroundSize = useTransform(
     scrollY,
     [0, SECTION_HEIGHT + 500],
-    ["100%", "100%"]
+    ["170%", "100%"]
   );
   const opacity = useTransform(
     scrollY,
@@ -135,7 +155,7 @@ const ParallaxImg = ({
 
   const { scrollYProgress } = useScroll({
     target: ref,
-    // @ts-ignore - Framer motion types might need update or specific configuration
+    // @ts-ignore
     offset: [`${start}px end`, `end ${end * -1}px`],
   });
 
@@ -168,14 +188,15 @@ const Schedule = () => {
         transition={{ ease: "easeInOut", duration: 0.75 }}
         className="mb-20 text-4xl font-black uppercase text-zinc-50"
       >
-        Ideas / Bucket List 
+        Launch Schedule
       </motion.h1>
-      {/* Replace with actual ideas */}
-      <ScheduleItem title="Implement AI Chat" date="Soon" location="Core Feature" />
-      <ScheduleItem title="Add User Profiles" date="Later" location="Enhancement" />
-      <ScheduleItem title="Voice Input" date="Maybe" location="Experiment" />
-      <ScheduleItem title="Screen Recording Analysis" date="Maybe" location="Experiment" />
-      <ScheduleItem title="Document Summarization" date="Later" location="Enhancement" />
+      <ScheduleItem title="NG-21" date="Dec 9th" location="Florida" />
+      <ScheduleItem title="Starlink" date="Dec 20th" location="Texas" />
+      <ScheduleItem title="Starlink" date="Jan 13th" location="Florida" />
+      <ScheduleItem title="Turksat 6A" date="Feb 22nd" location="Florida" />
+      <ScheduleItem title="NROL-186" date="Mar 1st" location="California" />
+      <ScheduleItem title="GOES-U" date="Mar 8th" location="California" />
+      <ScheduleItem title="ASTRA 1P" date="Apr 8th" location="Texas" />
     </section>
   );
 };

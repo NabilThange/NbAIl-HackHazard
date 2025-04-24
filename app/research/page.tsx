@@ -1,5 +1,6 @@
 import { Suspense } from "react"
 import dynamic from "next/dynamic"
+import LenisWrapper from '@/components/LenisWrapper';
 
 // Dynamically import the client component
 const DynamicResearchPage = dynamic(() => import("@/components/research/research-page"), {
@@ -21,8 +22,10 @@ export const metadata = {
 
 export default function ResearchPage() {
   return (
-    <Suspense fallback={<ResearchLoading />}>
-      <DynamicResearchPage />
-    </Suspense>
+    <LenisWrapper>
+      <Suspense fallback={<ResearchLoading />}>
+        <DynamicResearchPage />
+      </Suspense>
+    </LenisWrapper>
   )
 }

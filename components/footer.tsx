@@ -22,8 +22,8 @@ export default function Footer() {
     startTransition(type, href, origin);
   };
 
-  const pillarsPages = ['/', '/features', '/use-cases'];
-  const circlePages = ['/pricing', '/research'];
+  const pillarsPages = ['/', '/features'];
+  const circlePages = ['/pricing'];
 
   const getTransitionType = (href: string): 'pillars' | 'circle' | null => {
       if (pillarsPages.includes(href)) return 'pillars';
@@ -103,9 +103,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/research"
-                  onClick={(e) => handleTransitionClick(e, "/research", 'circle')}
+                <Link 
+                  href="/research" 
                   className="text-gray-400 hover:text-white transition-colors"
                   aria-disabled={isTransitioning}
                 >
@@ -113,9 +112,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/use-cases"
-                  onClick={(e) => handleTransitionClick(e, "/use-cases", 'pillars')}
+                <Link 
+                  href="/use-cases" 
                   className="text-gray-400 hover:text-white transition-colors"
                   aria-disabled={isTransitioning}
                 >

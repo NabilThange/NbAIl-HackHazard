@@ -10,8 +10,9 @@ import ExpandingCircle from "./ExpandingCircle";
 // Define animation variants for the page content itself (simple fade)
 const contentVariants = {
   initial: { opacity: 0 },
-  animate: { opacity: 1, transition: { duration: 0.4, delay: 0.4 } }, // Fade in after overlay animation starts
-  exit: { opacity: 0, transition: { duration: 0.2 } }, // Fade out quickly
+  // Delay fade-in until after the overlay has had time to animate *in*
+  animate: { opacity: 1, transition: { duration: 0.4, delay: 0.7 } }, 
+  exit: { opacity: 0, transition: { duration: 0.2 } }, // Fade out quickly before overlay animates
 };
 
 export default function PageTransitionController({ children }: { children: React.ReactNode }) {
@@ -22,7 +23,7 @@ export default function PageTransitionController({ children }: { children: React
     transitionType, 
     transitionOrigin,
     targetHref,
-    endTransition 
+    // endTransition is now called by overlay components on their exit
   } = useTransitionContext();
 
   // Scroll to top on pathname change (when not actively transitioning)
@@ -32,16 +33,16 @@ export default function PageTransitionController({ children }: { children: React
     }
   }, [pathname, isTransitioning]);
 
-  const handleAnimationComplete = () => {
-    console.log("[Controller] Overlay animation complete.");
+  // Renamed for clarity: This function is called by the overlay when its ENTER animation is done.
+  const handleOverlayEnterComplete = () => {
+    console.log("[Controller] Overlay ENTER animation complete.");
     if (targetHref) {
       console.log(`[Controller] Navigating to ${targetHref}`);
-      router.push(targetHref); // Navigate after animation
-      // endTransition will be called by the overlay component's onAnimationComplete/exit
+      router.push(targetHref); // Navigate after overlay has animated in
+      // NOTE: isTransitioning remains true until the overlay component finishes its EXIT animation and calls endTransition()
     } else {
-        // If targetHref is somehow null, ensure transition ends
-        console.warn("[Controller] Animation complete but no targetHref found. Ending transition.")
-        endTransition();
+        console.warn("[Controller] Overlay enter complete but no targetHref found? This shouldn't happen.")
+        // Potentially call endTransition() here as a fallback if needed, but should be handled by overlay exit
     }
   };
 
@@ -49,48 +50,50 @@ export default function PageTransitionController({ children }: { children: React
   const renderTransitionOverlay = () => {
     if (!isTransitioning) return null;
 
+    console.log(`[Controller] Rendering overlay: ${transitionType}`);
+
     switch (transitionType) {
       case 'pillars':
-        // FallingPillars needs to know when to end the transition
-        return <FallingPillars onComplete={handleAnimationComplete} />;
+        // Pass the navigation callback
+        return <FallingPillars onComplete={handleOverlayEnterComplete} />;
       case 'circle':
-        // ExpandingCircle needs origin and callback
+        // Pass origin and navigation callback
         return (
             <ExpandingCircle 
                 origin={transitionOrigin}
-                onComplete={handleAnimationComplete} 
+                onComplete={handleOverlayEnterComplete} 
             />
         );
       default:
+        console.warn(`[Controller] Unknown transitionType: ${transitionType}`);
         return null;
     }
   };
 
   return (
-    <AnimatePresence 
-      mode="wait"
-      initial={false}
-      onExitComplete={() => {
-        // Optional: can also reset scroll here if needed after exit
-        console.log("[AnimatePresence] Exit complete.");
-      }}
-    >
-      {/* Render the overlay - its presence is controlled by isTransitioning state */} 
-      {renderTransitionOverlay()}
+    <>
+      {/* AnimatePresence for the OVERLAY component. */} 
+      {/* The overlay component itself controls its enter/exit based on isTransitioning */}
+      {/* It will call handleOverlayEnterComplete on enter, and endTransition on exit */} 
+      <AnimatePresence mode="wait">
+        {isTransitioning && renderTransitionOverlay()}
+      </AnimatePresence>
 
-      {/* Animate the page content - keyed by pathname */} 
-      {!isTransitioning && (
-        <motion.div
-          key={pathname} // AnimatePresence tracks this changing
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          variants={contentVariants}
-          className="flex-grow"
-        >
-          {children}
-        </motion.div>
-      )}
-    </AnimatePresence>
+      {/* AnimatePresence for the PAGE CONTENT (children) */} 
+      {/* Keyed by pathname, exit happens first, then new content enters */} 
+      <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={pathname} // AnimatePresence tracks this changing
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={contentVariants}
+            className="flex-grow"
+            style={{ pointerEvents: isTransitioning ? 'none' : 'auto' }} // Disable interaction during transition
+          >
+            {children}
+          </motion.div>
+      </AnimatePresence>
+    </>
   );
 } 

@@ -52,8 +52,8 @@ export default function Navbar() {
     startTransition(type, href, origin);
   };
 
-  const pillarsPages = ['/', '/features', '/use-cases'];
-  const circlePages = ['/pricing', '/research'];
+  const pillarsPages = ['/', '/features'];
+  const circlePages = ['/pricing'];
 
   const getTransitionType = (href: string): 'pillars' | 'circle' | null => {
       if (pillarsPages.includes(href)) return 'pillars';
@@ -165,8 +165,8 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   const isActive = pathname === href
   const { startTransition, isTransitioning } = useTransitionContext()
 
-  const pillarsPages = ['/', '/features', '/use-cases']
-  const circlePages = ['/pricing', '/research']
+  const pillarsPages = ['/', '/features'];
+  const circlePages = ['/pricing'];
 
   const transitionType = pillarsPages.includes(href) ? 'pillars' : circlePages.includes(href) ? 'circle' : null
 
@@ -206,8 +206,8 @@ function MobileNavLink({ href, children }: { href: string; children: React.React
   const isActive = pathname === href
   const { startTransition, isTransitioning } = useTransitionContext()
 
-  const pillarsPages = ['/', '/features', '/use-cases']
-  const circlePages = ['/pricing', '/research']
+  const pillarsPages = ['/', '/features'];
+  const circlePages = ['/pricing'];
 
   const transitionType = pillarsPages.includes(href) ? 'pillars' : circlePages.includes(href) ? 'circle' : null
 

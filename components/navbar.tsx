@@ -71,20 +71,18 @@ export default function Navbar() {
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" passHref prefetch={false}>
-              <a className="flex items-center space-x-2" data-barba-prevent="false">
-                <Brain className="h-8 w-8 text-purple-500" />
-                <span className="text-white font-bold text-xl">NbAIl</span>
-              </a>
+            {/* Logo - Reverted to simple Link */}
+            <Link href="/" className="flex items-center space-x-2">
+              <Brain className="h-8 w-8 text-purple-500" />
+              <span className="text-white font-bold text-xl">NbAIl</span>
             </Link>
 
-            {/* Desktop Navigation */}
+            {/* Desktop Navigation - Reverted NavLink calls */}
             <div className="hidden md:flex items-center space-x-8">
-              <NavLink href="/features" data-barba-prevent="false">Features</NavLink>
-              <NavLink href="/pricing" data-barba-prevent="false">Pricing</NavLink>
-              <NavLink href="/research" data-barba-prevent="false">Research</NavLink>
-              <NavLink href="/use-cases" data-barba-prevent="false">Use Cases</NavLink>
+              <NavLink href="/features">Features</NavLink>
+              <NavLink href="/pricing">Pricing</NavLink>
+              <NavLink href="/research">Research</NavLink>
+              <NavLink href="/use-cases">Use Cases</NavLink>
             </div>
 
             {/* Auth Buttons */}
@@ -135,7 +133,7 @@ export default function Navbar() {
   )
 }
 
-function NavLink({ href, children, ...props }: { href: string; children: React.ReactNode; [key: string]: any }) {
+function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
   const pathname = usePathname()
   const isActive = pathname === href
 
@@ -143,22 +141,18 @@ function NavLink({ href, children, ...props }: { href: string; children: React.R
     <Link
       href={href}
       className={`text-sm font-medium relative group overflow-hidden ${isActive ? "text-white" : "text-gray-300"}`}
-      passHref
-      prefetch={false}
     >
-      <a {...props} data-barba-prevent="false">
-        <span className="relative z-10 transition-colors duration-300 group-hover:text-white">{children}</span>
-        {isActive ? (
-          <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-purple-500 rounded-full" />
-        ) : (
-          <span className="absolute -bottom-1 left-1/2 w-0 h-0.5 bg-purple-500 rounded-full transition-all duration-300 group-hover:w-full group-hover:left-0" />
-        )}
-      </a>
+      <span className="relative z-10 transition-colors duration-300 group-hover:text-white">{children}</span>
+      {isActive ? (
+        <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-purple-500 rounded-full" />
+      ) : (
+        <span className="absolute -bottom-1 left-1/2 w-0 h-0.5 bg-purple-500 rounded-full transition-all duration-300 group-hover:w-full group-hover:left-0" />
+      )}
     </Link>
   )
 }
 
-function MobileNavLink({ href, children, ...props }: { href: string; children: React.ReactNode; [key: string]: any }) {
+function MobileNavLink({ href, children }: { href: string; children: React.ReactNode }) {
   const pathname = usePathname()
   const isActive = pathname === href
 
@@ -168,12 +162,8 @@ function MobileNavLink({ href, children, ...props }: { href: string; children: R
       className={`block py-2 px-3 rounded-md text-lg font-medium ${
         isActive ? "text-white font-semibold" : "text-gray-300"
       } hover:text-purple-500 hover:underline`}
-      passHref
-      prefetch={false}
     >
-      <a {...props} data-barba-prevent="false">
-        {children}
-      </a>
+      {children}
     </Link>
   )
 }

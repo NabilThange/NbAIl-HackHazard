@@ -910,39 +910,7 @@ a:active {
   cursor: pointer;
 }
 
-/* Add styles for Barba transition elements at the end */
-
-#transition-panel {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  width: 100vw;
-  z-index: 100; /* Below card */
-  background: rgba(15, 15, 20, 0.95); /* Darker, slightly less transparent */
-  transform: translateY(100%); /* Start below screen */
-  pointer-events: none; /* Allow clicks through when hidden */
-  will-change: transform; /* Optimize animation */
-}
-
-#transition-card {
-  position: fixed;
-  width: 300px; /* Example size */
-  height: 200px; /* Example size */
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(1); /* Center and initial scale */
-  z-index: 101; /* Above panel */
-  border-radius: 1rem;
-  background: white; /* Or a theme-appropriate color */
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  opacity: 0; /* Start hidden */
-  pointer-events: none; /* Allow clicks through when hidden */
-  will-change: transform, opacity; /* Optimize animation */
-}
-
-/* Optional: Style for body during transition */
-body.is-transitioning {
-  /* filter: blur(2px); */ /* Example effect */
-  overflow: hidden; /* Prevent scrollbars during transition */
-}
+/* REMOVED Barba transition element styles */
+/* #transition-panel { ... } */
+/* #transition-card { ... } */
+/* body.is-transitioning { ... } */

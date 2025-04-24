@@ -10,7 +10,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@barba/core": "^2.10.3",
     "@emotion/is-prop-valid": "latest",
     "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-accordion": "^1.2.2",
@@ -51,7 +50,7 @@
     "cmdk": "1.0.4",
     "date-fns": "^3.0.0",
     "embla-carousel-react": "8.5.1",
-    "framer-motion": "latest",
+    "framer-motion": "^12.8.0",
     "groq-sdk": "^0.19.0",
     "gsap": "^3.12.7",
     "input-otp": "1.4.1",

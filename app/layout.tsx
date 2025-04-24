@@ -5,7 +5,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import ScrollToTop from "@/components/scroll-to-top"
 import { SpeedInsights } from "@vercel/speed-insights/next"
-import DynamicTransitionProvider from "@/components/DynamicTransitionProvider"
+import TransitionWrapper from "@/components/TransitionWrapper"
 
 const inter = Inter({ subsets: ["latin"], display: "swap" })
 
@@ -32,24 +32,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className="scroll-smooth">
-      <body className={`${inter.className} overflow-x-hidden`}>
+      <body className={`${inter.className} overflow-x-hidden flex flex-col min-h-screen`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <DynamicTransitionProvider>
-            <div data-barba="wrapper" className="relative">
-              <div
-                id="transition-panel"
-                className="fixed inset-0 z-[100] bg-gray-900 pointer-events-none translate-y-full"
-              ></div>
-              <div
-                id="transition-card"
-                className="fixed"
-                style={{ /* Styles will be applied via CSS or GSAP */ }}
-              ></div>
-              <ScrollToTop />
-              {children}
-              <SpeedInsights />
-            </div>
-          </DynamicTransitionProvider>
+          <ScrollToTop />
+          <TransitionWrapper>
+            {children}
+          </TransitionWrapper>
+          <SpeedInsights />
         </ThemeProvider>
       </body>
     </html>

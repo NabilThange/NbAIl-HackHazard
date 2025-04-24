@@ -2,915 +2,932 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* Base colors - purple theme from Version 1 */
-  --background: 0 0% 3.9%;
-  --foreground: 0 0% 98%;
-  --card: 0 0% 3.9%;
-  --card-foreground: 0 0% 98%;
-  --popover: 0 0% 3.9%;
-  --popover-foreground: 0 0% 98%;
+@layer base {
+  :root {
+    /* Base colors - purple theme from Version 1 */
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
 
-  /* Primary color - purple */
-  --primary: 265 89% 50%;
-  --primary-foreground: 0 0% 98%;
+    /* Primary color - purple */
+    --primary: 265 89% 50%;
+    --primary-foreground: 0 0% 98%;
 
-  /* Secondary colors */
-  --secondary: 0 0% 14.9%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 0 0% 14.9%;
-  --muted-foreground: 0 0% 63.9%;
-  --accent: 265 89% 78%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 14.9%;
-  --input: 0 0% 14.9%;
-  --ring: 265 89% 50%;
+    /* Secondary colors */
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 265 89% 78%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 265 89% 50%;
 
-  /* Add radius variable */
-  --radius: 0.5rem;
+    /* Add radius variable */
+    --radius: 0.5rem;
 
-  /* Gradient colors */
-  --gradient-start: 265 89% 50%;
-  --gradient-end: 330 100% 65%;
-}
-
-/* Add scroll-smooth behavior to improve scrolling experience */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Add transition defaults for smoother UI interactions */
-* {
-  @apply border-border;
-  transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
-}
-
-body {
-  @apply bg-background text-foreground;
-}
-
-/* Improve button press animations for mobile */
-button,
-a {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Add active state animations for buttons */
-button:active,
-a:active {
-  transform: scale(0.98);
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-gray-900;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-purple-700 rounded;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-purple-600;
-}
-
-/* Page transitions */
-.page-transition-enter {
-  opacity: 0;
-}
-
-.page-transition-enter-active {
-  opacity: 1;
-  transition: opacity 300ms;
-}
-
-.page-transition-exit {
-  opacity: 1;
-}
-
-.page-transition-exit-active {
-  opacity: 0;
-  transition: opacity 300ms;
-}
-
-/* Loading animation */
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
+    /* Gradient colors */
+    --gradient-start: 265 89% 50%;
+    --gradient-end: 330 100% 65%;
   }
-  50% {
-    opacity: 0.5;
+
+  /* Add scroll-smooth behavior to improve scrolling experience */
+  html {
+    scroll-behavior: smooth;
   }
-}
 
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Grid background */
-.bg-grid-white\/\[0\.02\] {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(255 255 255 / 0.02)'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e");
-}
-
-/* Gradient text */
-.text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500;
-}
-
-/* Glow effects */
-.glow-purple {
-  box-shadow: 0 0 20px 5px rgba(139, 92, 246, 0.3);
-}
-
-.glow-purple-sm {
-  box-shadow: 0 0 10px 2px rgba(139, 92, 246, 0.2);
-}
-
-/* Card hover effects */
-.card-hover {
-  @apply transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/10 hover:border-purple-500/30;
-}
-
-/* Button styles */
-.btn-primary {
-  @apply bg-purple-600 hover:bg-purple-700 text-white;
-}
-
-.btn-outline {
-  @apply border-purple-500 text-white hover:bg-purple-500/20;
-}
-
-/* Animation utilities */
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
+  /* Add transition defaults for smoother UI interactions */
+  * {
+    @apply border-border;
+    transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
   }
-  50% {
-    transform: translateY(-10px);
+
+  body {
+    @apply bg-background text-foreground;
   }
-}
 
-/* Glassmorphism */
-.glass {
-  @apply bg-gray-900/80 backdrop-blur-md;
-}
+  /* Improve button press animations for mobile */
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
 
-.glass-light {
-  @apply bg-gray-800/50 backdrop-blur-sm;
-}
+  /* Add active state animations for buttons */
+  button:active,
+  a:active {
+    transform: scale(0.98);
+  }
 
-/* Chat bubble animations */
-.chat-bubble-in {
-  animation: bubbleIn 0.3s ease forwards;
-}
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
 
-@keyframes bubbleIn {
-  from {
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-900;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-purple-700 rounded;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-purple-600;
+  }
+
+  /* Page transitions */
+  .page-transition-enter {
     opacity: 0;
-    transform: translateY(10px);
   }
-  to {
+
+  .page-transition-enter-active {
     opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Mobile optimizations */
-@media (max-width: 640px) {
-  .mobile-input-area {
-    @apply flex-col space-y-2;
+    transition: opacity 300ms;
   }
 
-  .mobile-button-group {
-    @apply flex justify-between w-full;
+  .page-transition-exit {
+    opacity: 1;
   }
-}
 
-/* Add this at the end of the file */
-@keyframes orbit {
-  from {
-    transform: rotate(0deg) translateX(120px) rotate(0deg);
+  .page-transition-exit-active {
+    opacity: 0;
+    transition: opacity 300ms;
   }
-  to {
-    transform: rotate(360deg) translateX(120px) rotate(-360deg);
+
+  /* Loading animation */
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
   }
-}
 
-/* Add these utility classes for button interactions */
-.btn-interactive {
-  @apply transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-md;
-}
-
-.btn-glow:hover {
-  @apply shadow-purple-500/20;
-}
-
-/* Waveform animation for send button */
-@keyframes waveform {
-  0%,
-  100% {
-    height: 8px;
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
-  50% {
-    height: 16px;
+
+  /* Grid background */
+  .bg-grid-white\/\[0\.02\] {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(255 255 255 / 0.02)'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e");
   }
-}
 
-.animate-waveform {
-  animation: waveform 1.2s ease-in-out infinite;
-}
-
-/* Improve input field appearance */
-.bg-transparent.border-0:focus {
-  outline: none;
-  box-shadow: none;
-}
-
-/* Ensure the input container has proper height */
-.rounded-full.border {
-  min-height: 56px;
-}
-
-/* Make sure the input text is properly aligned */
-.bg-transparent.border-0 {
-  height: 40px;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-/* Custom Transcription Loader Styles (From Uiverse.io by alexruix) */
-.loader {
-  width: 20px; /* Adjusted size to fit button */
-  height: 20px; /* Adjusted size to fit button */
-  /* margin: auto; Removed margin */
-  position: relative;
-}
-
-.loader:before {
-  content: '';
-  width: 20px; /* Adjusted size */
-  height: 3px;  /* Adjusted size */
-  background: #9333ea50; /* Use purple color scheme */
-  position: absolute;
-  top: 28px;   /* Adjusted position */
-  left: 0;
-  border-radius: 50%;
-  animation: shadow324 0.5s linear infinite;
-}
-
-.loader:after {
-  content: '';
-  width: 100%;
-  height: 100%;
-  background: #9333ea; /* Use purple color */
-  position: absolute;
-  top: 0;
-  left: 0;
-  border-radius: 4px;
-  animation: jump7456 0.5s linear infinite;
-}
-
-@keyframes jump7456 {
-  15% {
-    border-bottom-right-radius: 3px;
+  /* Gradient text */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500;
   }
-  25% {
-    transform: translateY(4px) rotate(22.5deg); /* Adjusted jump height */
-  }
-  50% {
-    transform: translateY(8px) scale(1, .9) rotate(45deg); /* Adjusted jump height */
-    border-bottom-right-radius: 20px; /* Adjusted radius */
-  }
-  75% {
-    transform: translateY(4px) rotate(67.5deg); /* Adjusted jump height */
-  }
-  100% {
-    transform: translateY(0) rotate(90deg);
-  }
-}
 
-@keyframes shadow324 {
-  0%, 100% {
-    transform: scale(1, 1);
+  /* Glow effects */
+  .glow-purple {
+    box-shadow: 0 0 20px 5px rgba(139, 92, 246, 0.3);
   }
-  50% {
-    transform: scale(1.2, 1);
+
+  .glow-purple-sm {
+    box-shadow: 0 0 10px 2px rgba(139, 92, 246, 0.2);
   }
-}
-/* End Loader Styles */
 
-/* AI Thinking Animation - From Uiverse.io by mobinkakei */
-.thinking-wrapper {
-  width: 80px; /* Adjusted size */
-  height: 40px; /* Adjusted size */
-  position: relative;
-  z-index: 1;
-  /* margin: auto; */ /* Removed margin */
-}
-
-.thinking-wrapper .circle {
-  width: 10px; /* Adjusted size */
-  height: 10px; /* Adjusted size */
-  position: absolute;
-  border-radius: 50%;
-  background-color: #a855f7cc; /* Purple theme */
-  left: 15%;
-  transform-origin: 50%;
-  animation: circle7124 0.5s alternate infinite ease;
-}
-
-@keyframes circle7124 {
-  0% {
-    top: 24px; /* Adjusted position */
-    height: 5px;
-    border-radius: 50px 50px 25px 25px;
-    transform: scaleX(1.7);
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/10 hover:border-purple-500/30;
   }
-  40% {
-    height: 10px; /* Adjusted size */
+
+  /* Button styles */
+  .btn-primary {
+    @apply bg-purple-600 hover:bg-purple-700 text-white;
+  }
+
+  .btn-outline {
+    @apply border-purple-500 text-white hover:bg-purple-500/20;
+  }
+
+  /* Animation utilities */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  /* Glassmorphism */
+  .glass {
+    @apply bg-gray-900/80 backdrop-blur-md;
+  }
+
+  .glass-light {
+    @apply bg-gray-800/50 backdrop-blur-sm;
+  }
+
+  /* Chat bubble animations */
+  .chat-bubble-in {
+    animation: bubbleIn 0.3s ease forwards;
+  }
+
+  @keyframes bubbleIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Mobile optimizations */
+  @media (max-width: 640px) {
+    .mobile-input-area {
+      @apply flex-col space-y-2;
+    }
+
+    .mobile-button-group {
+      @apply flex justify-between w-full;
+    }
+  }
+
+  /* Add this at the end of the file */
+  @keyframes orbit {
+    from {
+      transform: rotate(0deg) translateX(120px) rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg) translateX(120px) rotate(-360deg);
+    }
+  }
+
+  /* Add these utility classes for button interactions */
+  .btn-interactive {
+    @apply transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-md;
+  }
+
+  .btn-glow:hover {
+    @apply shadow-purple-500/20;
+  }
+
+  /* Waveform animation for send button */
+  @keyframes waveform {
+    0%,
+    100% {
+      height: 8px;
+    }
+    50% {
+      height: 16px;
+    }
+  }
+
+  .animate-waveform {
+    animation: waveform 1.2s ease-in-out infinite;
+  }
+
+  /* Improve input field appearance */
+  .bg-transparent.border-0:focus {
+    outline: none;
+    box-shadow: none;
+  }
+
+  /* Ensure the input container has proper height */
+  .rounded-full.border {
+    min-height: 56px;
+  }
+
+  /* Make sure the input text is properly aligned */
+  .bg-transparent.border-0 {
+    height: 40px;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  /* Custom Transcription Loader Styles (From Uiverse.io by alexruix) */
+  .loader {
+    width: 20px; /* Adjusted size to fit button */
+    height: 20px; /* Adjusted size to fit button */
+    /* margin: auto; Removed margin */
+    position: relative;
+  }
+
+  .loader:before {
+    content: '';
+    width: 20px; /* Adjusted size */
+    height: 3px;  /* Adjusted size */
+    background: #9333ea50; /* Use purple color scheme */
+    position: absolute;
+    top: 28px;   /* Adjusted position */
+    left: 0;
     border-radius: 50%;
-    transform: scaleX(1);
+    animation: shadow324 0.5s linear infinite;
   }
-  100% {
-    top: 0%;
+
+  .loader:after {
+    content: '';
+    width: 100%;
+    height: 100%;
+    background: #9333ea; /* Use purple color */
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 4px;
+    animation: jump7456 0.5s linear infinite;
+  }
+
+  @keyframes jump7456 {
+    15% {
+      border-bottom-right-radius: 3px;
+    }
+    25% {
+      transform: translateY(4px) rotate(22.5deg); /* Adjusted jump height */
+    }
+    50% {
+      transform: translateY(8px) scale(1, .9) rotate(45deg); /* Adjusted jump height */
+      border-bottom-right-radius: 20px; /* Adjusted radius */
+    }
+    75% {
+      transform: translateY(4px) rotate(67.5deg); /* Adjusted jump height */
+    }
+    100% {
+      transform: translateY(0) rotate(90deg);
+    }
+  }
+
+  @keyframes shadow324 {
+    0%, 100% {
+      transform: scale(1, 1);
+    }
+    50% {
+      transform: scale(1.2, 1);
+    }
+  }
+  /* End Loader Styles */
+
+  /* AI Thinking Animation - From Uiverse.io by mobinkakei */
+  .thinking-wrapper {
+    width: 80px; /* Adjusted size */
+    height: 40px; /* Adjusted size */
+    position: relative;
+    z-index: 1;
+    /* margin: auto; */ /* Removed margin */
+  }
+
+  .thinking-wrapper .circle {
+    width: 10px; /* Adjusted size */
+    height: 10px; /* Adjusted size */
+    position: absolute;
+    border-radius: 50%;
+    background-color: #a855f7cc; /* Purple theme */
+    left: 15%;
+    transform-origin: 50%;
+    animation: circle7124 0.5s alternate infinite ease;
+  }
+
+  @keyframes circle7124 {
+    0% {
+      top: 24px; /* Adjusted position */
+      height: 5px;
+      border-radius: 50px 50px 25px 25px;
+      transform: scaleX(1.7);
+    }
+    40% {
+      height: 10px; /* Adjusted size */
+      border-radius: 50%;
+      transform: scaleX(1);
+    }
+    100% {
+      top: 0%;
+    }
+  }
+
+  .thinking-wrapper .circle:nth-child(2) {
+    left: 45%;
+    animation-delay: 0.2s;
+  }
+
+  .thinking-wrapper .circle:nth-child(3) {
+    left: auto;
+    right: 15%;
+    animation-delay: 0.3s;
+  }
+
+  .thinking-wrapper .shadow {
+    width: 10px; /* Adjusted size */
+    height: 4px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.5); /* Adjusted shadow color */
+    position: absolute;
+    top: 30px; /* Adjusted position */
+    transform-origin: 50%;
+    z-index: -1;
+    left: 15%;
+    filter: blur(1px);
+    animation: shadow046 0.5s alternate infinite ease;
+  }
+
+  @keyframes shadow046 {
+    0% {
+      transform: scaleX(1.5);
+    }
+    40% {
+      transform: scaleX(1);
+      opacity: 0.7;
+    }
+    100% {
+      transform: scaleX(0.2);
+      opacity: 0.4;
+    }
+  }
+
+  .thinking-wrapper .shadow:nth-child(4) {
+    left: 45%;
+    animation-delay: 0.2s;
+  }
+
+  .thinking-wrapper .shadow:nth-child(5) {
+    left: auto;
+    right: 15%;
+    animation-delay: 0.3s;
+  }
+  /* End AI Thinking Animation */
+
+  /* Starburst Button Styles (From Uiverse.io by MuhammadHasann) */
+  .starburst-button {
+    position: relative;
+    padding: 0 32px; /* Adjusted padding */
+    height: 44px; /* Explicit height */
+    min-width: 9.5em; /* Added min-width */
+    background: #9333ea; /* Use theme purple */
+    font-size: 16px; /* Adjusted font size */
+    font-weight: 500;
+    color: #ffffff; /* White text */
+    border: 3px solid #9333ea; /* Use theme purple */
+    border-radius: 8px;
+    box-shadow: 0 0 0 #a855f78c; /* Lighter purple shadow */
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+    overflow: hidden; /* Prevent stars peeking out */
+  }
+
+  .starburst-button .star-1,
+  .starburst-button .star-2,
+  .starburst-button .star-3,
+  .starburst-button .star-4,
+  .starburst-button .star-5,
+  .starburst-button .star-6 {
+    position: absolute;
+    filter: drop-shadow(0 0 0 #ffffff); /* White stars */
+    z-index: -5;
+    transition: all 1s cubic-bezier(0.05, 0.83, 0.43, 0.96);
+  }
+
+  .starburst-button .star-1 {
+    top: 20%;
+    left: 20%;
+    width: 25px;
+    height: auto;
+  }
+
+  .starburst-button .star-2 {
+    top: 45%;
+    left: 45%;
+    width: 15px;
+    height: auto;
+    transition-delay: 0.1s;
+  }
+
+  .starburst-button .star-3 {
+    top: 40%;
+    left: 40%;
+    width: 5px;
+    height: auto;
+    transition-delay: 0.2s;
+  }
+
+  .starburst-button .star-4 {
+    top: 20%;
+    left: 40%;
+    width: 8px;
+    height: auto;
+    transition-delay: 0.3s;
+  }
+
+  .starburst-button .star-5 {
+    top: 25%;
+    left: 45%;
+    width: 15px;
+    height: auto;
+    transition-delay: 0.4s;
+  }
+
+  .starburst-button .star-6 {
+    top: 5%;
+    left: 50%;
+    width: 5px;
+    height: auto;
+    transition-delay: 0.5s;
+  }
+
+  .starburst-button:hover {
+    background: transparent;
+    color: #a855f7; /* Lighter theme purple for text */
+    border-color: #a855f7; /* Lighter theme purple for border */
+    box-shadow: 0 0 25px #a855f78c;
+  }
+
+  .starburst-button:hover .star-1 {
+    top: -80%;
+    left: -30%;
+    width: 25px;
+    filter: drop-shadow(0 0 10px #ffffff);
+    z-index: 2;
+  }
+
+  .starburst-button:hover .star-2 {
+    top: -25%;
+    left: 10%;
+    width: 15px;
+    filter: drop-shadow(0 0 10px #ffffff);
+    z-index: 2;
+  }
+
+  .starburst-button:hover .star-3 {
+    top: 55%;
+    left: 25%;
+    width: 5px;
+    filter: drop-shadow(0 0 10px #ffffff);
+    z-index: 2;
+  }
+
+  .starburst-button:hover .star-4 {
+    top: 30%;
+    left: 80%;
+    width: 8px;
+    filter: drop-shadow(0 0 10px #ffffff);
+    z-index: 2;
+  }
+
+  .starburst-button:hover .star-5 {
+    top: 25%;
+    left: 115%;
+    width: 15px;
+    filter: drop-shadow(0 0 10px #ffffff);
+    z-index: 2;
+  }
+
+  .starburst-button:hover .star-6 {
+    top: 5%;
+    left: 60%;
+    width: 5px;
+    filter: drop-shadow(0 0 10px #ffffff);
+    z-index: 2;
+  }
+
+  .starburst-button .fil0 {
+    fill: #ffffff; /* White stars */
+  }
+
+  /* End Starburst Button Styles */
+
+  /* From Uiverse.io by ryota1231 */
+  .animated-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 32px; /* Adjusted padding */
+    border: 4px solid;
+    border-color: transparent;
+    font-size: 16px;
+    background-color: white; /* Changed */
+    border-radius: 100px;
+    font-weight: 600;
+    color: #8b5cf6; /* Changed */
+    box-shadow: 0 0 0 2px #8b5cf6; /* Changed */
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .animated-button svg {
+    position: absolute;
+    width: 24px;
+    fill: #8b5cf6; /* Changed */
+    z-index: 9;
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .animated-button .arr-1 {
+    right: 16px;
+  }
+
+  .animated-button .arr-2 {
+    left: -25%;
+  }
+
+  .animated-button .circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    background-color: #c4b5fd; /* Changed */
+    border-radius: 50%;
+    opacity: 0;
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .animated-button .text {
+    position: relative;
+    z-index: 1;
+    transform: translateX(-12px);
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .animated-button:hover {
+    box-shadow: 0 0 0 12px transparent;
+    color: #ffffff; /* Changed */
+    border-radius: 12px;
+  }
+
+  .animated-button:hover .arr-1 {
+    right: -25%;
+  }
+
+  .animated-button:hover .arr-2 {
+    left: 16px;
+  }
+
+  .animated-button:hover .text {
+    transform: translateX(12px);
+  }
+
+  .animated-button:hover svg {
+    fill: #ffffff; /* Changed */
+  }
+
+  .animated-button:active {
+    scale: 0.95;
+    box-shadow: 0 0 0 4px #a78bfa; /* Changed */
+  }
+
+  .animated-button:hover .circle {
+    width: 220px;
+    height: 220px;
+    opacity: 1;
+  }
+
+  /* Arrow Button Style (From Uiverse.io by reshades) */
+  .arrow-button {
+    background-color: #ffffff00;
+    color: #fff;
+    width: auto; /* Let padding determine width */
+    min-width: 9.5em; /* Match starburst min-width */
+    height: 44px; /* Explicit height */
+    padding: 0.75rem 2rem; /* Increased horizontal padding */
+    border: #8b5cf6 2px solid; /* Adjusted border thickness */
+    border-radius: 8px; /* Match starburst radius */
+    transition: all 0.6s ease;
+    display: inline-flex; /* Use inline-flex */
+    align-items: center; /* Center items vertically */
+    justify-content: center; /* Center items horizontally */
+    gap: 8px; /* Add gap between icon and text */
+    position: relative; /* Keep relative for potential pseudo-elements if needed */
+    font-size: 16px; /* Match font size */
+    font-weight: 500; /* Match font weight */
+  }
+
+  .arrow-button:hover {
+    background-color: #8b5cf6; /* Changed hover background */
+  }
+
+  .arrow-button svg {
+    width: 1.2em; /* Adjusted icon size */
+    height: 1.2em; /* Adjusted icon size */
+    position: static; /* Remove absolute positioning */
+    transform: none; /* Remove transform */
+    transition: all 0.6s ease;
+    order: 2; /* SVG comes second */
+  }
+
+  .arrow-button:hover svg {
+    transform: translateX(5px); /* Keep hover effect */
+  }
+
+  .arrow-button .text {
+    margin: 0; /* Remove specific margin */
+    display: inline-block;
+    text-align: center;
+    order: 1; /* Text comes first */
+  }
+
+  /* From Uiverse.io by JulanDeAlb */
+  .hamburger {
+    cursor: pointer;
+  }
+
+  .hamburger input {
+    display: none;
+  }
+
+  .hamburger svg {
+    /* The size of the SVG defines the overall size */
+    /* height: 3em; */ /* Adjusted height in component */
+    /* Define the transition for transforming the SVG */
+    transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .line {
+    fill: none;
+    /* stroke: white; */ /* Set directly in SVG */
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    /* stroke-width: 3; */ /* Set directly in SVG */
+    /* Define the transition for transforming the Stroke */
+    transition: stroke-dasharray 600ms cubic-bezier(0.4, 0, 0.2, 1),
+      stroke-dashoffset 600ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .line-top-bottom {
+    stroke-dasharray: 12 63;
+  }
+
+  .hamburger input:checked + svg {
+    transform: rotate(-45deg);
+  }
+
+  .hamburger input:checked + svg .line-top-bottom {
+    stroke-dasharray: 20 300;
+    stroke-dashoffset: -32.42;
+  }
+
+  /* From Uiverse.io by andrew-demchenk0 */ 
+  .wrapper {
+    --input-focus: #2d8cf0;
+    --font-color: #fefefe;
+    --font-color-sub: #7e7e7e;
+    --bg-color: #111;
+    --bg-color-alt: #7e7e7e;
+    --main-color: #fefefe;
+      /* display: flex; */ /* Using tailwind flex on the component instead */
+      /* flex-direction: column; */
+      /* align-items: center; */
+  }
+  /* switch card */
+  .switch {
+    /* transform: translateY(-200px); */ /* Handled by wrapper padding-top */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    width: 50px;
+    height: 20px;
+  }
+
+  .card-side::before {
+    position: absolute;
+    content: 'Log in';
+    left: -70px;
+    top: 0;
+    width: 100px;
+    text-decoration: underline;
+    color: var(--font-color);
+    font-weight: 600;
+  }
+
+  .card-side::after {
+    position: absolute;
+    content: 'Sign up';
+    left: 70px;
+    top: 0;
+    width: 100px;
+    text-decoration: none;
+    color: var(--font-color);
+    font-weight: 600;
+  }
+
+  .toggle {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: 2px solid var(--main-color);
+    box-shadow: 4px 4px var(--main-color);
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg-color);
+    transition: 0.3s;
+  }
+
+  .slider:before {
+    box-sizing: border-box;
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    border: 2px solid var(--main-color);
+    border-radius: 5px;
+    left: -2px;
+    bottom: 2px;
+    background-color: var(--bg-color);
+    box-shadow: 0 3px 0 var(--main-color);
+    transition: 0.3s;
+  }
+
+  .toggle:checked + .slider {
+    background-color: var(--input-focus);
+  }
+
+  .toggle:checked + .slider:before {
+    transform: translateX(30px);
+  }
+
+  .toggle:checked ~ .card-side:before {
+    text-decoration: none;
+  }
+
+  .toggle:checked ~ .card-side:after {
+    text-decoration: underline;
+  }
+
+  /* card */ 
+
+  .flip-card__inner {
+    width: 300px;
+    height: 350px;
+    position: relative;
+    background-color: transparent;
+    perspective: 1000px;
+      /* width: 100%;
+      height: 100%; */
+    text-align: center;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+  }
+
+  .toggle:checked ~ .flip-card__inner {
+    transform: rotateY(180deg);
+  }
+
+  .toggle:checked ~ .flip-card__front {
+    box-shadow: none;
+  }
+
+  .flip-card__front, .flip-card__back {
+    padding: 20px;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    background: var(--bg-color);
+    gap: 20px;
+    border-radius: 5px;
+    border: 2px solid var(--main-color);
+    box-shadow: 4px 4px var(--main-color);
+  }
+
+  .flip-card__back {
+    width: 100%;
+    transform: rotateY(180deg);
+  }
+
+  .flip-card__form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .title {
+    margin: 20px 0 20px 0;
+    font-size: 25px;
+    font-weight: 900;
+    text-align: center;
+    color: var(--main-color);
+  }
+
+  .flip-card__input {
+    width: 250px;
+    height: 40px;
+    border-radius: 5px;
+    border: 2px solid var(--main-color);
+    background-color: var(--bg-color);
+    box-shadow: 4px 4px var(--main-color);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--font-color);
+    padding: 5px 10px;
+    outline: none;
+  }
+
+  .flip-card__input::placeholder {
+    color: var(--font-color-sub);
+    opacity: 0.8;
+  }
+
+  .flip-card__input:focus {
+    border: 2px solid var(--input-focus);
+  }
+
+  .flip-card__btn:active, .button-confirm:active {
+    box-shadow: 0px 0px var(--main-color);
+    transform: translate(3px, 3px);
+  }
+
+  .flip-card__btn {
+    margin: 20px 0 20px 0;
+    width: 120px;
+    height: 40px;
+    border-radius: 5px;
+    border: 2px solid var(--main-color);
+    background-color: var(--bg-color);
+    box-shadow: 4px 4px var(--main-color);
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--font-color);
+    cursor: pointer;
+  }
+
+  /* REMOVED Barba transition element styles */
+  /* #transition-panel { ... } */
+  /* #transition-card { ... } */
+  /* body.is-transitioning { ... } */
+}
+
+@layer utilities {
+  /* Add Aurora animation keyframes */
+  @keyframes aurora {
+    from {
+      background-position: 0% 50%;
+    }
+    to {
+      background-position: 200% 50%;
+    }
+  }
+  .animate-aurora {
+    animation: aurora 6s linear infinite;
   }
 }
-
-.thinking-wrapper .circle:nth-child(2) {
-  left: 45%;
-  animation-delay: 0.2s;
-}
-
-.thinking-wrapper .circle:nth-child(3) {
-  left: auto;
-  right: 15%;
-  animation-delay: 0.3s;
-}
-
-.thinking-wrapper .shadow {
-  width: 10px; /* Adjusted size */
-  height: 4px;
-  border-radius: 50%;
-  background-color: rgba(0, 0, 0, 0.5); /* Adjusted shadow color */
-  position: absolute;
-  top: 30px; /* Adjusted position */
-  transform-origin: 50%;
-  z-index: -1;
-  left: 15%;
-  filter: blur(1px);
-  animation: shadow046 0.5s alternate infinite ease;
-}
-
-@keyframes shadow046 {
-  0% {
-    transform: scaleX(1.5);
-  }
-  40% {
-    transform: scaleX(1);
-    opacity: 0.7;
-  }
-  100% {
-    transform: scaleX(0.2);
-    opacity: 0.4;
-  }
-}
-
-.thinking-wrapper .shadow:nth-child(4) {
-  left: 45%;
-  animation-delay: 0.2s;
-}
-
-.thinking-wrapper .shadow:nth-child(5) {
-  left: auto;
-  right: 15%;
-  animation-delay: 0.3s;
-}
-/* End AI Thinking Animation */
-
-/* Starburst Button Styles (From Uiverse.io by MuhammadHasann) */
-.starburst-button {
-  position: relative;
-  padding: 0 32px; /* Adjusted padding */
-  height: 44px; /* Explicit height */
-  min-width: 9.5em; /* Added min-width */
-  background: #9333ea; /* Use theme purple */
-  font-size: 16px; /* Adjusted font size */
-  font-weight: 500;
-  color: #ffffff; /* White text */
-  border: 3px solid #9333ea; /* Use theme purple */
-  border-radius: 8px;
-  box-shadow: 0 0 0 #a855f78c; /* Lighter purple shadow */
-  transition: all 0.3s ease-in-out;
-  cursor: pointer;
-  overflow: hidden; /* Prevent stars peeking out */
-}
-
-.starburst-button .star-1,
-.starburst-button .star-2,
-.starburst-button .star-3,
-.starburst-button .star-4,
-.starburst-button .star-5,
-.starburst-button .star-6 {
-  position: absolute;
-  filter: drop-shadow(0 0 0 #ffffff); /* White stars */
-  z-index: -5;
-  transition: all 1s cubic-bezier(0.05, 0.83, 0.43, 0.96);
-}
-
-.starburst-button .star-1 {
-  top: 20%;
-  left: 20%;
-  width: 25px;
-  height: auto;
-}
-
-.starburst-button .star-2 {
-  top: 45%;
-  left: 45%;
-  width: 15px;
-  height: auto;
-  transition-delay: 0.1s;
-}
-
-.starburst-button .star-3 {
-  top: 40%;
-  left: 40%;
-  width: 5px;
-  height: auto;
-  transition-delay: 0.2s;
-}
-
-.starburst-button .star-4 {
-  top: 20%;
-  left: 40%;
-  width: 8px;
-  height: auto;
-  transition-delay: 0.3s;
-}
-
-.starburst-button .star-5 {
-  top: 25%;
-  left: 45%;
-  width: 15px;
-  height: auto;
-  transition-delay: 0.4s;
-}
-
-.starburst-button .star-6 {
-  top: 5%;
-  left: 50%;
-  width: 5px;
-  height: auto;
-  transition-delay: 0.5s;
-}
-
-.starburst-button:hover {
-  background: transparent;
-  color: #a855f7; /* Lighter theme purple for text */
-  border-color: #a855f7; /* Lighter theme purple for border */
-  box-shadow: 0 0 25px #a855f78c;
-}
-
-.starburst-button:hover .star-1 {
-  top: -80%;
-  left: -30%;
-  width: 25px;
-  filter: drop-shadow(0 0 10px #ffffff);
-  z-index: 2;
-}
-
-.starburst-button:hover .star-2 {
-  top: -25%;
-  left: 10%;
-  width: 15px;
-  filter: drop-shadow(0 0 10px #ffffff);
-  z-index: 2;
-}
-
-.starburst-button:hover .star-3 {
-  top: 55%;
-  left: 25%;
-  width: 5px;
-  filter: drop-shadow(0 0 10px #ffffff);
-  z-index: 2;
-}
-
-.starburst-button:hover .star-4 {
-  top: 30%;
-  left: 80%;
-  width: 8px;
-  filter: drop-shadow(0 0 10px #ffffff);
-  z-index: 2;
-}
-
-.starburst-button:hover .star-5 {
-  top: 25%;
-  left: 115%;
-  width: 15px;
-  filter: drop-shadow(0 0 10px #ffffff);
-  z-index: 2;
-}
-
-.starburst-button:hover .star-6 {
-  top: 5%;
-  left: 60%;
-  width: 5px;
-  filter: drop-shadow(0 0 10px #ffffff);
-  z-index: 2;
-}
-
-.starburst-button .fil0 {
-  fill: #ffffff; /* White stars */
-}
-
-/* End Starburst Button Styles */
-
-/* From Uiverse.io by ryota1231 */
-.animated-button {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 10px 32px; /* Adjusted padding */
-  border: 4px solid;
-  border-color: transparent;
-  font-size: 16px;
-  background-color: white; /* Changed */
-  border-radius: 100px;
-  font-weight: 600;
-  color: #8b5cf6; /* Changed */
-  box-shadow: 0 0 0 2px #8b5cf6; /* Changed */
-  cursor: pointer;
-  overflow: hidden;
-  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.animated-button svg {
-  position: absolute;
-  width: 24px;
-  fill: #8b5cf6; /* Changed */
-  z-index: 9;
-  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.animated-button .arr-1 {
-  right: 16px;
-}
-
-.animated-button .arr-2 {
-  left: -25%;
-}
-
-.animated-button .circle {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 20px;
-  height: 20px;
-  background-color: #c4b5fd; /* Changed */
-  border-radius: 50%;
-  opacity: 0;
-  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.animated-button .text {
-  position: relative;
-  z-index: 1;
-  transform: translateX(-12px);
-  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.animated-button:hover {
-  box-shadow: 0 0 0 12px transparent;
-  color: #ffffff; /* Changed */
-  border-radius: 12px;
-}
-
-.animated-button:hover .arr-1 {
-  right: -25%;
-}
-
-.animated-button:hover .arr-2 {
-  left: 16px;
-}
-
-.animated-button:hover .text {
-  transform: translateX(12px);
-}
-
-.animated-button:hover svg {
-  fill: #ffffff; /* Changed */
-}
-
-.animated-button:active {
-  scale: 0.95;
-  box-shadow: 0 0 0 4px #a78bfa; /* Changed */
-}
-
-.animated-button:hover .circle {
-  width: 220px;
-  height: 220px;
-  opacity: 1;
-}
-
-/* Arrow Button Style (From Uiverse.io by reshades) */
-.arrow-button {
-  background-color: #ffffff00;
-  color: #fff;
-  width: auto; /* Let padding determine width */
-  min-width: 9.5em; /* Match starburst min-width */
-  height: 44px; /* Explicit height */
-  padding: 0.75rem 2rem; /* Increased horizontal padding */
-  border: #8b5cf6 2px solid; /* Adjusted border thickness */
-  border-radius: 8px; /* Match starburst radius */
-  transition: all 0.6s ease;
-  display: inline-flex; /* Use inline-flex */
-  align-items: center; /* Center items vertically */
-  justify-content: center; /* Center items horizontally */
-  gap: 8px; /* Add gap between icon and text */
-  position: relative; /* Keep relative for potential pseudo-elements if needed */
-  font-size: 16px; /* Match font size */
-  font-weight: 500; /* Match font weight */
-}
-
-.arrow-button:hover {
-  background-color: #8b5cf6; /* Changed hover background */
-}
-
-.arrow-button svg {
-  width: 1.2em; /* Adjusted icon size */
-  height: 1.2em; /* Adjusted icon size */
-  position: static; /* Remove absolute positioning */
-  transform: none; /* Remove transform */
-  transition: all 0.6s ease;
-  order: 2; /* SVG comes second */
-}
-
-.arrow-button:hover svg {
-  transform: translateX(5px); /* Keep hover effect */
-}
-
-.arrow-button .text {
-  margin: 0; /* Remove specific margin */
-  display: inline-block;
-  text-align: center;
-  order: 1; /* Text comes first */
-}
-
-/* From Uiverse.io by JulanDeAlb */
-.hamburger {
-  cursor: pointer;
-}
-
-.hamburger input {
-  display: none;
-}
-
-.hamburger svg {
-  /* The size of the SVG defines the overall size */
-  /* height: 3em; */ /* Adjusted height in component */
-  /* Define the transition for transforming the SVG */
-  transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.line {
-  fill: none;
-  /* stroke: white; */ /* Set directly in SVG */
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  /* stroke-width: 3; */ /* Set directly in SVG */
-  /* Define the transition for transforming the Stroke */
-  transition: stroke-dasharray 600ms cubic-bezier(0.4, 0, 0.2, 1),
-    stroke-dashoffset 600ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.line-top-bottom {
-  stroke-dasharray: 12 63;
-}
-
-.hamburger input:checked + svg {
-  transform: rotate(-45deg);
-}
-
-.hamburger input:checked + svg .line-top-bottom {
-  stroke-dasharray: 20 300;
-  stroke-dashoffset: -32.42;
-}
-
-/* From Uiverse.io by andrew-demchenk0 */ 
-.wrapper {
-  --input-focus: #2d8cf0;
-  --font-color: #fefefe;
-  --font-color-sub: #7e7e7e;
-  --bg-color: #111;
-  --bg-color-alt: #7e7e7e;
-  --main-color: #fefefe;
-    /* display: flex; */ /* Using tailwind flex on the component instead */
-    /* flex-direction: column; */
-    /* align-items: center; */
-}
-/* switch card */
-.switch {
-  /* transform: translateY(-200px); */ /* Handled by wrapper padding-top */
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 30px;
-  width: 50px;
-  height: 20px;
-}
-
-.card-side::before {
-  position: absolute;
-  content: 'Log in';
-  left: -70px;
-  top: 0;
-  width: 100px;
-  text-decoration: underline;
-  color: var(--font-color);
-  font-weight: 600;
-}
-
-.card-side::after {
-  position: absolute;
-  content: 'Sign up';
-  left: 70px;
-  top: 0;
-  width: 100px;
-  text-decoration: none;
-  color: var(--font-color);
-  font-weight: 600;
-}
-
-.toggle {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  box-sizing: border-box;
-  border-radius: 5px;
-  border: 2px solid var(--main-color);
-  box-shadow: 4px 4px var(--main-color);
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--bg-color);
-  transition: 0.3s;
-}
-
-.slider:before {
-  box-sizing: border-box;
-  position: absolute;
-  content: "";
-  height: 20px;
-  width: 20px;
-  border: 2px solid var(--main-color);
-  border-radius: 5px;
-  left: -2px;
-  bottom: 2px;
-  background-color: var(--bg-color);
-  box-shadow: 0 3px 0 var(--main-color);
-  transition: 0.3s;
-}
-
-.toggle:checked + .slider {
-  background-color: var(--input-focus);
-}
-
-.toggle:checked + .slider:before {
-  transform: translateX(30px);
-}
-
-.toggle:checked ~ .card-side:before {
-  text-decoration: none;
-}
-
-.toggle:checked ~ .card-side:after {
-  text-decoration: underline;
-}
-
-/* card */ 
-
-.flip-card__inner {
-  width: 300px;
-  height: 350px;
-  position: relative;
-  background-color: transparent;
-  perspective: 1000px;
-    /* width: 100%;
-    height: 100%; */
-  text-align: center;
-  transition: transform 0.8s;
-  transform-style: preserve-3d;
-}
-
-.toggle:checked ~ .flip-card__inner {
-  transform: rotateY(180deg);
-}
-
-.toggle:checked ~ .flip-card__front {
-  box-shadow: none;
-}
-
-.flip-card__front, .flip-card__back {
-  padding: 20px;
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  background: var(--bg-color);
-  gap: 20px;
-  border-radius: 5px;
-  border: 2px solid var(--main-color);
-  box-shadow: 4px 4px var(--main-color);
-}
-
-.flip-card__back {
-  width: 100%;
-  transform: rotateY(180deg);
-}
-
-.flip-card__form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-}
-
-.title {
-  margin: 20px 0 20px 0;
-  font-size: 25px;
-  font-weight: 900;
-  text-align: center;
-  color: var(--main-color);
-}
-
-.flip-card__input {
-  width: 250px;
-  height: 40px;
-  border-radius: 5px;
-  border: 2px solid var(--main-color);
-  background-color: var(--bg-color);
-  box-shadow: 4px 4px var(--main-color);
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--font-color);
-  padding: 5px 10px;
-  outline: none;
-}
-
-.flip-card__input::placeholder {
-  color: var(--font-color-sub);
-  opacity: 0.8;
-}
-
-.flip-card__input:focus {
-  border: 2px solid var(--input-focus);
-}
-
-.flip-card__btn:active, .button-confirm:active {
-  box-shadow: 0px 0px var(--main-color);
-  transform: translate(3px, 3px);
-}
-
-.flip-card__btn {
-  margin: 20px 0 20px 0;
-  width: 120px;
-  height: 40px;
-  border-radius: 5px;
-  border: 2px solid var(--main-color);
-  background-color: var(--bg-color);
-  box-shadow: 4px 4px var(--main-color);
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--font-color);
-  cursor: pointer;
-}
-
-/* REMOVED Barba transition element styles */
-/* #transition-panel { ... } */
-/* #transition-card { ... } */
-/* body.is-transitioning { ... } */

@@ -8,6 +8,7 @@ import { GraduationCap, Code, Palette, Users, Briefcase, Stethoscope, ShoppingBa
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { SparklesCore } from "@/components/sparkles"
+import { AuroraText } from "@/components/ui/aurora-text"
 
 export default function UseCasesPage() {
   const categories = [
@@ -19,13 +20,13 @@ export default function UseCasesPage() {
         {
           title: "Research Paper Analysis",
           description: "Upload research papers and get instant summaries, key insights, and related references.",
-          image: "/placeholder.svg?height=400&width=600",
+          image: "https://images.pexels.com/photos/7172830/pexels-photo-7172830.jpeg?auto=compress&cs=tinysrgb&w=600",
         },
         {
           title: "Smart Note-Taking",
           description:
             "Take notes with voice while NbAIl organizes, categorizes, and enhances them with relevant information.",
-          image: "/placeholder.svg?height=400&width=600",
+          image: "https://cdn.dribbble.com/userupload/15224764/file/original-182272d0ab55e2f0645565aa70a1b799.png",
         },
       ],
     },
@@ -38,12 +39,12 @@ export default function UseCasesPage() {
           title: "Code Explanation",
           description:
             "NbAIl can analyze code on your screen and explain how it works, suggest improvements, or identify bugs.",
-          image: "/placeholder.svg?height=400&width=600",
+          image: "https://www.codesee.io/wp-content/uploads/2023/12/code-visualization-tools.webp",
         },
         {
           title: "Documentation Assistant",
           description: "Ask questions about APIs, libraries, or frameworks and get instant, contextual answers.",
-          image: "/placeholder.svg?height=400&width=600",
+          image: "https://miro.medium.com/v2/resize:fit:1400/1*3nZ1yY5Z0ZQzX5X_r3b9wQ.png",
         },
       ],
     },
@@ -56,13 +57,13 @@ export default function UseCasesPage() {
           title: "Design Critique",
           description:
             "NbAIl can analyze your designs in real-time and provide feedback on usability, accessibility, and aesthetics.",
-          image: "/placeholder.svg?height=400&width=600",
+          image: "https://miro.medium.com/v2/resize:fit:1400/1*3nZ1yY5Z0ZQzX5X_r3b9wQ.png",
         },
         {
           title: "Creative Inspiration",
           description:
             "Generate ideas, color palettes, and design concepts based on your requirements and preferences.",
-          image: "/placeholder.svg?height=400&width=600",
+          image: "https://images.ctfassets.net/hzpvrjcy6p8s/3xK4rB0F7Y4S4WwE2Gwi8O/b89222776e1b07c4753200626f0e730d/how-to-make-a-mood-board-step3.png",
         },
       ],
     },
@@ -74,12 +75,12 @@ export default function UseCasesPage() {
         {
           title: "Meeting Assistant",
           description: "NbAIl can join your meetings, take notes, summarize discussions, and create action items.",
-          image: "/placeholder.svg?height=400&width=600",
+          image: "https://fellow.app/wp-content/uploads/2023/11/fellow-ai-meeting-assistant-1.webp",
         },
         {
           title: "Data Analysis",
           description: "Upload spreadsheets or data visualizations and get instant insights and recommendations.",
-          image: "/placeholder.svg?height=400&width=600",
+          image: "https://dashthis.com/wp-content/uploads/2021/08/data-visualization-dashboard.gif",
         },
       ],
     },
@@ -121,7 +122,7 @@ export default function UseCasesPage() {
               >
                 <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
                   Discover What
-                  <span className="text-gradient"> NbAIl Can Do</span>
+                  <AuroraText colors={["#a855f7", "#ec4899"]}> NbAIl Can Do</AuroraText>
                 </h1>
                 <p className="text-gray-300 text-xl mb-8">
                   Explore how our multimodal AI assistant can transform your workflow across different domains.

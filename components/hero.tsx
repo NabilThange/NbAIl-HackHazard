@@ -5,6 +5,7 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { ArrowRight, Brain, Sparkles } from "lucide-react"
 import { useState, useEffect } from "react"
+import { AuroraText } from "@/components/ui/aurora-text"
 
 interface ParticleStyle {
   width: number
@@ -104,9 +105,9 @@ export default function Hero() {
             className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6"
           >
             Meet NbAIl — Your Multimodal{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
+            <AuroraText colors={["#a855f7", "#ec4899"]} >
               AI Assistant
-            </span>
+            </AuroraText>
           </motion.h1>
 
           <motion.p

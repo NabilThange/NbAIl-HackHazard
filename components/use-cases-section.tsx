@@ -78,7 +78,7 @@ export default function UseCases() {
                   </li>
                 ))}
               </ul>
-              <Button variant="outline" className="text-purple-500 border-purple-500 hover:bg-purple-500/10" asChild>
+              <Button variant="outline" className="text-white border-purple-500 hover:bg-purple-500/10" asChild>
                 <Link
                   href="/use-cases"
                   className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"

@@ -6,35 +6,40 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Brain } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
 import { usePathname } from "next/navigation"
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
+  const { scrollY } = useScroll()
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setScrolled(true)
-      } else {
-        setScrolled(false)
-      }
-    }
-
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
-  // Close mobile menu when navigating to a new page
   useEffect(() => {
     setIsOpen(false)
   }, [pathname])
 
+  const scrollThreshold = [0, 50]
+
+  const backgroundColor = useTransform(
+    scrollY,
+    scrollThreshold,
+    ["rgba(0, 0, 0, 0)", "rgba(17, 24, 39, 0.8)"]
+  )
+
+  const backdropFilter = useTransform(
+    scrollY,
+    scrollThreshold,
+    ["blur(0px)", "blur(8px)"]
+  )
+
+  const boxShadow = useTransform(
+    scrollY,
+    scrollThreshold,
+    ["none", "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)"]
+  )
+
   return (
     <>
-      {/* Blurred overlay for mobile menu */}
       <AnimatePresence>
         {isOpen && (
           <>
@@ -65,20 +70,17 @@ export default function Navbar() {
         )}
       </AnimatePresence>
 
-      <nav
-        className={`fixed top-0 mt-2 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled ? "bg-gray-900/90 md:backdrop-blur-md shadow-md" : "bg-transparent"
-        }`}
+      <motion.nav
+        style={{ backgroundColor, backdropFilter, boxShadow }}
+        className="fixed top-0 mt-2 left-0 right-0 z-50 transition-colors duration-100"
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo - Reverted to simple Link */}
             <Link href="/" className="flex items-center space-x-2">
               <Brain className="h-8 w-8 text-purple-500" />
               <span className="text-white font-bold text-xl">NbAIl</span>
             </Link>
 
-            {/* Desktop Navigation - Reverted NavLink calls */}
             <div className="hidden md:flex items-center space-x-8">
               <NavLink href="/features">Features</NavLink>
               <NavLink href="/pricing">Pricing</NavLink>
@@ -87,7 +89,6 @@ export default function Navbar() {
               <NavLink href="/bucket-list">Bucket List</NavLink>
             </div>
 
-            {/* Auth Buttons */}
             <div className="hidden md:flex items-center space-x-4">
               <Button variant="ghost" asChild>
                 <Link href="/login">Login</Link>
@@ -97,7 +98,6 @@ export default function Navbar() {
               </Button>
             </div>
 
-            {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center z-50">
               <label className="hamburger cursor-pointer">
                 <input
@@ -130,7 +130,7 @@ export default function Navbar() {
             </div>
           </div>
         </div>
-      </nav>
+      </motion.nav>
     </>
   )
 }

@@ -16,13 +16,13 @@ import MinimalHeader from "@/components/minimal-header"
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
   const [profileData, setProfileData] = useState({
-    name: "Alex Johnson",
-    email: "alex.johnson@example.com",
+    name: "Nabil Thange",
+    email: "thangenabil@gmail.com",
     bio: "Software engineer passionate about AI and machine learning. Using NbAIl to boost productivity and learn new concepts.",
-    location: "San Francisco, CA",
-    website: "https://alexjohnson.dev",
-    company: "TechCorp Inc.",
-    role: "Senior Developer",
+    location: "Navi Mumbai, IN",
+    website: "nabil-t.vercel.app",
+    company: "NbAIl",
+    role: "Developer",
   })
 
   const handleSaveProfile = () => {

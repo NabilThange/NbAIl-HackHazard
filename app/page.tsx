@@ -31,8 +31,8 @@ export default function Home() {
         <Navbar />
         <Hero />
         <Features />
-        <UseCases />
         <Testimonials />
+        <UseCases />
         <CTA />
         <Footer />
       </div>

@@ -109,28 +109,28 @@ const ParallaxImages = () => {
     <div className="mx-auto max-w-5xl px-4 pt-[200px]">
       <ParallaxImg
         src="/shot2.png"
-        alt="And example of a space launch"
+        alt="shot2"
         start={-200}
         end={200}
         className="w-1/2"
       />
-      <ParallaxImg
-        src="/shot3.svg"
-        alt="An example of a space launch oooo"
+        <ParallaxImg
+          src="/shot3.svg"
+        alt="shot3"
         start={200}
         end={-250}
         className="mx-auto w-2/3"
       />
       <ParallaxImg
         src="/shot4.png"
-        alt="Orbiting satellite"
+        alt="shot4"
         start={-200}
         end={200}
         className="ml-auto w-1/2"
       />
       <ParallaxImg
         src="/shot5.png"
-        alt="Orbiting satellite"
+        alt="shot5"
         start={0}
         end={-500}
         className="ml-24 w-2/3"

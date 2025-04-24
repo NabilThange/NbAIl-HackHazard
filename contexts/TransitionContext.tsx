@@ -1,45 +1,58 @@
 "use client";
 
-import React, { createContext, useState, useContext, useCallback } from 'react';
+import React, { createContext, useState, useContext, useCallback, useTransition, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
+// Define possible transition types
+type TransitionType = 'pillars' | 'circle' | 'page-push' | null;
 
 interface TransitionContextProps {
-  isTransitioning: boolean;
-  transitionType: 'pillars' | 'circle' | null;
+  transitionType: TransitionType;
   transitionOrigin: { x: number; y: number } | null;
-  targetHref: string | null;
-  startTransition: (type: 'pillars' | 'circle', href: string, origin?: { x: number; y: number }) => void;
-  endTransition: () => void;
+  // isPending: boolean; // From useTransition
+  startPageTransition: (type: TransitionType, href: string, origin?: { x: number; y: number }) => void;
 }
 
 const TransitionContext = createContext<TransitionContextProps | undefined>(undefined);
 
 export const TransitionProvider = ({ children }: { children: React.ReactNode }) => {
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [transitionType, setTransitionType] = useState<'pillars' | 'circle' | null>(null);
+  const router = useRouter();
+  // State to hold the *type* of the upcoming transition
+  const [transitionType, setTransitionType] = useState<TransitionType>(null);
   const [transitionOrigin, setTransitionOrigin] = useState<{ x: number; y: number } | null>(null);
-  const [targetHref, setTargetHref] = useState<string | null>(null);
+  // isPending indicates if the router.push() transition is active
+  const [isPending, startReactTransition] = useTransition();
 
-  const startTransition = useCallback((type: 'pillars' | 'circle', href: string, origin?: { x: number; y: number }) => {
-    console.log(`[TransitionContext] Starting ${type} transition to ${href}`);
-    setTransitionType(type);
-    setTargetHref(href);
+  const startPageTransition = useCallback((type: TransitionType, href: string, origin?: { x: number; y: number }) => {
+    console.log(`[TransitionContext] Setting transition type: ${type} for href: ${href}`);
+    setTransitionType(type); 
     setTransitionOrigin(origin || null);
-    setIsTransitioning(true);
-  }, []);
+    
+    // Use React's startTransition to wrap the navigation
+    startReactTransition(() => {
+        console.log(`[TransitionContext] Calling router.push('${href}') inside startTransition`);
+        router.push(href);
+        // Reset type *after* navigation starts, ready for next transition detection
+        // PageTransitionController will use the type *before* this reset
+        // setTransitionType(null); 
+        // setTransitionOrigin(null);
+    });
 
-  const endTransition = useCallback(() => {
-    console.log("[TransitionContext] Ending transition");
-    setIsTransitioning(false);
-    // Reset slightly later to allow components to react to isTransitioning=false
-    setTimeout(() => {
-        setTransitionType(null);
-        setTargetHref(null);
-        setTransitionOrigin(null);
-    }, 50); // Small delay
-  }, []);
+  }, [router, startReactTransition]); // Include startReactTransition dependency
+
+  // We reset the transition type state *after* the navigation has likely occurred
+  // and the new component is mounting/animating in the PageTransitionController.
+  useEffect(() => {
+    if (!isPending && transitionType !== null) {
+      console.log("[TransitionContext] Resetting transition type after pending state ended.");
+      setTransitionType(null);
+      setTransitionOrigin(null);
+    }
+  }, [isPending, transitionType]);
+
 
   return (
-    <TransitionContext.Provider value={{ isTransitioning, transitionType, transitionOrigin, targetHref, startTransition, endTransition }}>
+    <TransitionContext.Provider value={{ transitionType, transitionOrigin, startPageTransition }}>
       {children}
     </TransitionContext.Provider>
   );

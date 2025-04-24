@@ -1,58 +1,103 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import React, { motion, AnimatePresence } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTransitionContext } from "@/contexts/TransitionContext"; // Adjust path if needed
 import FallingPillars from "./FallingPillars";
 import ExpandingCircle from "./ExpandingCircle";
 
-// Default variants (fade) for content when overlay is used
-const defaultContentVariants = {
+// --- Transition Variant Definitions ---
+
+const DURATION = 0.6;
+
+// Default Fade
+const fadeVariants = {
   initial: { opacity: 0 },
-  animate: { opacity: 1, transition: { duration: 0.4, delay: 0.6 } }, // Delay to match overlay approx end
-  exit: { opacity: 0, transition: { duration: 0.2 } }, 
+  animate: { opacity: 1, transition: { duration: DURATION / 2, delay: DURATION / 2 } },
+  exit: { opacity: 0, transition: { duration: DURATION / 2 } },
 };
 
-// Variants for the Page Push Slide transition
-const pagePushVariants = {
-  initial: { y: "100%", opacity: 1 }, // Start below view, but opaque
-  animate: { y: "0%", transition: { duration: 0.5, ease: [0.34, 1.56, 0.64, 1] } }, // Overshoot ease
-  exit: { y: "-100%", transition: { duration: 0.5, ease: [0.36, 0, 0.66, -0.56] } }, // Anticipate ease
+// Pillars Effect (Simulated with fast slide + fade)
+const pillarsVariants = {
+  initial: { opacity: 0, y: 50 }, // Start slightly below and faded
+  animate: { opacity: 1, y: 0, transition: { duration: DURATION, ease: "easeOut" } },
+  exit: { opacity: 0, y: -50, transition: { duration: DURATION * 0.75, ease: "easeIn" } }, // Exit slightly faster
 };
+
+// Circle Effect (Using clipPath)
+// Note: Requires transitionOrigin from context
+const getCircleVariants = (origin: { x: number; y: number } | null) => {
+  const originX = origin ? `${origin.x}px` : '50%';
+  const originY = origin ? `${origin.y}px` : '50%';
+  const diameter = typeof window !== 'undefined' ? Math.max(window.innerWidth, window.innerHeight) * 2.5 : 2000; // Ensure it covers screen
+  
+  return {
+    initial: {
+      clipPath: `circle(0% at ${originX} ${originY})`,
+    },
+    animate: {
+      clipPath: `circle(${diameter}px at ${originX} ${originY})`,
+      transition: { duration: DURATION, ease: [0.76, 0, 0.24, 1] },
+    },
+    exit: {
+      clipPath: `circle(0% at ${originX} ${originY})`,
+      transition: { duration: DURATION * 0.8, ease: [0.76, 0, 0.24, 1] }, // Slightly faster exit
+    },
+  };
+};
+
+// Page Push Slide (Existing)
+const pagePushVariants = {
+  initial: { y: "100%" },
+  animate: { y: "0%", transition: { duration: DURATION, ease: [0.34, 1.56, 0.64, 1] } },
+  exit: { y: "-100%", transition: { duration: DURATION, ease: [0.36, 0, 0.66, -0.56] } },
+};
+
+// --- Component Logic ---
 
 export default function PageTransitionController({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { 
     isTransitioning, 
-    transitionType, // Type of the transition *being initiated*
-    transitionOrigin,
+    transitionType, // The type intended for the *incoming* page
+    transitionOrigin, // Origin for circle
     targetHref,
     endTransition 
   } = useTransitionContext();
 
-  // State to hold the type of transition currently animating the *content*
-  const [activeTransitionType, setActiveTransitionType] = useState(transitionType);
+  // Ref to store the type used for the *exit* animation of the PREVIOUS component
+  const exitTransitionTypeRef = useRef<typeof transitionType>(null);
 
-  // Update active transition type when a new transition begins
+  // Store the current transition type to be used for the *next* exit
   useEffect(() => {
-    if (isTransitioning) {
-      console.log(`[Controller] Setting active transition type: ${transitionType}`);
-      setActiveTransitionType(transitionType);
-    }
-  }, [isTransitioning, transitionType]);
+      exitTransitionTypeRef.current = transitionType;
+  }, [pathname]); // Update when pathname changes
 
-  // Scroll to top on pathname change (when not actively transitioning)
-  useEffect(() => {
-    if (!isTransitioning) {
-        window.scrollTo(0, 0);
-    }
-    // Disable body scroll during transition
-    document.body.style.overflow = isTransitioning ? 'hidden' : '';
-    // Cleanup function to restore scroll on unmount or when transition ends
-    return () => { document.body.style.overflow = ''; };
-  }, [isTransitioning]); // Rerun when transition state changes
+  // Scroll lock logic
+  const [isAnimating, setIsAnimating] = useState(false);
+   useEffect(() => {
+      // Determine if *any* custom transition is likely active based on context or ref
+      const likelyTransitioning = !!transitionType || !!exitTransitionTypeRef.current;
+      setIsAnimating(likelyTransitioning);
+      document.body.style.overflow = likelyTransitioning ? 'hidden' : '';
+      let timer: NodeJS.Timeout | null = null;
+      if (likelyTransitioning) {
+          timer = setTimeout(() => {
+              setIsAnimating(false);
+              document.body.style.overflow = '';
+          }, DURATION * 1000 + 150); // Cleanup timeout
+      }
+      // Cleanup on unmount or before next effect run
+      return () => {
+          if (timer) clearTimeout(timer);
+          // Ensure scroll is restored if component unmounts mid-transition
+          if (document.body.style.overflow === 'hidden') {
+              document.body.style.overflow = '';
+          }
+      };
+   }, [pathname, transitionType]); // Re-evaluate on path change or context type change
 
   const navigate = () => {
     console.log("[Controller] navigate called.");
@@ -66,65 +111,62 @@ export default function PageTransitionController({ children }: { children: React
     }
   };
 
-  const handleContentAnimationComplete = (definition: string) => {
-     // If the new page content has finished entering *and* it was a page-push transition
-     if (definition === 'animate' && activeTransitionType === 'page-push') {
-         console.log("[Controller] Page Push content enter complete. Ending transition.");
-         endTransition();
-         setActiveTransitionType(null); // Reset active type
-     }
-     // If an overlay was used, its exit handler calls endTransition.
-     // Reset active type if exiting non-page-push content
-     if (definition === 'exit' && activeTransitionType !== 'page-push') {
-       setActiveTransitionType(null);
-     }
-  };
+  // Determine which variants to use for the CURRENTLY rendering motion.div
+  const getVariants = () => {
+    const incomingType = transitionType; // Type for the component being rendered now
+    const outgoingType = exitTransitionTypeRef.current; // Type for the component exiting
 
-  const renderTransitionOverlay = () => {
-    console.log(`[Controller] Checking overlay. Type: ${transitionType}, isTransitioning: ${isTransitioning}`);
-    // Only render overlays for their specific types
-    if (!isTransitioning || (transitionType !== 'pillars' && transitionType !== 'circle')) {
-        return null;
-    }
+    console.log(`[Controller] Determining variants for path: ${pathname}. Incoming: ${incomingType}, Outgoing: ${outgoingType}`);
 
-    console.log(`[Controller] Rendering overlay: ${transitionType}`);
-    switch (transitionType) {
-      case 'pillars':
-        return <FallingPillars onEnterComplete={navigate} />;
-      case 'circle':
-        return (
-            <ExpandingCircle 
-                origin={transitionOrigin}
-                onEnterComplete={navigate} 
-            />
-        );
+    // Choose variants based primarily on the incoming type
+    switch (incomingType) {
+      case 'page-push': return pagePushVariants;
+      case 'pillars': return pillarsVariants;
+      case 'circle': return getCircleVariants(transitionOrigin);
       default:
-        return null;
+        // If no specific incoming type, check the outgoing type for exit animation
+        switch (outgoingType) {
+            case 'page-push': return pagePushVariants; // Use push exit
+            case 'pillars': return pillarsVariants; // Use pillars exit
+            case 'circle': return getCircleVariants(transitionOrigin); // Use circle exit
+            default: return fadeVariants; // Fallback to fade
+        }
     }
   };
-
-  // Determine which variants to use for the content
-  const currentContentVariants = activeTransitionType === 'page-push' ? pagePushVariants : defaultContentVariants;
 
   return (
     <>
       {/* AnimatePresence for the OVERLAY */} 
       <AnimatePresence mode="wait">
-        {renderTransitionOverlay()}
+        {transitionType === 'pillars' && <FallingPillars onEnterComplete={navigate} />}
+        {transitionType === 'circle' && (
+            <ExpandingCircle 
+                origin={transitionOrigin}
+                onEnterComplete={navigate} 
+            />
+        )}
       </AnimatePresence>
 
       {/* AnimatePresence for the PAGE CONTENT (children) */} 
       <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={pathname} 
+            variants={getVariants()}
             initial="initial"
             animate="animate"
             exit="exit"
-            variants={currentContentVariants} // Use dynamically selected variants
-            onAnimationComplete={handleContentAnimationComplete} // Handle cleanup for page-push
-            className="flex-grow"
-            style={{ 
-                pointerEvents: isTransitioning ? 'none' : 'auto' 
+            className="flex-grow w-full relative overflow-hidden"
+            style={{ pointerEvents: isAnimating ? 'none' : 'auto' }}
+            onAnimationComplete={(definition) => {
+                console.log(`[Controller] Anim complete for ${pathname}: ${definition}`);
+                // Reset scroll lock if still locked
+                 if (document.body.style.overflow === 'hidden') {
+                     document.body.style.overflow = '';
+                 }
+                 // Reset the ref *after* exit animation completes
+                 if (definition === 'exit') {
+                     exitTransitionTypeRef.current = null;
+                 }
             }}
           >
             {children}

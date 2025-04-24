@@ -227,4 +227,6 @@ const ScheduleItem = ({
       </div>
     </motion.div>
   );
-}; 
+};
+
+export default SmoothScrollHero; 

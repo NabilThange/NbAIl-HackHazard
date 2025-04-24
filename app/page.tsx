@@ -16,7 +16,7 @@ export default function Home() {
         data-barba="container"
         data-barba-namespace="home"
       >
-        {/* Interactive background with moving particles - from Version 1 */}
+        {/* Interactive background with moving particles -  Version 1 wala */}
         <div className="h-full w-full absolute inset-0 z-0">
           <SparklesCore
             id="tsparticlesfullpage"

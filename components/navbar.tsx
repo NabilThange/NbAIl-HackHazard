@@ -33,31 +33,29 @@ export default function Navbar() {
     setIsOpen(false)
   }, [pathname])
 
-  const handleTransitionClick = (event: React.MouseEvent<HTMLAnchorElement>, href: string, type: 'pillars' | 'circle') => {
+  const handleTransitionClick = (event: React.MouseEvent<HTMLAnchorElement>, href: string, type: 'pillars' | 'circle' | 'page-push') => {
     if (isTransitioning) {
         console.log("[Navbar] Transition already in progress, ignoring click.");
         event.preventDefault();
         return;
     }
-
     console.log(`[Navbar] handleTransitionClick called for href: ${href}, type: ${type}`);
-    event.preventDefault();
-    
+    event.preventDefault(); 
     let origin = undefined;
     if (type === 'circle') {
         origin = { x: event.clientX, y: event.clientY };
-        console.log("[Navbar] Captured click origin:", origin);
     }
-    
-    startTransition(type, href, origin);
+    startTransition(type, href, origin); 
   };
 
   const pillarsPages = ['/', '/features'];
   const circlePages = ['/pricing'];
+  const pagePushPages = ['/use-cases', '/research'];
 
-  const getTransitionType = (href: string): 'pillars' | 'circle' | null => {
+  const getTransitionType = (href: string): 'pillars' | 'circle' | 'page-push' | null => {
       if (pillarsPages.includes(href)) return 'pillars';
       if (circlePages.includes(href)) return 'circle';
+      if (pagePushPages.includes(href)) return 'page-push';
       return null;
   }
 
@@ -161,14 +159,17 @@ export default function Navbar() {
 }
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const { startTransition, isTransitioning } = useTransitionContext()
   const pathname = usePathname()
   const isActive = pathname === href
-  const { startTransition, isTransitioning } = useTransitionContext()
 
-  const pillarsPages = ['/', '/features'];
-  const circlePages = ['/pricing'];
+  const pillarsPages = ['/', '/features']
+  const circlePages = ['/pricing']
+  const pagePushPages = ['/use-cases', '/research']
 
-  const transitionType = pillarsPages.includes(href) ? 'pillars' : circlePages.includes(href) ? 'circle' : null
+  const transitionType = pillarsPages.includes(href) ? 'pillars' : 
+                         circlePages.includes(href) ? 'circle' : 
+                         pagePushPages.includes(href) ? 'page-push' : null
 
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
     if (!transitionType || isTransitioning) {
@@ -181,7 +182,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
     if (transitionType === 'circle') {
         origin = { x: event.clientX, y: event.clientY }
     }
-    startTransition(transitionType, href, origin)
+    startTransition(transitionType as 'pillars' | 'circle' | 'page-push', href, origin)
   }
 
   return (
@@ -202,14 +203,17 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
 }
 
 function MobileNavLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const { startTransition, isTransitioning } = useTransitionContext()
   const pathname = usePathname()
   const isActive = pathname === href
-  const { startTransition, isTransitioning } = useTransitionContext()
 
-  const pillarsPages = ['/', '/features'];
-  const circlePages = ['/pricing'];
+  const pillarsPages = ['/', '/features']
+  const circlePages = ['/pricing']
+  const pagePushPages = ['/use-cases', '/research']
 
-  const transitionType = pillarsPages.includes(href) ? 'pillars' : circlePages.includes(href) ? 'circle' : null
+  const transitionType = pillarsPages.includes(href) ? 'pillars' : 
+                         circlePages.includes(href) ? 'circle' : 
+                         pagePushPages.includes(href) ? 'page-push' : null
 
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
      if (!transitionType || isTransitioning) {
@@ -222,7 +226,7 @@ function MobileNavLink({ href, children }: { href: string; children: React.React
      if (transitionType === 'circle') {
          origin = { x: event.clientX, y: event.clientY }
      }
-     startTransition(transitionType, href, origin)
+     startTransition(transitionType as 'pillars' | 'circle' | 'page-push', href, origin)
    }
 
   return (

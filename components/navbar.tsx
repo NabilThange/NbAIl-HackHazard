@@ -50,6 +50,7 @@ export default function Navbar() {
                 <MobileNavLink href="/pricing" data-barba-prevent="false">Pricing</MobileNavLink>
                 <MobileNavLink href="/research" data-barba-prevent="false">Research</MobileNavLink>
                 <MobileNavLink href="/use-cases" data-barba-prevent="false">Use Cases</MobileNavLink>
+                <MobileNavLink href="/bucket-list" data-barba-prevent="false">Bucket List</MobileNavLink>
                 <div className="pt-4 flex flex-col space-y-2">
                   <Button variant="outline" className="w-full justify-center" asChild>
                     <Link href="/login">Login</Link>
@@ -83,6 +84,7 @@ export default function Navbar() {
               <NavLink href="/pricing">Pricing</NavLink>
               <NavLink href="/research">Research</NavLink>
               <NavLink href="/use-cases">Use Cases</NavLink>
+              <NavLink href="/bucket-list">Bucket List</NavLink>
             </div>
 
             {/* Auth Buttons */}

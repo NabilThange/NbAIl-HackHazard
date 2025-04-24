@@ -8,13 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Brain } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { usePathname } from "next/navigation"
-import { useTransitionContext } from "@/contexts/TransitionContext"
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
-  const { startTransition, isTransitioning } = useTransitionContext()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,35 +27,14 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
+  // Close mobile menu when navigating to a new page
   useEffect(() => {
     setIsOpen(false)
   }, [pathname])
 
-  const handleTransitionClick = (event: React.MouseEvent<HTMLAnchorElement>, href: string, type: 'pillars' | 'circle') => {
-    if (isTransitioning) {
-        event.preventDefault();
-        return;
-    }
-    console.log(`[Navbar] handleTransitionClick called for href: ${href}, type: ${type}`);
-    event.preventDefault(); 
-    let origin = undefined;
-    if (type === 'circle') {
-        origin = { x: event.clientX, y: event.clientY };
-    }
-    startTransition(type, href, origin); 
-  };
-
-  const pillarsPages = ['/', '/features'];
-  const circlePages = ['/pricing'];
-
-  const getTransitionType = (href: string): 'pillars' | 'circle' | null => {
-      if (pillarsPages.includes(href)) return 'pillars';
-      if (circlePages.includes(href)) return 'circle';
-      return null;
-  }
-
   return (
     <>
+      {/* Blurred overlay for mobile menu */}
       <AnimatePresence>
         {isOpen && (
           <>
@@ -69,10 +46,10 @@ export default function Navbar() {
               className="fixed top-0 left-2 right-2 backdrop-blur-md bg-black/30 rounded-md shadow-lg z-40 md:hidden mt-16"
             >
               <div className="px-4 py-4 space-y-2 text-center">
-                <MobileNavLink href="/features">Features</MobileNavLink>
-                <MobileNavLink href="/pricing">Pricing</MobileNavLink>
-                <MobileNavLink href="/research">Research</MobileNavLink>
-                <MobileNavLink href="/use-cases">Use Cases</MobileNavLink>
+                <MobileNavLink href="/features" data-barba-prevent="false">Features</MobileNavLink>
+                <MobileNavLink href="/pricing" data-barba-prevent="false">Pricing</MobileNavLink>
+                <MobileNavLink href="/research" data-barba-prevent="false">Research</MobileNavLink>
+                <MobileNavLink href="/use-cases" data-barba-prevent="false">Use Cases</MobileNavLink>
                 <div className="pt-4 flex flex-col space-y-2">
                   <Button variant="outline" className="w-full justify-center" asChild>
                     <Link href="/login">Login</Link>
@@ -94,14 +71,13 @@ export default function Navbar() {
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/"
-              onClick={(e) => handleTransitionClick(e, "/", 'pillars')}
-              className="flex items-center space-x-2"
-            >
+            {/* Logo - Reverted to simple Link */}
+            <Link href="/" className="flex items-center space-x-2">
               <Brain className="h-8 w-8 text-purple-500" />
               <span className="text-white font-bold text-xl">NbAIl</span>
             </Link>
 
+            {/* Desktop Navigation - Reverted NavLink calls */}
             <div className="hidden md:flex items-center space-x-8">
               <NavLink href="/features">Features</NavLink>
               <NavLink href="/pricing">Pricing</NavLink>
@@ -109,6 +85,7 @@ export default function Navbar() {
               <NavLink href="/use-cases">Use Cases</NavLink>
             </div>
 
+            {/* Auth Buttons */}
             <div className="hidden md:flex items-center space-x-4">
               <Button variant="ghost" asChild>
                 <Link href="/login">Login</Link>
@@ -118,6 +95,7 @@ export default function Navbar() {
               </Button>
             </div>
 
+            {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center z-50">
               <label className="hamburger cursor-pointer">
                 <input
@@ -156,40 +134,13 @@ export default function Navbar() {
 }
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
-  const { startTransition, isTransitioning } = useTransitionContext()
   const pathname = usePathname()
   const isActive = pathname === href
-
-  const pillarsPages = ['/', '/features']
-  const circlePages = ['/pricing']
-
-  const transitionType = pillarsPages.includes(href) ? 'pillars' : 
-                         circlePages.includes(href) ? 'circle' : 
-                         null
-
-  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    if (!transitionType) {
-        console.log(`[NavLink] No custom transition for ${href}. Allowing default navigation.`);
-        return;
-    }
-    
-    event.preventDefault();
-    if (isTransitioning) return;
-    
-    console.log(`[NavLink] Handling click for ${href}, type: ${transitionType}`);
-    let origin = undefined;
-    if (transitionType === 'circle') {
-        origin = { x: event.clientX, y: event.clientY };
-    }
-    startTransition(transitionType as 'pillars' | 'circle', href, origin);
-  }
 
   return (
     <Link
       href={href}
-      onClick={handleClick}
       className={`text-sm font-medium relative group overflow-hidden ${isActive ? "text-white" : "text-gray-300"}`}
-      aria-disabled={isTransitioning}
     >
       <span className="relative z-10 transition-colors duration-300 group-hover:text-white">{children}</span>
       {isActive ? (
@@ -202,42 +153,15 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
 }
 
 function MobileNavLink({ href, children }: { href: string; children: React.ReactNode }) {
-  const { startTransition, isTransitioning } = useTransitionContext()
   const pathname = usePathname()
   const isActive = pathname === href
-
-  const pillarsPages = ['/', '/features']
-  const circlePages = ['/pricing']
-
-  const transitionType = pillarsPages.includes(href) ? 'pillars' : 
-                         circlePages.includes(href) ? 'circle' : 
-                         null
-
-  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    if (!transitionType) {
-        console.log(`[MobileNavLink] No custom transition for ${href}. Allowing default navigation.`);
-        return;
-    }
-    
-    event.preventDefault();
-    if (isTransitioning) return;
-
-    console.log(`[MobileNavLink] Handling click for ${href}, type: ${transitionType}`);
-    let origin = undefined;
-    if (transitionType === 'circle') {
-        origin = { x: event.clientX, y: event.clientY };
-    }
-    startTransition(transitionType as 'pillars' | 'circle', href, origin);
-  }
 
   return (
     <Link
       href={href}
-      onClick={handleClick}
       className={`block py-2 px-3 rounded-md text-lg font-medium ${
         isActive ? "text-white font-semibold" : "text-gray-300"
       } hover:text-purple-500 hover:underline`}
-      aria-disabled={isTransitioning}
     >
       {children}
     </Link>

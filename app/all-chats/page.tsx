@@ -12,68 +12,34 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 export default function AllChatsPage() {
   const [searchQuery, setSearchQuery] = useState("")
 
-  // Mock chat history
-  const chatHistory = [
-    {
-      id: "1",
-      title: "Research on quantum computing",
-      date: "Today",
-      time: "10:23 AM",
-      preview: "I need to understand the basics of quantum computing for my research project...",
-      pinned: true,
-    },
-    {
-      id: "2",
-      title: "Help with JavaScript code",
-      date: "Today",
-      time: "9:15 AM",
-      preview: "Can you help me debug this React component? It's not rendering correctly...",
-      pinned: false,
-    },
-    {
-      id: "3",
-      title: "Summarize research paper",
-      date: "Yesterday",
-      time: "4:30 PM",
-      preview: "I need a summary of this paper on machine learning applications in healthcare...",
-      pinned: false,
-    },
-    {
-      id: "4",
-      title: "Design feedback for website",
-      date: "Yesterday",
-      time: "2:45 PM",
-      preview: "What do you think of this website design? I'm trying to improve the user experience...",
-      pinned: false,
-    },
-    {
-      id: "5",
-      title: "Help with math problem",
-      date: "2 days ago",
-      time: "11:20 AM",
-      preview: "I'm stuck on this calculus problem involving integration by parts...",
-      pinned: false,
-    },
-    {
-      id: "6",
-      title: "Travel recommendations",
-      date: "3 days ago",
-      time: "3:10 PM",
-      preview: "I'm planning a trip to Japan next month. Can you recommend some must-visit places?",
-      pinned: false,
-    },
-  ]
+  // // Mock chat history - REMOVED
+  // const chatHistory = [
+  //   {
+  //     id: "1",
+  //     title: "Research on quantum computing",
+  //     date: "Today",
+  //     time: "10:23 AM",
+  //     preview: "I need to understand the basics of quantum computing for my research project...",
+  //     pinned: true,
+  //   },
+  //   // ... other mock chats
+  // ]
 
-  // Filter chats based on search query
-  const filteredChats = chatHistory.filter(
-    (chat) =>
-      chat.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      chat.preview.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  // TODO: Replace with actual chat data fetching and filtering logic
+  const filteredChats = [] // Placeholder
+  const pinnedChats = [] // Placeholder
+  const unpinnedChats = [] // Placeholder
 
-  // Separate pinned and unpinned chats
-  const pinnedChats = filteredChats.filter((chat) => chat.pinned)
-  const unpinnedChats = filteredChats.filter((chat) => !chat.pinned)
+  // // Filter chats based on search query - Depends on chatHistory
+  // const filteredChats = chatHistory.filter(
+  //   (chat) =>
+  //     chat.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //     chat.preview.toLowerCase().includes(searchQuery.toLowerCase()),
+  // )
+
+  // // Separate pinned and unpinned chats - Depends on filteredChats
+  // const pinnedChats = filteredChats.filter((chat) => chat.pinned)
+  // const unpinnedChats = filteredChats.filter((chat) => !chat.pinned)
 
   return (
     <div className="min-h-screen bg-black/[0.96] antialiased bg-grid-white/[0.02] relative overflow-x-hidden">
@@ -127,8 +93,8 @@ export default function AllChatsPage() {
             </Button>
           </div>
 
-          {/* Pinned Chats */}
-          {pinnedChats.length > 0 && (
+          {/* Pinned Chats - Needs real data */}
+          {/* {pinnedChats.length > 0 && (
             <div className="mb-8">
               <h2 className="text-white font-medium mb-4 flex items-center">
                 <Star className="h-4 w-4 text-purple-500 mr-2" />
@@ -140,18 +106,25 @@ export default function AllChatsPage() {
                 ))}
               </div>
             </div>
-          )}
+          )} */}
 
-          {/* Recent Chats */}
+          {/* Recent Chats - Needs real data */}
           <div>
             <h2 className="text-white font-medium mb-4">Recent Chats</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {unpinnedChats.length > 0 ? (
                 unpinnedChats.map((chat) => <ChatCard key={chat.id} chat={chat} />)
               ) : (
-                <p className="text-gray-400 col-span-2">No chats found. Try a different search term.</p>
+                <p className="text-gray-400 col-span-2">No chats found.</p>
+                // Display message if search yielded no results
+                // searchQuery && chatHistory.length > 0 ? (
+                //    <p className="text-gray-400 col-span-2">No chats found matching your search.</p>
+                // ) : (
+                //    <p className="text-gray-400 col-span-2">You have no recent chats.</p>
+                // )
               )}
-            </div>
+            </div> */}
+            <p className="text-gray-400 col-span-2">Chat history loading not implemented yet.</p> {/* Placeholder message */}
           </div>
         </div>
       </main>

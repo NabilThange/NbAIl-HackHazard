@@ -33,7 +33,7 @@ export default function Navbar() {
     setIsOpen(false)
   }, [pathname])
 
-  const handleTransitionClick = (event: React.MouseEvent<HTMLAnchorElement>, href: string, type: 'pillars' | 'circle' | 'page-push') => {
+  const handleTransitionClick = (event: React.MouseEvent<HTMLAnchorElement>, href: string, type: 'pillars' | 'circle' | 'fade-slide') => {
     if (isTransitioning) {
         console.log("[Navbar] Transition already in progress, ignoring click.");
         event.preventDefault();
@@ -50,12 +50,12 @@ export default function Navbar() {
 
   const pillarsPages = ['/', '/features'];
   const circlePages = ['/pricing'];
-  const pagePushPages = ['/use-cases', '/research'];
+  const fadeSlidePages = ['/use-cases', '/research'];
 
-  const getTransitionType = (href: string): 'pillars' | 'circle' | 'page-push' | null => {
+  const getTransitionType = (href: string): 'pillars' | 'circle' | 'fade-slide' | null => {
       if (pillarsPages.includes(href)) return 'pillars';
       if (circlePages.includes(href)) return 'circle';
-      if (pagePushPages.includes(href)) return 'page-push';
+      if (fadeSlidePages.includes(href)) return 'fade-slide';
       return null;
   }
 
@@ -165,11 +165,11 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
 
   const pillarsPages = ['/', '/features']
   const circlePages = ['/pricing']
-  const pagePushPages = ['/use-cases', '/research']
+  const fadeSlidePages = ['/use-cases', '/research']
 
   const transitionType = pillarsPages.includes(href) ? 'pillars' : 
                          circlePages.includes(href) ? 'circle' : 
-                         pagePushPages.includes(href) ? 'page-push' : null
+                         fadeSlidePages.includes(href) ? 'fade-slide' : null
 
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
     if (!transitionType || isTransitioning) {
@@ -182,7 +182,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
     if (transitionType === 'circle') {
         origin = { x: event.clientX, y: event.clientY }
     }
-    startTransition(transitionType as 'pillars' | 'circle' | 'page-push', href, origin)
+    startTransition(transitionType, href, origin)
   }
 
   return (
@@ -209,11 +209,11 @@ function MobileNavLink({ href, children }: { href: string; children: React.React
 
   const pillarsPages = ['/', '/features']
   const circlePages = ['/pricing']
-  const pagePushPages = ['/use-cases', '/research']
+  const fadeSlidePages = ['/use-cases', '/research']
 
   const transitionType = pillarsPages.includes(href) ? 'pillars' : 
                          circlePages.includes(href) ? 'circle' : 
-                         pagePushPages.includes(href) ? 'page-push' : null
+                         fadeSlidePages.includes(href) ? 'fade-slide' : null
 
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
      if (!transitionType || isTransitioning) {
@@ -226,7 +226,7 @@ function MobileNavLink({ href, children }: { href: string; children: React.React
      if (transitionType === 'circle') {
          origin = { x: event.clientX, y: event.clientY }
      }
-     startTransition(transitionType as 'pillars' | 'circle' | 'page-push', href, origin)
+     startTransition(transitionType, href, origin)
    }
 
   return (

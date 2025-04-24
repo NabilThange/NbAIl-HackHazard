@@ -7,24 +7,18 @@ import { useTransitionContext } from "@/contexts/TransitionContext"; // Adjust p
 import FallingPillars from "./FallingPillars";
 import ExpandingCircle from "./ExpandingCircle";
 
-// Default variants (fade) for content
-const defaultContentVariants = {
+// Variants for default content (fade) used with overlays
+const overlayContentVariants = {
   initial: { opacity: 0 },
-  animate: { 
-      opacity: 1, 
-      transition: { 
-          duration: 0.4, 
-          delay: 0.8 // LONGER DELAY: Increased delay before content fades in
-      } 
-  },
+  animate: { opacity: 1, transition: { duration: 0.4, delay: 0.8 } }, // Increased delay 
   exit: { opacity: 0, transition: { duration: 0.2 } }, 
 };
 
-// Variants for Page Push Slide
-const pagePushVariants = {
-  initial: { y: "100%", opacity: 1 },
-  animate: { y: "0%", transition: { duration: 0.5, ease: [0.34, 1.56, 0.64, 1] } },
-  exit: { y: "-100%", transition: { duration: 0.5, ease: [0.36, 0, 0.66, -0.56] } },
+// Variants for Fade & Slide transition (NEW)
+const fadeSlideVariants = {
+  initial: { opacity: 0, y: 30 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeInOut" } },
+  exit: { opacity: 0, y: 30, transition: { duration: 0.4, ease: "easeInOut" } },
 };
 
 export default function PageTransitionController({ children }: { children: React.ReactNode }) {
@@ -32,25 +26,24 @@ export default function PageTransitionController({ children }: { children: React
   const router = useRouter();
   const { 
     isTransitioning, 
-    transitionType, 
+    transitionType, // Type of the transition *being initiated*
     transitionOrigin,
     targetHref,
     endTransition 
   } = useTransitionContext();
 
   // State to track the type of transition affecting the content div
-  const [activeContentType, setActiveContentType] = useState<'default' | 'page-push' | null>(null);
+  const [activeContentType, setActiveContentType] = useState<'overlay' | 'fade-slide' | null>(null);
   // State to track if content has finished animating IN (used to trigger overlay exit)
   const [contentHasAnimatedIn, setContentHasAnimatedIn] = useState(false);
 
   useEffect(() => {
     if (isTransitioning) {
-       // Determine content type and reset animation flag when a new transition starts
-       setActiveContentType(transitionType === 'page-push' ? 'page-push' : 'default');
+       // Determine content animation type
+       setActiveContentType(transitionType === 'fade-slide' ? 'fade-slide' : 'overlay');
        setContentHasAnimatedIn(false);
-       console.log(`[Controller] Transition START. Type: ${transitionType}, ActiveContentType: ${transitionType === 'page-push' ? 'page-push' : 'default'}`);
+       console.log(`[Controller] Transition START. Type: ${transitionType}, ActiveContentType: ${transitionType === 'fade-slide' ? 'fade-slide' : 'overlay'}`);
     } else {
-        // Reset when not transitioning
         setActiveContentType(null);
     }
   }, [isTransitioning, transitionType]);
@@ -64,7 +57,6 @@ export default function PageTransitionController({ children }: { children: React
     return () => { document.body.style.overflow = ''; };
   }, [isTransitioning]);
 
-  // Callback for overlays to trigger navigation after they finish entering
   const navigateAfterOverlayEnter = () => {
     if (targetHref) {
       console.log(`[Controller] Overlay enter complete. Navigating to ${targetHref}.`);
@@ -77,24 +69,24 @@ export default function PageTransitionController({ children }: { children: React
   // Callback for content animations
   const handleContentAnimationComplete = (definition: string) => {
      console.log(`[Controller] Content animation complete: ${definition}, ActiveType: ${activeContentType}`);
-     // --- Page Push Logic ---
-     if (activeContentType === 'page-push') {
-       // If exiting page finished sliding UP, trigger navigation
+     // --- Fade-Slide Logic ---
+     if (activeContentType === 'fade-slide') {
+       // If exiting page finished, trigger navigation
        if (definition === 'exit' && targetHref) {
-         console.log("[Controller] Page Push exit complete. Navigating...");
+         console.log("[Controller] Fade-Slide exit complete. Navigating...");
          router.push(targetHref);
        }
-       // If entering page finished sliding IN, end the transition
+       // If entering page finished, end the transition
        else if (definition === 'animate') {
-         console.log("[Controller] Page Push enter complete. Ending transition.");
+         console.log("[Controller] Fade-Slide enter complete. Ending transition.");
          endTransition();
        }
      }
      // --- Overlay Logic --- 
-     else if (activeContentType === 'default') {
-       // If new content finished animating IN (after overlay), flag it
+     else if (activeContentType === 'overlay') {
+       // If new content finished animating IN (after overlay), flag it to trigger overlay exit
        if (definition === 'animate') {
-          console.log("[Controller] Default content (after overlay) finished entering.");
+          console.log("[Controller] Overlay content finished entering. Flagging for overlay exit.");
           setContentHasAnimatedIn(true);
        }
      }
@@ -102,7 +94,7 @@ export default function PageTransitionController({ children }: { children: React
   
   // Effect to trigger overlay exit *after* content has animated in
   useEffect(() => {
-    if (contentHasAnimatedIn && isTransitioning && activeContentType === 'default') {
+    if (contentHasAnimatedIn && isTransitioning && activeContentType === 'overlay') {
       console.log("[Controller] Content entered. Calling endTransition() to trigger overlay exit.");
       endTransition(); 
       setContentHasAnimatedIn(false); // Reset flag
@@ -110,13 +102,12 @@ export default function PageTransitionController({ children }: { children: React
   }, [contentHasAnimatedIn, isTransitioning, activeContentType, endTransition]);
 
   const renderTransitionOverlay = () => {
-    // Guard: Only render for specific types and when transitioning
-    if (!isTransitioning || !transitionType || transitionType === 'page-push') return null; 
+    // Guard: Only render for pillars/circle types and when transitioning
+    if (!isTransitioning || !transitionType || transitionType === 'fade-slide') return null; 
 
     console.log(`[Controller] Rendering overlay: ${transitionType}`);
     switch (transitionType) {
       case 'pillars':
-        // Overlays no longer call endTransition themselves
         return <FallingPillars onEnterComplete={navigateAfterOverlayEnter} />;
       case 'circle':
         return (
@@ -130,27 +121,24 @@ export default function PageTransitionController({ children }: { children: React
     }
   };
 
-  // Determine variants for the content based on the *active* transition type
-  const currentContentVariants = activeContentType === 'page-push' ? pagePushVariants : defaultContentVariants;
+  // Determine variants for the content based on the *active* content animation type
+  const currentContentVariants = activeContentType === 'fade-slide' ? fadeSlideVariants : overlayContentVariants;
 
   return (
     <>
       {/* OVERLAY AnimatePresence */} 
-      {/* Rendered only when isTransitioning=true and type is pillars/circle */} 
-      {/* Exits when isTransitioning becomes false (triggered by endTransition) */} 
       <AnimatePresence mode="wait" onExitComplete={() => console.log("[Controller] Overlay exit complete.")}>
         {isTransitioning && renderTransitionOverlay()} 
       </AnimatePresence>
 
       {/* PAGE CONTENT AnimatePresence */} 
-      {/* Always manages the motion.div based on pathname key */} 
       <AnimatePresence mode="wait" initial={false} onExitComplete={() => console.log("[Controller] Content exit complete.")}>
           <motion.div
             key={pathname} 
             initial="initial"
             animate="animate"
             exit="exit"
-            variants={currentContentVariants}
+            variants={currentContentVariants} // Use correct variants
             onAnimationComplete={handleContentAnimationComplete} 
             className="flex-grow"
             style={{ pointerEvents: isTransitioning ? 'none' : 'auto' }}

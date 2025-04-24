@@ -17,12 +17,12 @@ export default function ExpandingCircle({ origin, onEnterComplete }: ExpandingCi
     animate: {
       scale: 150,
       opacity: 1,
-      transition: { duration: 0.6, ease: [0.76, 0, 0.24, 1] },
+      transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] },
     },
     exit: {
       scale: 0,
-      opacity: 0,
-      transition: { duration: 0.4, ease: "easeOut" },
+      opacity: 1,
+      transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] },
     },
   };
 
@@ -38,13 +38,17 @@ export default function ExpandingCircle({ origin, onEnterComplete }: ExpandingCi
       animate="animate"
       exit="exit"
       onAnimationComplete={(definition) => {
-        // Trigger navigation only when 'animate' (enter) completes
+        // Trigger navigation when 'animate' (enter) completes
         if (definition === 'animate') {
              console.log("[ExpandingCircle] Animate (enter) complete. Calling onEnterComplete (navigation).");
             onEnterComplete();
         }
+        // Log exit completion for debugging
+        if (definition === 'exit') {
+            console.log("[ExpandingCircle] Exit complete.");
+        }
       }}
-      className="pointer-events-none fixed z-[9998] aspect-square w-4 rounded-full bg-purple-600 origin-center"
+      className="pointer-events-none fixed z-[9999] aspect-square w-4 rounded-full bg-purple-600 origin-center"
       style={{ 
         top: initialY, 
         left: initialX,

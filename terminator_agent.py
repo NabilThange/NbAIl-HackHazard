@@ -6,6 +6,8 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 import pyautogui
+# --- Add CORS --- 
+from fastapi.middleware.cors import CORSMiddleware
 
 # --- Platform Check ---
 if platform.system() != "Windows":
@@ -26,6 +28,25 @@ app = FastAPI(
     description="A local agent to control Windows applications via API calls.",
     version="0.1.0"
 )
+
+# --- Add CORS Middleware ---
+# Allow requests from any origin during development. 
+# For production, you might want to restrict this to your Vercel app's URL.
+origins = [
+    "*", # Allows all origins
+    # Example for restricting to Vercel:
+    # "https://your-app-name.vercel.app", 
+    # "http://localhost:3000", # Allow local frontend dev server
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["POST", "GET"], # Allow POST for /execute, GET for /
+    allow_headers=["*"],
+)
+# ------------------------
 
 # --- Request Model ---
 class ExecuteCommand(BaseModel):

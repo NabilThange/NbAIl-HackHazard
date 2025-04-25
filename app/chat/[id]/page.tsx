@@ -160,7 +160,7 @@ export default function ChatPage() {
       setIsTyping(true); // Show typing indicator
 
       try {
-        const response = await fetch("/api/terminator", {
+        const response = await fetch("http://127.0.0.1:8000/execute", { // Target local agent directly
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ app, action })
@@ -190,12 +190,12 @@ export default function ChatPage() {
         setMessages((prev) => [...prev, terminatorResponseMessage]);
 
       } catch (error) {
-        console.error("Error calling /api/terminator:", error);
+        console.error("Error calling local Terminator agent:", error); // Update log message
         const networkErrorMessage: Message = {
           id: `temp-term-err-${Date.now()}`,
           chat_id: chatId,
           role: "assistant",
-          content: "⚠️ Network error: Could not reach the Terminator agent bridge.",
+          content: "⚠️ Error: Could not connect to the local Terminator agent. Is it running?", // Update error message
           created_at: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, networkErrorMessage]);

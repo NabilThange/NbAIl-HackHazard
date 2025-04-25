@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useRef } from 'react';
 import { MotionValue, motionValue } from 'framer-motion';
 
 interface CursorContextProps {
@@ -18,14 +18,17 @@ interface CursorContextProps {
 const CursorContext = createContext<CursorContextProps | undefined>(undefined);
 
 export const CursorProvider = ({ children }: { children: ReactNode }) => {
-  const rawX = motionValue(0);
-  const rawY = motionValue(0);
+  // Use useRef to store motionValue instances
+  const rawXRef = useRef(motionValue(0));
+  const rawYRef = useRef(motionValue(0));
+  
   const [isSticky, setIsSticky] = useState(false);
   const [stickyOffset, setStickyOffset] = useState({ x: 0, y: 0 });
 
   const contextValue = {
-    rawX,
-    rawY,
+    // Expose the .current value which holds the motionValue
+    rawX: rawXRef.current,
+    rawY: rawYRef.current,
     isSticky,
     setIsSticky,
     stickyOffset,

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { motion, useSpring, useTransform } from 'framer-motion';
+import { motion, useSpring, useTransform, useMotionValue } from 'framer-motion';
 import { useCursor } from '@/context/CursorContext';
 
 const Cursor = () => {
@@ -13,6 +13,14 @@ const Cursor = () => {
   const smoothOptions = { damping: 20, stiffness: 300, mass: 0.5 };
   const smoothX = useSpring(rawX, smoothOptions);
   const smoothY = useSpring(rawY, smoothOptions);
+
+  // Stable motion value for sticky state (0 or 1)
+  const isStickyValue = useMotionValue(0);
+
+  // Update motion value when isSticky state changes
+  useEffect(() => {
+    isStickyValue.set(isSticky ? 1 : 0);
+  }, [isSticky, isStickyValue]);
 
   // Effect to track mouse movement and visibility
   useEffect(() => {
@@ -49,9 +57,9 @@ const Cursor = () => {
   const transformX = useTransform(smoothX, (val) => val - 8 + (isSticky ? stickyOffset.x : 0)); // Offset by half size (8px)
   const transformY = useTransform(smoothY, (val) => val - 8 + (isSticky ? stickyOffset.y : 0)); // Offset by half size (8px)
   
-  // Scale animation when sticky
-  const scale = useTransform(isSticky ? motionValue(1) : motionValue(0), (value) => (value === 1 ? 1.5 : 1), {
-    damping: 15, stiffness: 200, mass: 0.3
+  // Scale animation based on the stable isStickyValue
+  const scale = useSpring(useTransform(isStickyValue, [0, 1], [1, 1.5]), { 
+    damping: 15, stiffness: 200, mass: 0.3 
   });
 
   if (isMobile) {
@@ -67,7 +75,6 @@ const Cursor = () => {
         scale: scale,
         opacity: isVisible ? 1 : 0, // Fade in/out based on visibility
       }}
-      transition={{ type: 'spring', ...smoothOptions }} // Apply spring to position
     />
   );
 };

@@ -1,7 +1,6 @@
 'use client';
 
 import type React from "react"
-import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -14,22 +13,6 @@ import { CursorProvider } from "@/context/CursorContext"
 import Cursor from "@/components/cursor/Cursor"
 
 const inter = Inter({ subsets: ["latin"], display: "swap" })
-
-export const metadata: Metadata = {
-  title: "NbAIl – Your Multimodal AI Assistant",
-  description: "NbAIl is your intelligent partner that understands voice, screen, documents, and more.",
-  icons: {
-    icon: "/favicon.ico",
-  },
-    generator: 'v0.dev'
-}
-
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  themeColor: "#9333ea", // Purple theme color
-}
 
 export default function RootLayout({
   children,

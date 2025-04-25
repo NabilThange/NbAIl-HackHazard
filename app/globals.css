@@ -916,3 +916,26 @@
   /* #transition-card { ... } */
   /* body.is-transitioning { ... } */
 }
+
+/* Custom Sticky Cursor */
+.custom-cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 16px; /* Adjust size as needed */
+  height: 16px; /* Adjust size as needed */
+  background-color: #9333ea; /* Purple color */
+  border-radius: 50%;
+  pointer-events: none; /* Allows clicking through the cursor */
+  z-index: 9999; /* Ensure it's on top */
+  mix-blend-mode: difference; /* Optional: nice effect against different backgrounds */
+  /* Add transition for scale changes */
+  transition: transform 0.1s ease-out;
+}
+
+/* Hide default cursor when custom cursor is active (optional, requires JS check or body class) */
+/* 
+body.custom-cursor-active {
+  cursor: none;
+}
+*/

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Brain } from "lucide-react"
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
 import { usePathname } from "next/navigation"
+import StickyWrapper from "@/components/sticky/StickyWrapper"
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -82,8 +83,8 @@ export default function Navbar() {
             </Link>
 
             <div className="hidden md:flex items-center space-x-8">
+              <NavLink href="/">Home</NavLink>
               <NavLink href="/features">Features</NavLink>
-              <NavLink href="/pricing">Pricing</NavLink>
               <NavLink href="/research">Research</NavLink>
               <NavLink href="/use-cases">Use Cases</NavLink>
               <NavLink href="/bucket-list">Bucket List</NavLink>
@@ -140,17 +141,19 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   const isActive = pathname === href
 
   return (
-    <Link
-      href={href}
-      className={`text-sm font-medium relative group overflow-hidden ${isActive ? "text-white" : "text-gray-300"}`}
-    >
-      <span className="relative z-10 transition-colors duration-300 group-hover:text-white">{children}</span>
-      {isActive ? (
-        <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-purple-500 rounded-full" />
-      ) : (
-        <span className="absolute -bottom-1 left-1/2 w-0 h-0.5 bg-purple-500 rounded-full transition-all duration-300 group-hover:w-full group-hover:left-0" />
-      )}
-    </Link>
+    <StickyWrapper>
+      <Link
+        href={href}
+        className={`text-sm font-medium relative group overflow-hidden ${isActive ? "text-white" : "text-gray-300"}`}
+      >
+        <span className="relative z-10 transition-colors duration-300 group-hover:text-white">{children}</span>
+        {isActive ? (
+          <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-purple-500 rounded-full" />
+        ) : (
+          <span className="absolute -bottom-1 left-1/2 w-0 h-0.5 bg-purple-500 rounded-full transition-all duration-300 group-hover:w-full group-hover:left-0" />
+        )}
+      </Link>
+    </StickyWrapper>
   )
 }
 

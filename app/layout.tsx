@@ -1,3 +1,5 @@
+'use client';
+
 import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
@@ -8,6 +10,8 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import PageTransitionWrapper from "@/components/PageTransitionWrapper"
 import { SmoothCursor } from "@/components/ui/smooth-cursor"
 import { LenisProvider } from "@/context/LenisProvider"
+import { CursorProvider } from "@/context/CursorContext"
+import Cursor from "@/components/cursor/Cursor"
 
 const inter = Inter({ subsets: ["latin"], display: "swap" })
 
@@ -34,18 +38,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className="scroll-smooth">
-      <body className={inter.className}>
-        <SmoothCursor />
-        <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.85/build/spline-viewer.js" async></script>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <LenisProvider>
-            <ScrollToTop />
-            <PageTransitionWrapper>
-              {children}
-            </PageTransitionWrapper>
-          </LenisProvider>
-          <SpeedInsights />
-        </ThemeProvider>
+      <body className={`${inter.className}`}>
+        <CursorProvider>
+          <Cursor />
+          <SmoothCursor />
+          <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.85/build/spline-viewer.js" async></script>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+            <LenisProvider>
+              <ScrollToTop />
+              <PageTransitionWrapper>
+                {children}
+              </PageTransitionWrapper>
+            </LenisProvider>
+            <SpeedInsights />
+          </ThemeProvider>
+        </CursorProvider>
       </body>
     </html>
   )

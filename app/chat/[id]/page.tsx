@@ -107,12 +107,110 @@ export default function ChatPage() {
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!input.trim() && !selectedFile && !selectedImageFile) return
+    e.preventDefault();
+    const currentInputText = input.trim(); // Get current input text
 
+    // Exit if no input and no files selected
+    if (!currentInputText && !selectedFile && !selectedImageFile) return;
+
+    // --- Check for /open command ---
+    if (currentInputText.toLowerCase().startsWith("/open ")) {
+      console.log("Detected /open command:", currentInputText);
+
+      // Add user message to UI immediately
+      const tempUserCommandMessage: Message = {
+        id: `temp-cmd-${Date.now()}`,
+        chat_id: chatId,
+        role: "user",
+        content: currentInputText,
+        created_at: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, tempUserCommandMessage]);
+      setInput(""); // Clear input field
+
+      // Parse the command
+      const commandContent = currentInputText.slice(6).trim(); // Remove "/open "
+      let app: string;
+      let action: string | null = null;
+
+      // Try splitting by " and write " for clarity, then by " and "
+      const writeSplit = commandContent.split(/ and write /i);
+      if (writeSplit.length > 1) {
+        app = writeSplit[0].trim();
+        action = writeSplit[1].trim();
+      } else {
+        const andSplit = commandContent.split(/ and /i);
+        if (andSplit.length > 1) {
+          app = andSplit[0].trim();
+          // Join the rest back in case 'and' was part of the action
+          action = andSplit.slice(1).join(" and ").trim();
+          // Optionally remove a leading "write" if it wasn't caught by the first split
+          action = action.replace(/^write\s+/i, "").trim();
+        } else {
+          // No "and", assume the whole thing is the app name
+          app = commandContent;
+        }
+      }
+      
+      // Ensure action is null if empty string after trimming
+      if (action === "") action = null;
+
+      console.log("Parsed command -> App:", app, "Action:", action);
+
+      setIsTyping(true); // Show typing indicator
+
+      try {
+        const response = await fetch("/api/terminator", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ app, action })
+        });
+
+        const data = await response.json();
+
+        let terminatorResponseContent = "";
+        if (response.ok && data.message) {
+          // Use the message from the successful response
+          terminatorResponseContent = `🧠 Terminator: ${data.message}`;
+        } else {
+          // Handle errors from the API route or the agent itself
+          const errorMessage = data.error || "Terminator agent failed to execute the command.";
+          terminatorResponseContent = `⚠️ Error: ${errorMessage}`;
+          console.error("Terminator command failed:", data);
+        }
+
+        // Add Terminator's response to messages
+        const terminatorResponseMessage: Message = {
+          id: `temp-term-resp-${Date.now()}`,
+          chat_id: chatId,
+          role: "assistant", // Display as assistant message
+          content: terminatorResponseContent,
+          created_at: new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, terminatorResponseMessage]);
+
+      } catch (error) {
+        console.error("Error calling /api/terminator:", error);
+        const networkErrorMessage: Message = {
+          id: `temp-term-err-${Date.now()}`,
+          chat_id: chatId,
+          role: "assistant",
+          content: "⚠️ Network error: Could not reach the Terminator agent bridge.",
+          created_at: new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, networkErrorMessage]);
+      } finally {
+        setIsTyping(false); // Hide typing indicator
+      }
+
+      return; // Stop further processing in handleSubmit
+    }
+    // --- End of /open command handling ---
+
+    // --- Original handleSubmit logic for non-/open messages ---
     // Determine user content (text or image prompt)
-    const userTextContent = input || (selectedFile ? `I'm sending you this file: ${selectedFile}` : 
-                           selectedImageFile ? `I've uploaded an image. ${input || 'What do you see?'}` : "")
+    const userTextContent = input || (selectedFile ? `I'm sending you this file: ${selectedFile}` :
+                           selectedImageFile ? `I've uploaded an image. ${input || 'What do you see?'}` : "");
 
     // Prepare attachment if any (for non-image files)
     let attachment: Attachment | undefined

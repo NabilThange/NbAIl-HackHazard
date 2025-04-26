@@ -15,3 +15,17 @@
 2025-04-26 11:18:30 - Request received: app='notepad' (alias='notepad'), action='a program to print hello in c'
 2025-04-26 11:18:30 - Warning: Mapped path for 'notepad' ('notepad.exe') does not exist. Trying alias directly.
 2025-04-26 11:18:34 - Action performed: Typed 'a program to print hello in c' into 'notepad' (executed as 'notepad')
+2025-04-26 16:33:38 - Request received: app='notepad' (alias='notepad'), action='None'
+2025-04-26 16:33:38 - Warning: Mapped path for 'notepad' ('notepad.exe') does not exist. Trying alias directly.
+2025-04-26 16:33:38 - Action performed: Opened 'notepad' (executed as 'notepad')
+2025-04-26 16:34:19 - Request received: app='notepad' (alias='notepad'), action='a program to print hello in C'
+2025-04-26 16:34:19 - Warning: Mapped path for 'notepad' ('notepad.exe') does not exist. Trying alias directly.
+2025-04-26 16:34:23 - Action performed: Typed 'a program to print hello in C' into 'notepad' (executed as 'notepad')
+2025-04-26 16:34:46 - Request received: app='vscode ans write hello world' (alias='vscode ans write hello world'), action='None'
+2025-04-26 16:34:46 - Warning: Alias 'vscode ans write hello world' not found in APP_MAP. Trying the name directly.
+2025-04-26 16:34:46 - Error: Command/Application 'vscode ans write hello world' not found. Ensure it's in PATH or mapped correctly.
+2025-04-26 16:35:11 - Request received: app='chrome' (alias='chrome'), action='search www.youtube.com'
+2025-04-26 16:35:14 - Action performed: Typed 'search www.youtube.com' into 'chrome' (executed as 'C:\Program Files\Google\Chrome\Application\chrome.exe')
+2025-04-26 16:42:14 - Request received: app='whatsapp' (alias='whatsapp'), action='None'
+2025-04-26 16:42:14 - Warning: Alias 'whatsapp' not found in APP_MAP. Trying the name directly.
+2025-04-26 16:42:14 - Error: Command/Application 'whatsapp' not found. Ensure it's in PATH or mapped correctly.

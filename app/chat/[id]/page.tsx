@@ -115,7 +115,7 @@ export default function ChatPage() {
 
     // --- Check for /open command ---
     if (currentInputText.toLowerCase().startsWith("/open ")) {
-      console.log("Detected /open command:", currentInputText);
+      console.log("[handleSubmit] Detected /open command:", currentInputText);
 
       // Add user message to UI immediately
       const tempUserCommandMessage: Message = {
@@ -128,45 +128,113 @@ export default function ChatPage() {
       setMessages((prev) => [...prev, tempUserCommandMessage]);
       setInput(""); // Clear input field
 
-      // Parse the command
-      const commandContent = currentInputText.slice(6).trim(); // Remove "/open "
+      // --- Parse the command --- 
+      const commandContent = currentInputText.slice(6).trim();
       let app: string;
       let action: string | null = null;
+      let originalActionText: string | null = null; // Store original action for prompts
 
-      // Try splitting by " and write " for clarity, then by " and "
+      // Try splitting by " and write " or " and search " first
       const writeSplit = commandContent.split(/ and write /i);
+      const searchSplit = commandContent.split(/ and search /i);
+
       if (writeSplit.length > 1) {
         app = writeSplit[0].trim();
-        action = writeSplit[1].trim();
+        action = `write ${writeSplit[1].trim()}`; // Keep "write" for keyword check later
+      } else if (searchSplit.length > 1) {
+        app = searchSplit[0].trim();
+        action = `search ${searchSplit[1].trim()}`; // Keep "search" for keyword check later
       } else {
+        // Fallback split by general " and "
         const andSplit = commandContent.split(/ and /i);
         if (andSplit.length > 1) {
           app = andSplit[0].trim();
-          // Join the rest back in case 'and' was part of the action
           action = andSplit.slice(1).join(" and ").trim();
-          // Optionally remove a leading "write" if it wasn't caught by the first split
-          action = action.replace(/^write\s+/i, "").trim();
         } else {
           // No "and", assume the whole thing is the app name
           app = commandContent;
         }
       }
       
-      // Ensure action is null if empty string after trimming
-      if (action === "") action = null;
+      // Store original action text before potential modification
+      originalActionText = action;
 
-      console.log("Parsed command -> App:", app, "Action:", action);
+      console.log(`[handleSubmit] Parsed command -> App: '${app}', Original Action: '${originalActionText}'`);
 
-      setIsTyping(true); // Show typing indicator
+      // --- Smart Action Handling --- 
+      let finalActionPayload = originalActionText; // Default to original action
+      let isSmartAction = false;
 
+      if (action) { // Only proceed if there IS an action
+        const actionLower = action.toLowerCase();
+
+        // Case 1: Write Program
+        if (actionLower.includes("write") && actionLower.includes("program")) {
+          isSmartAction = true;
+          console.log("[handleSubmit] Detected 'write program' action.");
+          setIsTyping(true); // Show typing indicator for Groq call
+          try {
+            // Extract the core request (remove "write a program to" etc.)
+            const programTopic = action.replace(/write (a|an) (working|python|javascript|java)? ?program (for|to|that|which) /i, "").trim();
+            const groqPrompt = `Write only the code for a working program that does the following: ${programTopic}. Do not include explanations or markdown formatting. Just the raw code.`;
+            console.log(`[handleSubmit] Sending prompt to Groq: "${groqPrompt}"`);
+            const generatedCode = await getGroqChatCompletion(groqPrompt);
+            console.log(`[handleSubmit] Received code from Groq: ${generatedCode.substring(0, 100)}...`);
+            finalActionPayload = generatedCode; // Use Groq's code as the final action
+          } catch (groqError) {
+            console.error("[handleSubmit] Error calling Groq for program generation:", groqError);
+            // Handle error: Add error message to chat and stop processing this command
+            const groqErrorMessage: Message = {
+              id: `temp-groq-err-${Date.now()}`,
+              chat_id: chatId,
+              role: "assistant",
+              content: "⚠️ Error: Failed to generate program code using Groq.",
+              created_at: new Date().toISOString(),
+            };
+            setMessages((prev) => [...prev, groqErrorMessage]);
+            setIsTyping(false);
+            return; // Exit handleSubmit
+          }
+          // Note: setIsTyping(false) will happen in the final finally block
+
+        // Case 2: Search
+        } else if (actionLower.startsWith("search ")) {
+          isSmartAction = true;
+          console.log("[handleSubmit] Detected 'search' action.");
+          // Extract the actual search query
+          const searchQuery = action.substring(7).trim(); // Remove "search " prefix
+          if (searchQuery) {
+            const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+            console.log(`[handleSubmit] Constructed Search URL: ${googleSearchUrl}`);
+            finalActionPayload = googleSearchUrl; // Use the URL as the final action
+          } else {
+            console.warn("[handleSubmit] Search action detected but query is empty.");
+            finalActionPayload = null; // Don't perform an empty search
+          }
+        }
+      }
+      // --- End Smart Action Handling ---
+
+      // Ensure action payload is null if it ended up as an empty string
+      if (finalActionPayload === "") finalActionPayload = null;
+
+      // Only proceed if we have an app name
+      if (!app) {
+         console.error("[handleSubmit] No app name could be parsed from command:", currentInputText);
+         // Add error message?
+         return;
+      }
+
+      console.log(`[handleSubmit] Final payload -> App: '${app}', Action: '${finalActionPayload ? finalActionPayload.substring(0,100)+'...' : null}'`);
+
+      // --- Call the API Route --- 
+      setIsTyping(true); // Ensure typing indicator is on before API call
       try {
-        // --- MODIFIED FETCH CALL (Reverted) ---
-        const response = await fetch("/api/terminator", { // Target the Next.js API route again
+        const response = await fetch("/api/terminator", { 
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ app, action })
+          body: JSON.stringify({ app: app, action: finalActionPayload }) // Send final app and potentially modified action
         });
-        // -------------------------------------
 
         const data = await response.json();
 
@@ -176,31 +244,31 @@ export default function ChatPage() {
           terminatorResponseContent = `🧠 Terminator: ${data.message}`;
         } else {
           // Handle errors from the API route or the agent itself
-          const errorMessage = data.error || "Terminator command failed via API route."; // Updated error text
+          const errorMessage = data.error || "Terminator command failed via API route."; 
           terminatorResponseContent = `⚠️ Error: ${errorMessage}`;
-          console.error("Terminator command failed via API route:", data);
+          console.error("[handleSubmit] Terminator command failed via API route:", data);
         }
 
         // Add Terminator's response to messages
         const terminatorResponseMessage: Message = {
           id: `temp-term-resp-${Date.now()}`,
           chat_id: chatId,
-          role: "assistant", // Display as assistant message
+          role: "assistant",
           content: terminatorResponseContent,
           created_at: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, terminatorResponseMessage]);
 
       } catch (error) {
-        console.error("Error calling /api/terminator:", error); // Revert log message
-        const networkErrorMessage: Message = {
-          id: `temp-term-err-${Date.now()}`,
-          chat_id: chatId,
-          role: "assistant",
-          content: "⚠️ Network Error: Could not reach the backend API route (/api/terminator).", // Revert error message
-          created_at: new Date().toISOString(),
-        };
-        setMessages((prev) => [...prev, networkErrorMessage]);
+         console.error("[handleSubmit] Error calling /api/terminator:", error); 
+         const networkErrorMessage: Message = {
+           id: `temp-term-err-${Date.now()}`,
+           chat_id: chatId,
+           role: "assistant",
+           content: "⚠️ Network Error: Could not reach the backend API route (/api/terminator).",
+           created_at: new Date().toISOString(),
+         };
+         setMessages((prev) => [...prev, networkErrorMessage]);
       } finally {
         setIsTyping(false); // Hide typing indicator
       }

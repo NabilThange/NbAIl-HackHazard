@@ -24,27 +24,44 @@ logging.basicConfig(
 )
 
 # --- Application Path Mapping (Windows Only) ---
-# Use os.path.expandvars to handle environment variables like %USERNAME% or %ProgramFiles%
+# Use os.path.expandvars to handle environment variables like %USERNAME%, %LOCALAPPDATA%, %ProgramFiles%
 # Ensure paths are correct for your system. These are common defaults.
+# Using os.path.expandvars makes it automatically use the current user's paths.
 APP_MAP = {
+    # Common system apps
     "notepad": "notepad.exe",
-    "calc": "calc.exe", # Calculator is usually in PATH
+    "calc": "calc.exe",
     "calculator": "calc.exe",
-    "chrome": os.path.expandvars("%ProgramFiles%\\Google\\Chrome\\Application\\chrome.exe"),
-    "firefox": os.path.expandvars("%ProgramFiles%\\Mozilla Firefox\\firefox.exe"),
-    "edge": os.path.expandvars("%ProgramFiles(x86)%\\Microsoft\\Edge\\Application\\msedge.exe"),
-    "vscode": os.path.expandvars("%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe"),
-    "word": os.path.expandvars("%ProgramFiles%\\Microsoft Office\\root\\Office16\\WINWORD.EXE"),
-    "excel": os.path.expandvars("%ProgramFiles%\\Microsoft Office\\root\\Office16\\EXCEL.EXE"),
-    "powerpoint": os.path.expandvars("%ProgramFiles%\\Microsoft Office\\root\\Office16\\POWERPNT.EXE"),
-    # Add more common apps as needed
+    "explorer": "explorer.exe",
+    "cmd": "cmd.exe",
+    "powershell": "powershell.exe",
+
+    # Browsers
+    "chrome": os.path.expandvars(r"%ProgramFiles%\Google\Chrome\Application\chrome.exe"),
+    "firefox": os.path.expandvars(r"%ProgramFiles%\Mozilla Firefox\firefox.exe"),
+    "edge": os.path.expandvars(r"%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"),
+
+    # Development Tools
+    "vscode": os.path.expandvars(r"%LOCALAPPDATA%\Programs\Microsoft VS Code\Code.exe"),
+
+    # Microsoft Office (Common paths, might vary based on installation type/version)
+    "word": os.path.expandvars(r"%ProgramFiles%\Microsoft Office\root\Office16\WINWORD.EXE"),
+    "excel": os.path.expandvars(r"%ProgramFiles%\Microsoft Office\root\Office16\EXCEL.EXE"),
+    "powerpoint": os.path.expandvars(r"%ProgramFiles%\Microsoft Office\root\Office16\POWERPNT.EXE"),
+
+    # Communication
+    "whatsapp": os.path.expandvars(r"%LOCALAPPDATA%\WhatsApp\WhatsApp.exe"),
+    "slack": os.path.expandvars(r"%LOCALAPPDATA%\slack\slack.exe"),
+    "teams": os.path.expandvars(r"%LOCALAPPDATA%\Microsoft\Teams\current\Teams.exe"),
+
+    # Add more common apps as needed (ensure paths are tested on your system)
 }
 
 # --- FastAPI Setup ---
 app = FastAPI(
     title="Terminator Agent",
     description="A local agent to control Windows applications via API calls.",
-    version="0.1.1"
+    version="0.1.2"
 )
 
 # --- Add CORS Middleware ---

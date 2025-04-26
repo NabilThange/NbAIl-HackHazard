@@ -1,13 +1,260 @@
 "use client"
 
+import { useState } from "react"
 import LenisWrapper from '@/components/LenisWrapper';
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
-import { motion } from "framer-motion"
+import React, { ReactNode, useRef } from "react"; 
+import { motion, useScroll, useTransform } from "framer-motion"
 import { GraduationCap, Code, Palette, Users, Briefcase, Stethoscope, ShoppingBag, BookOpen } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { SparklesCore } from "@/components/sparkles"
+import { FiArrowUpRight } from "react-icons/fi";
+import styled from 'styled-components';
+
+const IMG_PADDING = 12;
+
+const TextParallaxContent = ({
+  imgUrl,
+  subheading,
+  heading,
+  children,
+}: {
+  imgUrl: string;
+  subheading: string;
+  heading: string;
+  children: ReactNode;
+}) => {
+  return (
+    <div
+      style={{
+        paddingLeft: IMG_PADDING,
+        paddingRight: IMG_PADDING,
+      }}
+    >
+      <div className="relative h-screen">
+        <StickyImage imgUrl={imgUrl} />
+        <OverlayCopy heading={heading} subheading={subheading} />
+      </div>
+      {children}
+    </div>
+  );
+};
+
+const StickyImage = ({ imgUrl }: { imgUrl: string }) => {
+  const targetRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: targetRef,
+    offset: ["end end", "end start"],
+  });
+
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.85]);
+  const opacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+
+  return (
+    <motion.div
+      style={{
+        backgroundImage: `url(${imgUrl})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        height: `calc(100vh - ${IMG_PADDING * 2}px)`,
+        top: IMG_PADDING,
+        scale,
+      }}
+      ref={targetRef}
+      className="sticky z-0 overflow-hidden rounded-3xl"
+    >
+      <motion.div
+        className="absolute inset-0 bg-neutral-950/70"
+        style={{
+          opacity,
+        }}
+      />
+    </motion.div>
+  );
+};
+
+const OverlayCopy = ({
+  subheading,
+  heading,
+}: {
+  subheading: string;
+  heading: string;
+}) => {
+  const targetRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: targetRef,
+    offset: ["start end", "end start"],
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], [250, -250]);
+  const opacity = useTransform(scrollYProgress, [0.25, 0.5, 0.75], [0, 1, 0]);
+
+  return (
+    <motion.div
+      style={{
+        y,
+        opacity,
+      }}
+      ref={targetRef}
+      className="absolute left-0 top-0 flex h-screen w-full flex-col items-center justify-center text-white"
+    >
+      <p className="mb-2 text-center text-xl md:mb-4 md:text-3xl">
+        {subheading}
+      </p>
+      <p className="text-center text-4xl font-bold md:text-7xl">{heading}</p>
+    </motion.div>
+  );
+};
+
+// --- Start: Custom Styled Button Component ---
+const StyledButtonComponent = () => {
+  return (
+    <StyledWrapper>
+      <button className="button" style={{ '--clr': '#7808d0' } as React.CSSProperties}> 
+        <span className="button__icon-wrapper">
+          <svg viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="button__icon-svg" width={10}>
+            <path d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024z" fill="currentColor" />
+          </svg>
+          <svg viewBox="0 0 14 15" fill="none" width={10} xmlns="http://www.w3.org/2000/svg" className="button__icon-svg button__icon-svg--copy">
+            <path d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024z" fill="currentColor" />
+          </svg>
+        </span>
+        Explore All
+      </button>
+    </StyledWrapper>
+  );
+}
+
+const StyledWrapper = styled.div`
+  .button {
+    line-height: 1;
+    text-decoration: none;
+    display: inline-flex;
+    border: none;
+    cursor: pointer;
+    align-items: center;
+    gap: 0.75rem;
+    background-color: var(--clr);
+    color: #fff;
+    border-radius: 10rem;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    padding-left: 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background-color 0.3s;
+  }
+
+  .button__icon-wrapper {
+    flex-shrink: 0;
+    width: 25px;
+    height: 25px;
+    position: relative;
+    color: var(--clr);
+    background-color: #fff;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+
+  .button:hover {
+    background-color: #1A1A1A;
+  }
+
+  .button:hover .button__icon-wrapper {
+    color: #1A1A1A;
+  }
+
+  .button__icon-svg--copy {
+    position: absolute;
+    transform: translate(-150%, 150%);
+  }
+
+  .button:hover .button__icon-svg:first-child {
+    transition: transform 0.3s ease-in-out;
+    transform: translate(150%, -150%);
+  }
+
+  .button:hover .button__icon-svg--copy {
+    transition: transform 0.3s ease-in-out 0.1s;
+    transform: translate(0);
+  }
+`;
+// --- End: Custom Styled Button Component ---
+
+const AcademiaContent = () => (
+  <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 px-4 pb-24 pt-12 md:grid-cols-12">
+    <h2 className="col-span-1 text-3xl font-bold text-white md:col-span-4">
+     AI Study Companion
+    </h2>
+    <div className="col-span-1 md:col-span-8">
+      <p className="mb-4 text-xl text-neutral-300 md:text-2xl">
+       Empower students and teachers with real-time AI-driven explanations, guidance, and smart study tools. Make complex subjects simple and transform how knowledge is delivered.
+      </p>
+      <StyledButtonComponent />
+    </div>
+  </div>
+);
+
+const QualityContent = () => (
+  <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 px-4 pb-24 pt-12 md:grid-cols-12">
+    <h2 className="col-span-1 text-3xl font-bold text-white md:col-span-4">
+      AI Coding Assistant
+    </h2>
+    <div className="col-span-1 md:col-span-8">
+      <p className="mb-4 text-xl text-neutral-300 md:text-2xl">
+        Accelerate development workflows with intelligent code understanding, auto-suggestions, and debugging help. Focus on building great products while AI handles the repetitive thinking.
+      </p>
+      <StyledButtonComponent />
+    </div>
+  </div>
+);
+
+const ModernContent = () => (
+  <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 px-4 pb-24 pt-12 md:grid-cols-12">
+    <h2 className="col-span-1 text-3xl font-bold text-white md:col-span-4">
+      Screen-Aware Design Feedback
+    </h2>
+    <div className="col-span-1 md:col-span-8">
+      <p className="mb-4 text-xl text-neutral-300 md:text-2xl">
+         Receive real-time feedback on your UI/UX designs directly from an AI that sees your screen. Improve usability, aesthetics, and creativity effortlessly.
+      </p>
+      <StyledButtonComponent />
+    </div>
+  </div>
+);
+
+const TextParallaxContentExample = () => {
+  return (
+    <div className="bg-black">
+      <TextParallaxContent
+        imgUrl="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2671&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        subheading="Academia"
+        heading="Limitless possibilities"
+      >
+        <AcademiaContent />
+      </TextParallaxContent>
+      <TextParallaxContent
+        imgUrl="https://images.unsplash.com/photo-1530893609608-32a9af3aa95c?q=80&w=2564&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        subheading="Development"
+        heading="Code faster, thrive."
+      >
+        <QualityContent />
+      </TextParallaxContent>
+      <TextParallaxContent
+        imgUrl="https://images.unsplash.com/photo-1504610926078-a1611febcad3?q=80&w=2416&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        subheading="Creativity"
+        heading="Design better"
+      >
+        <ModernContent />
+      </TextParallaxContent>
+    </div>
+  );
+};
 
 export default function UseCasesPage() {
   const categories = [
@@ -15,73 +262,21 @@ export default function UseCasesPage() {
       icon: <GraduationCap className="h-10 w-10 text-purple-500" />,
       title: "Education",
       description: "Transform learning with AI-powered assistance for students and educators.",
-      useCases: [
-        {
-          title: "Research Paper Analysis",
-          description: "Upload research papers and get instant summaries, key insights, and related references.",
-          image: "https://images.pexels.com/photos/7172830/pexels-photo-7172830.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-        {
-          title: "Smart Note-Taking",
-          description:
-            "Take notes with voice while NbAIl organizes, categorizes, and enhances them with relevant information.",
-          image: "https://images.pexels.com/photos/3359003/pexels-photo-3359003.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-      ],
     },
     {
       icon: <Code className="h-10 w-10 text-purple-500" />,
       title: "Development",
       description: "Boost developer productivity with code understanding and assistance.",
-      useCases: [
-        {
-          title: "Code Explanation",
-          description:
-            "NbAIl can analyze code on your screen and explain how it works, suggest improvements, or identify bugs.",
-          image: "https://images.pexels.com/photos/546819/pexels-photo-546819.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-        {
-          title: "Documentation Assistant",
-          description: "Ask questions about APIs, libraries, or frameworks and get instant, contextual answers.",
-          image: "https://images.pexels.com/photos/5475814/pexels-photo-5475814.jpeg",
-        },
-      ],
     },
     {
       icon: <Palette className="h-10 w-10 text-purple-500" />,
       title: "Design",
       description: "Get screen-aware feedback on your designs and creative inspiration.",
-      useCases: [
-        {
-          title: "Design Critique",
-          description:
-            "NbAIl can analyze your designs in real-time and provide feedback on usability, accessibility, and aesthetics.",
-          image: "https://images.pexels.com/photos/10003549/pexels-photo-10003549.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-        {
-          title: "Creative Inspiration",
-          description:
-            "Generate ideas, color palettes, and design concepts based on your requirements and preferences.",
-          image: "https://images.pexels.com/photos/17561470/pexels-photo-17561470/free-photo-of-smartphone-and-laptop-creative-electronic-devices.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-      ],
     },
     {
       icon: <Briefcase className="h-10 w-10 text-purple-500" />,
       title: "Business",
       description: "Enhance productivity and decision-making in professional settings.",
-      useCases: [
-        {
-          title: "Meeting Assistant",
-          description: "NbAIl can join your meetings, take notes, summarize discussions, and create action items.",
-          image: "https://images.pexels.com/photos/3205403/pexels-photo-3205403.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-        {
-          title: "Data Analysis",
-          description: "Upload spreadsheets or data visualizations and get instant insights and recommendations.",
-          image: "https://images.pexels.com/photos/7947999/pexels-photo-7947999.jpeg?auto=compress&cs=tinysrgb&w=600",
-        },
-      ],
     },
   ]
 
@@ -99,7 +294,7 @@ export default function UseCasesPage() {
             background="transparent"
             minSize={0.6}
             maxSize={1.4}
-            particleDensity={100}
+            particleDensity={70}
             className="w-full h-full"
             particleColor="#FFFFFF"
           />
@@ -154,57 +349,15 @@ export default function UseCasesPage() {
             </div>
           </section>
 
-          {/* Detailed Use Cases */}
-          {categories.map((category, categoryIndex) => (
-            <section key={categoryIndex} className={`py-16 ${categoryIndex % 2 === 0 ? "bg-black/[0.96]" : "glass"}`}>
-              <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5 }}
-                  className="text-center mb-16"
-                >
-                  <div className="inline-flex items-center justify-center bg-gray-800 rounded-full px-4 py-1 mb-4">
-                    {category.icon}
-                    <span className="ml-2 text-white font-medium">{category.title}</span>
-                  </div>
-                  <h2 className="text-3xl font-bold text-white mb-4">{category.title} Use Cases</h2>
-                  <p className="text-gray-400 max-w-2xl mx-auto">{category.description}</p>
-                </motion.div>
+          {/* ===== Section for Parallax Content Start ===== */}
+          <section className="py-16">
+            <div className="px-4 sm:px-6 lg:px-8">
+              <TextParallaxContentExample />
+            </div>
+          </section>
+          {/* ===== Section for Parallax Content End ===== */}
 
-                <div className="space-y-16">
-                  {category.useCases.map((useCase, useCaseIndex) => (
-                    <motion.div
-                      key={useCaseIndex}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.5, delay: useCaseIndex * 0.1 }}
-                      className={`flex flex-col ${
-                        useCaseIndex % 2 === 0 ? "lg:flex-row" : "lg:flex-row-reverse"
-                      } gap-8 items-center`}
-                    >
-                      <div className="w-full lg:w-1/2">
-                        <div className="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 glow-purple-sm">
-                          <img src={useCase.image || "/placeholder.svg"} alt={useCase.title} className="w-full h-auto" />
-                        </div>
-                      </div>
-                      <div className="w-full lg:w-1/2">
-                        <h3 className="text-2xl font-bold text-white mb-4">{useCase.title}</h3>
-                        <p className="text-gray-300 text-lg mb-6">{useCase.description}</p>
-                        <Button className="btn-primary" asChild>
-                          <Link href="/chat">Try This Use Case</Link>
-                        </Button>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </section>
-          ))}
-
-          {/* More Use Cases */}
+          {/* More Use Cases (Now below the blue section) */}
           <section className="py-16 glass">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <motion.div

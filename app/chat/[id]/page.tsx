@@ -160,11 +160,13 @@ export default function ChatPage() {
       setIsTyping(true); // Show typing indicator
 
       try {
-        const response = await fetch("http://127.0.0.1:8000/execute", { // Target local agent directly
+        // --- MODIFIED FETCH CALL (Reverted) ---
+        const response = await fetch("/api/terminator", { // Target the Next.js API route again
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ app, action })
         });
+        // -------------------------------------
 
         const data = await response.json();
 
@@ -174,9 +176,9 @@ export default function ChatPage() {
           terminatorResponseContent = `🧠 Terminator: ${data.message}`;
         } else {
           // Handle errors from the API route or the agent itself
-          const errorMessage = data.error || "Terminator agent failed to execute the command.";
+          const errorMessage = data.error || "Terminator command failed via API route."; // Updated error text
           terminatorResponseContent = `⚠️ Error: ${errorMessage}`;
-          console.error("Terminator command failed:", data);
+          console.error("Terminator command failed via API route:", data);
         }
 
         // Add Terminator's response to messages
@@ -190,12 +192,12 @@ export default function ChatPage() {
         setMessages((prev) => [...prev, terminatorResponseMessage]);
 
       } catch (error) {
-        console.error("Error calling local Terminator agent:", error); // Update log message
+        console.error("Error calling /api/terminator:", error); // Revert log message
         const networkErrorMessage: Message = {
           id: `temp-term-err-${Date.now()}`,
           chat_id: chatId,
           role: "assistant",
-          content: "⚠️ Error: Could not connect to the local Terminator agent. Is it running?", // Update error message
+          content: "⚠️ Network Error: Could not reach the backend API route (/api/terminator).", // Revert error message
           created_at: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, networkErrorMessage]);

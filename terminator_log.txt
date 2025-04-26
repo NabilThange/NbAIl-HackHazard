@@ -1,0 +1,17 @@
+2025-04-26 01:53:58 - Request received: app='notepad', action='None'
+2025-04-26 01:53:59 - Action performed: Opened 'notepad'
+2025-04-26 01:54:33 - Request received: app='chrome', action='None'
+2025-04-26 01:54:33 - Error: Application 'chrome' not found. Make sure it's in PATH or provide the full path.
+2025-04-26 01:54:42 - Request received: app='notepad', action='None'
+2025-04-26 01:54:43 - Action performed: Opened 'notepad'
+2025-04-26 11:17:07 - Request received: app='notepad' (alias='notepad'), action='None'
+2025-04-26 11:17:07 - Warning: Mapped path for 'notepad' ('notepad.exe') does not exist. Trying alias directly.
+2025-04-26 11:17:07 - Action performed: Opened 'notepad' (executed as 'notepad')
+2025-04-26 11:17:21 - Request received: app='word' (alias='word'), action='None'
+2025-04-26 11:17:21 - Action performed: Opened 'word' (executed as 'C:\Program Files\Microsoft Office\root\Office16\WINWORD.EXE')
+2025-04-26 11:17:42 - Request received: app='notepad' (alias='notepad'), action='"hello"'
+2025-04-26 11:17:42 - Warning: Mapped path for 'notepad' ('notepad.exe') does not exist. Trying alias directly.
+2025-04-26 11:17:45 - Action performed: Typed '"hello"' into 'notepad' (executed as 'notepad')
+2025-04-26 11:18:30 - Request received: app='notepad' (alias='notepad'), action='a program to print hello in c'
+2025-04-26 11:18:30 - Warning: Mapped path for 'notepad' ('notepad.exe') does not exist. Trying alias directly.
+2025-04-26 11:18:34 - Action performed: Typed 'a program to print hello in c' into 'notepad' (executed as 'notepad')

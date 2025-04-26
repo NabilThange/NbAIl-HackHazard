@@ -2,6 +2,7 @@ import platform
 import subprocess
 import time
 import logging
+import os
 from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
@@ -22,11 +23,28 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
+# --- Application Path Mapping (Windows Only) ---
+# Use os.path.expandvars to handle environment variables like %USERNAME% or %ProgramFiles%
+# Ensure paths are correct for your system. These are common defaults.
+APP_MAP = {
+    "notepad": "notepad.exe",
+    "calc": "calc.exe", # Calculator is usually in PATH
+    "calculator": "calc.exe",
+    "chrome": os.path.expandvars("%ProgramFiles%\\Google\\Chrome\\Application\\chrome.exe"),
+    "firefox": os.path.expandvars("%ProgramFiles%\\Mozilla Firefox\\firefox.exe"),
+    "edge": os.path.expandvars("%ProgramFiles(x86)%\\Microsoft\\Edge\\Application\\msedge.exe"),
+    "vscode": os.path.expandvars("%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe"),
+    "word": os.path.expandvars("%ProgramFiles%\\Microsoft Office\\root\\Office16\\WINWORD.EXE"),
+    "excel": os.path.expandvars("%ProgramFiles%\\Microsoft Office\\root\\Office16\\EXCEL.EXE"),
+    "powerpoint": os.path.expandvars("%ProgramFiles%\\Microsoft Office\\root\\Office16\\POWERPNT.EXE"),
+    # Add more common apps as needed
+}
+
 # --- FastAPI Setup ---
 app = FastAPI(
     title="Terminator Agent",
     description="A local agent to control Windows applications via API calls.",
-    version="0.1.0"
+    version="0.1.1"
 )
 
 # --- Add CORS Middleware ---
@@ -50,7 +68,7 @@ app.add_middleware(
 
 # --- Request Model ---
 class ExecuteCommand(BaseModel):
-    app: str = Field(..., description="The name of the application executable (e.g., 'notepad', 'calc', 'chrome')")
+    app: str = Field(..., description="The name or alias of the application (e.g., 'notepad', 'chrome')")
     action: str | None = Field(None, description="Text to type into the application after opening.")
 
 # --- API Endpoint ---
@@ -59,41 +77,54 @@ async def execute_action(command: ExecuteCommand):
     """
     Opens a specified application and optionally types text into it.
 
-    - **app**: Name of the application to open (e.g., 'notepad.exe', 'calc.exe').
-               Uses subprocess.Popen, so ensure the app is in PATH or provide the full path.
-    - **action**: Optional text to type into the application using pyautogui.
-                  Waits 2 seconds after opening the app before typing.
+    Looks up common application names in an internal map for full paths.
+    Falls back to using the provided name directly if not found in the map.
+    
+    - **app**: Alias or executable name (e.g., 'notepad', 'chrome', 'calc.exe').
+    - **action**: Optional text to type.
     """
-    app_name = command.app
+    app_alias = command.app.lower() # Use lowercase for map lookup
     action_text = command.action
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    log_message = f"Request received: app='{app_name}', action='{action_text}'"
+    log_message = f"Request received: app='{command.app}' (alias='{app_alias}'), action='{action_text}'"
     logging.info(log_message)
-    print(f"{timestamp} - {log_message}") # Also print to console for visibility
+    print(f"{timestamp} - {log_message}")
+
+    # 1. Determine the actual application path/command
+    app_to_execute = APP_MAP.get(app_alias)
+    if app_to_execute:
+        print(f"Mapped alias '{app_alias}' to '{app_to_execute}'")
+        # Check if the mapped path actually exists
+        if not os.path.exists(app_to_execute):
+             warning_msg = f"Warning: Mapped path for '{app_alias}' ('{app_to_execute}') does not exist. Trying alias directly."
+             logging.warning(warning_msg)
+             print(f"{timestamp} - {warning_msg}")
+             app_to_execute = command.app # Fallback to original input if mapped path invalid
+    else:
+        warning_msg = f"Warning: Alias '{app_alias}' not found in APP_MAP. Trying the name directly."
+        logging.warning(warning_msg)
+        print(f"{timestamp} - {warning_msg}")
+        app_to_execute = command.app # Use the original input name if not in map
 
     try:
-        # 1. Open the application
-        print(f"Attempting to open '{app_name}'...")
-        process = subprocess.Popen(app_name) # Use Popen for non-blocking execution
-        print(f"'{app_name}' opened with PID: {process.pid}")
+        # 2. Open the application using the determined path/command
+        print(f"Attempting to execute '{app_to_execute}'...")
+        process = subprocess.Popen(app_to_execute) 
+        print(f"'{app_to_execute}' opened with PID: {process.pid}")
 
-        # 2. Perform action if specified
+        # 3. Perform action if specified
         if action_text:
-            # Wait for the app to likely become active
-            # Note: This is a simple delay. More robust solutions might involve
-            # checking for window focus, but pyautogui doesn't directly support
-            # finding windows by process name easily.
-            wait_time = 2 # seconds
+            wait_time = 2 
             print(f"Waiting {wait_time} seconds before typing...")
             time.sleep(wait_time)
 
             print(f"Typing into the application: '{action_text}'")
-            pyautogui.write(action_text, interval=0.05) # Add a small interval between keys
+            pyautogui.write(action_text, interval=0.05)
             print("Typing complete.")
-            log_message_action = f"Action performed: Typed '{action_text}' into '{app_name}'"
+            log_message_action = f"Action performed: Typed '{action_text}' into '{command.app}' (executed as '{app_to_execute}')"
         else:
-            log_message_action = f"Action performed: Opened '{app_name}'"
+            log_message_action = f"Action performed: Opened '{command.app}' (executed as '{app_to_execute}')"
 
         logging.info(log_message_action)
         print(f"{timestamp} - {log_message_action}")
@@ -101,12 +132,12 @@ async def execute_action(command: ExecuteCommand):
         return {"status": "success", "message": log_message_action}
 
     except FileNotFoundError:
-        error_msg = f"Error: Application '{app_name}' not found. Make sure it's in PATH or provide the full path."
+        error_msg = f"Error: Command/Application '{app_to_execute}' not found. Ensure it's in PATH or mapped correctly."
         logging.error(error_msg)
         print(f"{timestamp} - {error_msg}")
         raise HTTPException(status_code=404, detail=error_msg)
     except Exception as e:
-        error_msg = f"An unexpected error occurred: {str(e)}"
+        error_msg = f"An unexpected error occurred while trying to execute '{app_to_execute}': {str(e)}"
         logging.error(error_msg)
         print(f"{timestamp} - {error_msg}")
         raise HTTPException(status_code=500, detail=error_msg)

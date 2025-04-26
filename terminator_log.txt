@@ -38,3 +38,39 @@
 2025-04-26 16:55:54 - Action performed: Typed 'https://www.google.com/search?q=for%20best%20cars%20nearby' into 'chrome' (executed as 'C:\Program Files\Google\Chrome\Application\chrome.exe')
 2025-04-26 16:56:38 - Request received: app='chrome' (alias='chrome'), action='https://www.google.com/search?q=for%20best%20cars%20nearby'
 2025-04-26 16:56:43 - Action performed: Typed 'https://www.google.com/search?q=for%20best%20cars%20nearby' into 'chrome' (executed as 'C:\Program Files\Google\Chrome\Application\chrome.exe')
+2025-04-26 17:09:02 - Request received: app='notepad' (alias='notepad'), action='print("hello")'
+2025-04-26 17:09:02 - Warning: Mapped path for 'notepad' ('notepad.exe') does not exist. Trying alias directly.
+2025-04-26 17:09:05 - Action performed: Typed 'print("hello")' into 'notepad' (executed as 'notepad')
+2025-04-26 17:09:49 - Request received: app='chrome' (alias='chrome'), action='https://www.google.com/search?q=best%20mobile%20phones%20in%202025'
+2025-04-26 17:09:55 - Action performed: Typed 'https://www.google.com/search?q=best%20mobile%20phones%20in%202025' into 'chrome' (executed as 'C:\Program Files\Google\Chrome\Application\chrome.exe')
+2025-04-26 17:10:41 - Request received: app='chrome' (alias='chrome'), action='https://www.google.com/search?q=instagram'
+2025-04-26 17:10:45 - Action performed: Typed 'https://www.google.com/search?q=instagram' into 'chrome' (executed as 'C:\Program Files\Google\Chrome\Application\chrome.exe')
+2025-04-26 17:11:19 - Request received: app='notepad' (alias='notepad'), action='#include <stdio.h>
+
+int main() {
+    printf("moti qudsiya\n");
+    return 0;
+}'
+2025-04-26 17:11:19 - Warning: Mapped path for 'notepad' ('notepad.exe') does not exist. Trying alias directly.
+2025-04-26 17:11:26 - Action performed: Typed '#include <stdio.h>
+
+int main() {
+    printf("moti qudsiya\n");
+    return 0;
+}' into 'notepad' (executed as 'notepad')
+2025-04-26 17:15:30 - Request received: app='chrome' (alias='chrome'), action='https://www.google.com/search?q=best%20mobiles%20in%202025'
+2025-04-26 17:15:35 - Action performed: Typed 'https://www.google.com/search?q=best%20mobiles%20in%202025' into 'chrome' (executed as 'C:\Program Files\Google\Chrome\Application\chrome.exe')
+2025-04-26 17:16:05 - Request received: app='calculator' (alias='calculator'), action='None'
+2025-04-26 17:16:05 - Warning: Mapped path for 'calculator' ('calc.exe') does not exist. Trying alias directly.
+2025-04-26 17:16:05 - Error: Command/Application 'calculator' not found. Ensure it's in PATH or mapped correctly.
+2025-04-26 17:16:20 - Request received: app='chrome' (alias='chrome'), action='None'
+2025-04-26 17:16:20 - Action performed: Opened 'chrome' (executed as 'C:\Program Files\Google\Chrome\Application\chrome.exe')
+2025-04-26 17:17:29 - Request received: app='whatsapp' (alias='whatsapp'), action='None'
+2025-04-26 17:17:29 - Warning: Alias 'whatsapp' not found in APP_MAP. Trying the name directly.
+2025-04-26 17:17:29 - Error: Command/Application 'whatsapp' not found. Ensure it's in PATH or mapped correctly.
+2025-04-26 17:17:39 - Request received: app='calc' (alias='calc'), action='None'
+2025-04-26 17:17:39 - Warning: Mapped path for 'calc' ('calc.exe') does not exist. Trying alias directly.
+2025-04-26 17:17:39 - Action performed: Opened 'calc' (executed as 'calc')
+2025-04-26 17:17:53 - Request received: app='calculator' (alias='calculator'), action='None'
+2025-04-26 17:17:53 - Warning: Mapped path for 'calculator' ('calc.exe') does not exist. Trying alias directly.
+2025-04-26 17:17:53 - Error: Command/Application 'calculator' not found. Ensure it's in PATH or mapped correctly.

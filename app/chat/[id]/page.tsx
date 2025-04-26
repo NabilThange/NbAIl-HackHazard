@@ -864,6 +864,20 @@ export default function ChatPage() {
   };
   // --------------------------------------
 
+  // --- Add KeyDown Handler for Enter-to-Send ---
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    // Check if Enter is pressed, Shift is NOT pressed, and input is not empty
+    if (event.key === 'Enter' && !event.shiftKey && input.trim()) {
+      event.preventDefault(); // Prevent default Enter behavior (like adding a newline)
+      // We need to simulate a form event for handleSubmit if it expects one,
+      // otherwise, we might need to refactor handleSubmit slightly or call a core sending logic function.
+      // For now, let's assume handleSubmit can handle being called like this:
+      handleSubmit(event as unknown as React.FormEvent); // Type assertion might be needed
+    }
+    // Shift+Enter will naturally add a newline because we don't preventDefault
+  };
+  // --------------------------------------------
+
   // If still loading or no chat is found, show loading
   if (isLoading) {
     return (
@@ -1155,6 +1169,7 @@ export default function ChatPage() {
                   }
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className="bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-white placeholder-gray-400"
                   disabled={isTranscribing || isRecording}
                 />

@@ -3,10 +3,13 @@ import subprocess
 import time
 import logging
 import os
+import random
+import re # <-- Import re for code detection
 from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 import pyautogui
+import pygetwindow as gw # <-- Import pygetwindow
 # --- Add CORS --- 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -57,11 +60,30 @@ APP_MAP = {
     # Add more common apps as needed (ensure paths are tested on your system)
 }
 
+# --- Window Title Mapping for Activation ---
+# Use partial titles for better matching flexibility
+WINDOW_TITLE_MAP = {
+    "notepad": "Notepad",
+    "chrome": "Google Chrome",
+    "firefox": "Mozilla Firefox",
+    "edge": "Microsoft Edge",
+    "vscode": "Visual Studio Code",
+    "word": "Word",
+    "excel": "Excel",
+    "powerpoint": "PowerPoint",
+    "whatsapp": "WhatsApp",
+    "slack": "Slack",
+    "teams": "Microsoft Teams",
+    "calc": "Calculator",
+    "calculator": "Calculator",
+    # Add more as needed
+}
+
 # --- FastAPI Setup ---
 app = FastAPI(
     title="Terminator Agent",
     description="A local agent to control Windows applications via API calls.",
-    version="0.1.2"
+    version="0.1.4" # <-- Version bump
 )
 
 # --- Add CORS Middleware ---
@@ -86,75 +108,158 @@ app.add_middleware(
 # --- Request Model ---
 class ExecuteCommand(BaseModel):
     app: str = Field(..., description="The name or alias of the application (e.g., 'notepad', 'chrome')")
-    action: str | None = Field(None, description="Text to type into the application after opening.")
+    action: str | None = Field(None, description="Text/URL to type or command-specific parameter.")
+
+# --- Helper Function: Check if text looks like code ---
+def looks_like_code(text):
+    # Simple check for common code keywords/patterns
+    patterns = [
+        r'\b(def|class|import|function|const|let|var|public|private|static|void|int|string|bool)\b',
+        r'[{};()=/>]', # Common symbols
+        r'^(# |//|''')' # Starts with comment
+    ]
+    # Check if multiple patterns match to increase confidence
+    matches = sum(1 for pattern in patterns if re.search(pattern, text, re.MULTILINE))
+    return matches >= 2 # Adjust threshold as needed
 
 # --- API Endpoint ---
 @app.post("/execute", summary="Execute an application control command")
 async def execute_action(command: ExecuteCommand):
     """
-    Opens a specified application and optionally types text into it.
+    Opens a specified application and optionally types text into it or performs a special action.
 
     Looks up common application names in an internal map for full paths.
     Falls back to using the provided name directly if not found in the map.
-    
+    Attempts to activate the application window before typing.
+    Can launch Chrome directly with a URL.
+    Can attempt to auto-save code typed into Notepad.
+
     - **app**: Alias or executable name (e.g., 'notepad', 'chrome', 'calc.exe').
-    - **action**: Optional text to type.
+    - **action**: Optional text/URL to type or command-specific parameter.
     """
-    app_alias = command.app.lower() # Use lowercase for map lookup
+    app_alias = command.app.lower()
     action_text = command.action
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    log_message = f"Request received: app='{command.app}' (alias='{app_alias}'), action='{action_text}'"
+    # Log request (truncate long actions)
+    action_log_display = (action_text[:50] + '...' if action_text and len(action_text) > 50 else action_text)
+    log_message = f"Request received: app='{command.app}' (alias='{app_alias}'), action='{action_log_display}'"
     logging.info(log_message)
     print(f"{timestamp} - {log_message}")
 
-    # 1. Determine the actual application path/command
+    # 1. Determine execution path/command & target window title
     app_to_execute = APP_MAP.get(app_alias)
+    chrome_path = APP_MAP.get("chrome")
+    target_window_title = WINDOW_TITLE_MAP.get(app_alias)
+
     if app_to_execute:
         print(f"Mapped alias '{app_alias}' to '{app_to_execute}'")
-        # Check if the mapped path actually exists
         if not os.path.exists(app_to_execute):
-             warning_msg = f"Warning: Mapped path for '{app_alias}' ('{app_to_execute}') does not exist. Trying alias directly."
-             logging.warning(warning_msg)
-             print(f"{timestamp} - {warning_msg}")
-             app_to_execute = command.app # Fallback to original input if mapped path invalid
+            warning_msg = f"Warning: Mapped path for '{app_alias}' ('{app_to_execute}') does not exist. Trying alias directly."
+            logging.warning(warning_msg)
+            print(f"{timestamp} - {warning_msg}")
+            app_to_execute = command.app # Fallback to original input
     else:
         warning_msg = f"Warning: Alias '{app_alias}' not found in APP_MAP. Trying the name directly."
         logging.warning(warning_msg)
         print(f"{timestamp} - {warning_msg}")
-        app_to_execute = command.app # Use the original input name if not in map
+        app_to_execute = command.app
+
+    # --- Special Handling for Chrome URL --- 
+    is_chrome_url_launch = False
+    if app_alias == "chrome" and action_text and action_text.startswith(("http://", "https://")):
+        if chrome_path and os.path.exists(chrome_path):
+            app_to_execute = [chrome_path, action_text] # Command becomes list [app_path, url]
+            is_chrome_url_launch = True
+            print(f"Detected Chrome URL launch. Will execute: {app_to_execute}")
+        else:
+            print(f"Warning: Chrome path not found ('{chrome_path}'). Falling back to typing URL.")
 
     try:
-        # 2. Open the application using the determined path/command
-        print(f"Attempting to execute '{app_to_execute}'...")
-        process = subprocess.Popen(app_to_execute) 
-        print(f"'{app_to_execute}' opened with PID: {process.pid}")
+        # 2. Open the application
+        print(f"Attempting to execute: {app_to_execute}")
+        process = subprocess.Popen(app_to_execute) # Popen handles list or string
+        print(f"Process started with PID: {process.pid}")
 
-        # 3. Perform action if specified
-        if action_text:
-            wait_time = 2 
-            print(f"Waiting {wait_time} seconds before typing...")
+        # 3. Perform action (typing) IF NOT handled differently
+        log_message_action = f"Action performed: Opened '{command.app}' (executed as '{str(app_to_execute)[:50]}...')"
+
+        if action_text and not is_chrome_url_launch:
+            # --- Intelligent Wait & Focus --- 
+            wait_time = 3.5 if app_alias in ["vscode", "word", "excel", "powerpoint"] else 2.5
+            print(f"Waiting {wait_time:.1f} seconds for app focus...")
             time.sleep(wait_time)
+            activated = False
+            if target_window_title:
+                try:
+                    print(f"Attempting to find and activate window with title containing: '{target_window_title}'")
+                    windows = gw.getWindowsWithTitle(target_window_title)
+                    if windows:
+                        target_window = windows[0]
+                        if not target_window.isActive:
+                             target_window.activate()
+                             print(f"Activated window: {target_window.title}")
+                             time.sleep(0.5)
+                        else:
+                             print(f"Window '{target_window.title}' already active.")
+                        activated = True
+                    else:
+                        print(f"No window found with title containing '{target_window_title}'.")
+                except Exception as focus_error:
+                    print(f"Error activating window '{target_window_title}': {focus_error}. Falling back to Alt+Tab.")
+            else:
+                 print("No target window title mapped. Skipping direct activation.")
+            
+            if not activated:
+                print("Activating via Alt+Tab fallback...")
+                pyautogui.hotkey('alt', 'tab')
+                time.sleep(0.7)
+            # --------------------------------
 
-            print(f"Typing into the application: '{action_text}'")
-            pyautogui.write(action_text, interval=0.05)
-            print("Typing complete.")
-            log_message_action = f"Action performed: Typed '{action_text}' into '{command.app}' (executed as '{app_to_execute}')"
-        else:
-            log_message_action = f"Action performed: Opened '{command.app}' (executed as '{app_to_execute}')"
+            print(f"Attempting to type: '{action_text[:50]}...'" ) # Log truncated action
+            try:
+                interval = random.uniform(0.03, 0.07)
+                pyautogui.write(action_text, interval=interval)
+                print(f"Typing complete (interval: {interval:.3f}s).")
+                log_message_action = f"Action performed: Typed '{action_text[:50]}...' into '{command.app}' (executed as '{str(app_to_execute)[:50]}...')"
 
+                # --- Auto-Save Logic for Notepad Code ---
+                if app_alias == "notepad" and looks_like_code(action_text):
+                    print("Detected code in Notepad, attempting auto-save...")
+                    try:
+                        pyautogui.hotkey('ctrl', 's')
+                        time.sleep(1.2) # Wait for Save As dialog
+                        filename = "generated_code.txt"
+                        print(f"Typing filename: {filename}")
+                        pyautogui.write(filename)
+                        time.sleep(0.5)
+                        pyautogui.press('enter')
+                        print("Auto-save sequence completed.")
+                        log_message_action += f" and attempted auto-save as '{filename}'"
+                    except Exception as save_error:
+                        print(f"Error during auto-save attempt: {save_error}")
+                        log_message_action += " but auto-save failed."
+                # -------------------------------------------
+
+            except Exception as pgui_error:
+                 error_msg = f"Error during typing action: {str(pgui_error)}"
+                 logging.error(error_msg)
+                 print(f"{timestamp} - {error_msg}")
+                 log_message_action = f"Action performed: Opened '{command.app}', but failed to type: {str(pgui_error)}"
+
+        # Log final action message
         logging.info(log_message_action)
         print(f"{timestamp} - {log_message_action}")
 
         return {"status": "success", "message": log_message_action}
 
     except FileNotFoundError:
-        error_msg = f"Error: Command/Application '{app_to_execute}' not found. Ensure it's in PATH or mapped correctly."
+        error_msg = f"Error: Command/Application '{str(app_to_execute)}' not found. Ensure it's in PATH or mapped correctly."
         logging.error(error_msg)
         print(f"{timestamp} - {error_msg}")
         raise HTTPException(status_code=404, detail=error_msg)
     except Exception as e:
-        error_msg = f"An unexpected error occurred while trying to execute '{app_to_execute}': {str(e)}"
+        error_msg = f"An unexpected error occurred while trying to execute '{str(app_to_execute)}': {str(e)}"
         logging.error(error_msg)
         print(f"{timestamp} - {error_msg}")
         raise HTTPException(status_code=500, detail=error_msg)

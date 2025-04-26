@@ -29,10 +29,29 @@ const SplineScript = () => (
   <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.82/build/spline-viewer.js" async></script>
 );
 
+// --- TypeScript Definition for Custom Element --- 
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'spline-viewer': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & { url: string; 'loading-anim-type'?: string; style?: React.CSSProperties }, HTMLElement>;
+    }
+  }
+}
+// --------------------------------------------
+
 export default function ChatPage() {
   const params = useParams()
   const router = useRouter()
-  const chatId = params.id as string
+  const chatId = typeof params?.id === 'string' ? params.id : undefined
+
+  if (!chatId) {
+    // Handle the case where chatId is not available (e.g., redirect or show error)
+    // For now, let's redirect back to the base chat page if ID is missing
+    useEffect(() => {
+      router.push('/chat');
+    }, [router]);
+    return <div className="flex items-center justify-center h-screen bg-black/[0.96]"><div className="text-white">Invalid Chat ID. Redirecting...</div></div>; // Or a loading state
+  }
 
   const [isFilePickerOpen, setIsFilePickerOpen] = useState(false)
   const [selectedFile, setSelectedFile] = useState<string | null>(null)
@@ -164,26 +183,39 @@ export default function ChatPage() {
       // --- Smart Action Handling --- 
       let finalActionPayload = originalActionText; // Default to original action
       let isSmartAction = false;
+      const programKeywords = ["program", "code", "script", "function"];
+      const programVerbs = ["write", "create", "generate", "build", "code"];
 
-      if (action) { // Only proceed if there IS an action
+      if (action) { 
         const actionLower = action.toLowerCase();
 
-        // Case 1: Write Program
-        if (actionLower.includes("write") && actionLower.includes("program")) {
+        // Case 1: Write Program/Code
+        const hasProgramKeyword = programKeywords.some(keyword => actionLower.includes(keyword));
+        const hasProgramVerb = programVerbs.some(verb => actionLower.includes(verb));
+
+        if (hasProgramKeyword && hasProgramVerb) {
           isSmartAction = true;
-          console.log("[handleSubmit] Detected 'write program' action.");
-          setIsTyping(true); // Show typing indicator for Groq call
+          console.log("[handleSubmit] Detected 'write program/code' action.");
+          setIsTyping(true); 
           try {
-            // Extract the core request (remove "write a program to" etc.)
-            const programTopic = action.replace(/write (a|an) (working|python|javascript|java)? ?program (for|to|that|which) /i, "").trim();
-            const groqPrompt = `Write only the code for a working program that does the following: ${programTopic}. Do not include explanations or markdown formatting. Just the raw code.`;
+            // More robust extraction of the topic
+            let programTopic = action;
+            programVerbs.forEach(verb => {
+              programKeywords.forEach(keyword => {
+                  // Try removing phrases like "write a program to", "code a script for" etc.
+                  const pattern = new RegExp(`(${verb}\\s+(a|an|some)?\\s*(python|javascript|java|c\\+\+|)?\\s*${keyword}\\s+(for|to|that|which)?)\\s*`, "i");
+                  programTopic = programTopic.replace(pattern, "");
+              });
+            });
+            programTopic = programTopic.trim(); // Final trim after replacements
+
+            const groqPrompt = `Write only the code for a working program that does the following: ${programTopic}. Do not include explanations or markdown formatting. Just the raw code. Ensure the code is complete and runnable.`;
             console.log(`[handleSubmit] Sending prompt to Groq: "${groqPrompt}"`);
             const generatedCode = await getGroqChatCompletion(groqPrompt);
             console.log(`[handleSubmit] Received code from Groq: ${generatedCode.substring(0, 100)}...`);
-            finalActionPayload = generatedCode; // Use Groq's code as the final action
+            finalActionPayload = generatedCode;
           } catch (groqError) {
             console.error("[handleSubmit] Error calling Groq for program generation:", groqError);
-            // Handle error: Add error message to chat and stop processing this command
             const groqErrorMessage: Message = {
               id: `temp-groq-err-${Date.now()}`,
               chat_id: chatId,
@@ -193,23 +225,21 @@ export default function ChatPage() {
             };
             setMessages((prev) => [...prev, groqErrorMessage]);
             setIsTyping(false);
-            return; // Exit handleSubmit
+            return;
           }
-          // Note: setIsTyping(false) will happen in the final finally block
 
         // Case 2: Search
         } else if (actionLower.startsWith("search ")) {
           isSmartAction = true;
           console.log("[handleSubmit] Detected 'search' action.");
-          // Extract the actual search query
-          const searchQuery = action.substring(7).trim(); // Remove "search " prefix
+          const searchQuery = action.substring(7).trim(); 
           if (searchQuery) {
             const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
             console.log(`[handleSubmit] Constructed Search URL: ${googleSearchUrl}`);
-            finalActionPayload = googleSearchUrl; // Use the URL as the final action
+            finalActionPayload = googleSearchUrl;
           } else {
             console.warn("[handleSubmit] Search action detected but query is empty.");
-            finalActionPayload = null; // Don't perform an empty search
+            finalActionPayload = null;
           }
         }
       }

@@ -29,3 +29,12 @@
 2025-04-26 16:42:14 - Request received: app='whatsapp' (alias='whatsapp'), action='None'
 2025-04-26 16:42:14 - Warning: Alias 'whatsapp' not found in APP_MAP. Trying the name directly.
 2025-04-26 16:42:14 - Error: Command/Application 'whatsapp' not found. Ensure it's in PATH or mapped correctly.
+2025-04-26 16:54:50 - Request received: app='notepad' (alias='notepad'), action='write a code to print hello world in python'
+2025-04-26 16:54:50 - Warning: Mapped path for 'notepad' ('notepad.exe') does not exist. Trying alias directly.
+2025-04-26 16:54:55 - Action performed: Typed 'write a code to print hello world in python' into 'notepad' (executed as 'notepad')
+2025-04-26 16:55:10 - Request received: app='vscode' (alias='vscode'), action='None'
+2025-04-26 16:55:10 - Action performed: Opened 'vscode' (executed as 'C:\Users\thang\AppData\Local\Programs\Microsoft VS Code\Code.exe')
+2025-04-26 16:55:49 - Request received: app='chrome' (alias='chrome'), action='https://www.google.com/search?q=for%20best%20cars%20nearby'
+2025-04-26 16:55:54 - Action performed: Typed 'https://www.google.com/search?q=for%20best%20cars%20nearby' into 'chrome' (executed as 'C:\Program Files\Google\Chrome\Application\chrome.exe')
+2025-04-26 16:56:38 - Request received: app='chrome' (alias='chrome'), action='https://www.google.com/search?q=for%20best%20cars%20nearby'
+2025-04-26 16:56:43 - Action performed: Typed 'https://www.google.com/search?q=for%20best%20cars%20nearby' into 'chrome' (executed as 'C:\Program Files\Google\Chrome\Application\chrome.exe')

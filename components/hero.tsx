@@ -125,7 +125,7 @@ export default function Hero() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <Link href="/chat">
+            <Link href="/signup">
               <button className="starburst-button">
                 Try NbAIl
                 <div className="star-1">

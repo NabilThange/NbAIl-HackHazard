@@ -240,17 +240,17 @@ const Section2 = ({ scrollYProgress }: { scrollYProgress: any }) => {
                   </li>
                 ))}
               </ul>
-              <Button variant="outline" className="text-white border-blue-500 hover:bg-blue-500/10" asChild> {/* Button border/hover changed to blue */}
-                <Link
-                  href="/use-cases"
-                  // Use the exact classes from the original component for Button asChild
-                  className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                  prefetch={false}
-                  data-barba-prevent="false"
-                >
+              {/* Wrap Button with Link, remove asChild from Button */}
+              <Link
+                href="/use-cases"
+                prefetch={false}
+                data-barba-prevent="false"
+                className="inline-block" // Add display block/inline-block if needed for layout
+              >
+                <Button variant="outline" className="text-white border-blue-500 hover:bg-blue-500/10"> {/* Button border/hover changed to blue */}
                   Learn More
-                </Link>
-              </Button>
+                </Button>
+              </Link>
             </motion.div>
           ))}
         </div>

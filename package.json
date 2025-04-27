@@ -1,7 +1,7 @@
 {
-  "name": "my-v0-project",
+  "name": "NbAIl",
   "version": "0.1.0",
-  "description": "Trigger Vercel deploy",
+  "description": "Hackathon Project",
   "private": true,
   "scripts": {
     "dev": "next dev",

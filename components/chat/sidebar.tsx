@@ -12,7 +12,6 @@ import {
   LogOut,
   ChevronRight,
   ChevronLeft,
-  Plus,
   Trash2,
   MoreHorizontal,
   Edit,
@@ -34,6 +33,8 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { chatService } from "@/lib/chat-service"
 import type { Chat } from "@/types/chat"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import CustomNewChatButton from "@/components/ui/custom-new-chat-button"
 
 export default function ChatSidebar() {
   const [collapsed, setCollapsed] = useState(false)
@@ -153,19 +154,9 @@ export default function ChatSidebar() {
       icon: <LayoutDashboard className="h-5 w-5" />,
     },
     {
-      name: "Profile",
-      href: "/dashboard/profile",
-      icon: <User className="h-5 w-5" />,
-    },
-    {
       name: "Billing",
       href: "/billing",
       icon: <CreditCard className="h-5 w-5" />,
-    },
-    {
-      name: "Settings",
-      href: "/settings",
-      icon: <Settings className="h-5 w-5" />,
     },
   ]
 
@@ -184,7 +175,7 @@ export default function ChatSidebar() {
             transition={{ duration: 0.3 }}
           >
             <div className="p-4 flex items-center justify-between border-b border-gray-800">
-              <Link href="/" className="flex items-center">
+              <Link href="/" className={`flex items-center ${collapsed ? 'pr-2' : ''}`}>
                 <Brain className="h-8 w-8 text-purple-500" />
                 {!collapsed && <span className="text-white font-bold text-xl ml-2">NbAIl</span>}
               </Link>
@@ -202,15 +193,9 @@ export default function ChatSidebar() {
               </Button>
             </div>
 
-            {/* New Chat Button */}
-            <div className="p-4">
-              <Button
-                className={`bg-purple-600 hover:bg-purple-700 text-white w-full ${collapsed ? "justify-center px-0" : ""} transition-all duration-300 hover:shadow-md hover:shadow-purple-500/20`}
-                onClick={createNewChat}
-              >
-                <Plus className="h-5 w-5" />
-                {!collapsed && <span className="ml-2">New Chat</span>}
-              </Button>
+            {/* New Chat Button - Replace with custom button */}
+            <div className="p-4 flex justify-center">
+              <CustomNewChatButton onClick={createNewChat} collapsed={collapsed} />
             </div>
 
             {/* Search */}
@@ -301,7 +286,7 @@ export default function ChatSidebar() {
             </div>
 
             {/* Bottom Navigation */}
-            <div className="p-4 border-t border-gray-800">
+            <div className="p-4 border-t border-gray-800 mt-auto">
               <div className="space-y-2">
                 {navItems.map((item) => (
                   <Link
@@ -315,15 +300,52 @@ export default function ChatSidebar() {
                     {!collapsed && <span className="ml-3">{item.name}</span>}
                   </Link>
                 ))}
-                <Link
-                  href="/logout"
-                  className={`flex items-center px-3 py-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition-colors ${
-                    collapsed ? "justify-center" : ""
-                  }`}
-                >
-                  <LogOut className="h-5 w-5" />
-                  {!collapsed && <span className="ml-3">Logout</span>}
-                </Link>
+              </div>
+
+              {/* User Profile Section */}
+              <div className={`mt-6 pt-4 border-t border-gray-800 flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
+                <div className="flex items-center">
+                  <Avatar className={`h-8 w-8 ${collapsed ? '' : 'mr-3'}`}>
+                    <AvatarImage src="/placeholder-user.jpg" alt="User Name" />
+                    <AvatarFallback>NT</AvatarFallback>
+                  </Avatar>
+                  {!collapsed && (
+                    <span className="text-sm font-medium text-white truncate">
+                      Nabil Thange
+                    </span>
+                  )}
+                </div>
+
+                {!collapsed && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent side="top" align="end" className="bg-gray-800 border-gray-700 text-white">
+                      <DropdownMenuItem asChild className="cursor-pointer">
+                        <Link href="/dashboard/profile">
+                          <User className="mr-2 h-4 w-4" />
+                          <span>Profile</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild className="cursor-pointer">
+                        <Link href="/settings">
+                          <Settings className="mr-2 h-4 w-4" />
+                          <span>Settings</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-gray-700" />
+                      <DropdownMenuItem asChild className="cursor-pointer text-red-400 focus:text-red-400">
+                        <Link href="/logout">
+                          <LogOut className="mr-2 h-4 w-4" />
+                          <span>Logout</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
             </div>
 

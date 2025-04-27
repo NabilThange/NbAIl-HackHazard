@@ -52,6 +52,7 @@ export default function Navbar() {
       >
         <Tab setPosition={setPosition} href="/">Home</Tab>
         <Tab setPosition={setPosition} href="/pricing">Pricing</Tab>
+        <Tab setPosition={setPosition} href="/research">Research</Tab>
         <Tab setPosition={setPosition} href="/features">Features</Tab>
         <Tab setPosition={setPosition} href="/use-cases">Use Cases</Tab>
         <Tab setPosition={setPosition} href="/bucket-list">Bucket List</Tab>

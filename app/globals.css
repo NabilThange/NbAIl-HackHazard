@@ -66,20 +66,13 @@
 
   /* Custom scrollbar */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    display: none;
   }
 
-  ::-webkit-scrollbar-track {
-    @apply bg-gray-900;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-purple-700 rounded;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-purple-600;
+  /* For Firefox */
+  html {
+    scrollbar-width: none;
+    @apply bg-background; /* Re-apply body background here if needed after removing scrollbar */
   }
 
   /* Page transitions */

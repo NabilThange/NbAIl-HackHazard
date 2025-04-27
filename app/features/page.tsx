@@ -514,21 +514,21 @@ export default function FeaturesPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {additionalFeatures.map((feature, index) => {
                   return (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
                       style={{ backgroundColor: "#20242D" }}
                       className="rounded-lg p-4 border border-gray-700"
-                    >
-                      <div className="flex items-center mb-3">
-                        {feature.icon}
-                        <h3 className="text-lg font-medium text-white ml-2">{feature.title}</h3>
-                      </div>
-                      <p className="text-gray-400 text-sm">{feature.description}</p>
-                    </motion.div>
+                  >
+                    <div className="flex items-center mb-3">
+                      {feature.icon}
+                      <h3 className="text-lg font-medium text-white ml-2">{feature.title}</h3>
+                    </div>
+                    <p className="text-gray-400 text-sm">{feature.description}</p>
+                  </motion.div>
                   );
                 })}
               </div>

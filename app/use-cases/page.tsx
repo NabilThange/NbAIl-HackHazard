@@ -353,8 +353,8 @@ export default function UseCasesPage() {
           <section className="py-16">
             <div className="px-4 sm:px-6 lg:px-8">
               <TextParallaxContentExample />
-            </div>
-          </section>
+              </div>
+            </section>
           {/* ===== Section for Parallax Content End ===== */}
 
           {/* More Use Cases (Now below the blue section) */}

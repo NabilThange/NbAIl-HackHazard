@@ -43,12 +43,12 @@ export default function Home() {
       <div className="relative z-10">
         <Navbar />
         <Hero />
-        <Features />
-        <UseCases />
+        <PerspectiveSections />
+        {/* <Features /> // Removed original Features section */}
+        {/* <UseCases /> // Removed original Use Cases section */}
         <Testimonials />
         <CTA />
         <Footer />
-        <PerspectiveSections />
       </div>
     </main>
   )
@@ -90,7 +90,7 @@ const Section1 = ({ scrollYProgress }: { scrollYProgress: any }) => {
   const scale = useTransform(scrollYProgress, [0, 1], [1, 0.8]);
   const rotate = useTransform(scrollYProgress, [0, 1], [0, -5])
 
-  // Define features data directly inside Section1 or import if needed elsewhere
+  // Define features data directly inside Section1 (using original styling)
   const features = [
     {
       icon: <Mic className="h-10 w-10 text-purple-500" />,
@@ -125,37 +125,42 @@ const Section1 = ({ scrollYProgress }: { scrollYProgress: any }) => {
   ];
 
   return (
-    <motion.div style={{scale, rotate}} className="sticky top-0 h-screen bg-[#C72626] text-[1vw] flex flex-col items-center justify-center text-white pb-[10vh] overflow-y-auto"> {/* Adjusted text size and added overflow */}
-      {/* Replaced the original content with the Features section structure */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10"> {/* Added padding */}
+    // Applied original section classes + h-screen and overflow
+    <motion.div 
+      style={{scale, rotate}} 
+      className="sticky top-0 h-screen py-20 bg-gray-900/80 backdrop-blur-md overflow-y-auto text-white" // Added text-white
+    >
+      {/* Copied exact inner content from original Features component */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-8" // Reduced margin-bottom
+          className="text-center mb-16"
         >
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">New Features</h2> {/* Renamed title */}
-          <p className="text-gray-200 max-w-xl mx-auto text-sm"> {/* Adjusted text size and color */}
-            NbAIl combines multiple AI capabilities...
+          {/* Using original title and text */}
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Powerful Features</h2> 
+          <p className="text-gray-400 max-w-2xl mx-auto">
+            NbAIl combines multiple AI capabilities to create a truly intelligent assistant that understands your needs.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"> {/* Increased gap */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }} // Keep viewport settings simple inside scrolling container
+              viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="bg-gray-800 rounded-lg p-6 border border-gray-700 hover:border-purple-500/50 transition-all duration-300 hover:shadow-md hover:shadow-purple-500/10" // Increased padding
+              className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-purple-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/10"
             >
-              <div className="bg-gray-900 rounded-md w-16 h-16 flex items-center justify-center mb-3"> {/* Increased size */}
-                {feature.icon}
+              <div className="bg-gray-900 rounded-lg w-16 h-16 flex items-center justify-center mb-4">
+                {feature.icon} {/* Original purple icon color */}
               </div>
-              <h3 className="text-xl font-semibold text-white mb-1">{feature.title}</h3> {/* Increased size */}
-              <p className="text-gray-300 text-sm">{feature.description}</p> {/* Increased size and color */}
+              <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
+              <p className="text-gray-400">{feature.description}</p>
             </motion.div>
           ))}
         </div>
@@ -169,38 +174,32 @@ const Section2 = ({ scrollYProgress }: { scrollYProgress: any }) => {
   const scale = useTransform(scrollYProgress, [0, 1], [0.8, 1]);
   const rotate = useTransform(scrollYProgress, [0, 1], [5, 0])
 
-  // Define use cases data directly inside Section2
+  // Define use cases data directly inside Section2 (using original styling)
   const useCases = [
     {
-      icon: <GraduationCap className="h-10 w-10 text-blue-500" />,
+      icon: <GraduationCap className="h-10 w-10 text-purple-500" />,
       title: "For Students",
       description: "Enhance your learning with intelligent note-taking, paper summaries, and research assistance.",
       features: ["Smart note organization", "Research paper analysis", "Study plan generation", "Concept explanations"],
     },
     {
-      icon: <Code className="h-10 w-10 text-blue-500" />,
+      icon: <Code className="h-10 w-10 text-purple-500" />,
       title: "For Developers",
       description: "Boost your productivity with code understanding, documentation assistance, and debugging help.",
       features: ["Code explanation", "Documentation search", "Bug identification", "Architecture suggestions"],
     },
-    {
-      icon: <Palette className="h-10 w-10 text-blue-500" />,
-      title: "For Designers",
-      description: "Get screen-aware feedback on your designs, UI suggestions, and creative inspiration.",
-      features: ["Design critique", "UI pattern suggestions", "Accessibility checks", "Color palette recommendations"],
-    },
-    {
-      icon: <Users className="h-10 w-10 text-blue-500" />,
-      title: "For Everyone",
-      description: "Experience the power of multimodal AI with chat, voice, vision, and AR capabilities.",
-      features: ["Daily assistance", "Information retrieval", "Content creation", "Learning new skills"],
-    },
   ];
 
   return (
-    // Changed background, added padding and overflow
-    <motion.div style={{scale, rotate}} className="relative h-screen bg-[#1a202c] text-white p-10 overflow-y-auto">
-      {/* Replaced the Image with the Use Cases section structure */}
+    // Added bottom padding to prevent overlap with following content
+    <motion.div 
+      style={{scale, rotate}} 
+      className="relative py-20 pb-40 bg-black/[0.96] text-white" // Added pb-40
+    >
+      {/* Copied exact inner content from original UseCases component */}
+      {/* Add sparkle background effect */}
+      <div className="absolute inset-0 bg-grid-white/[0.02]" />
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -209,9 +208,11 @@ const Section2 = ({ scrollYProgress }: { scrollYProgress: any }) => {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Use Cases (Section 2)</h2>
+          {/* Using original title and text */}
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Use Cases</h2> 
           <p className="text-gray-400 max-w-2xl mx-auto">
-            NbAIl adapts to your specific needs...
+            NbAIl adapts to your specific needs, whether you're a student, developer, designer, or anyone looking for an
+            intelligent assistant.
           </p>
         </motion.div>
 
@@ -227,7 +228,7 @@ const Section2 = ({ scrollYProgress }: { scrollYProgress: any }) => {
             >
               <div className="flex items-center mb-4">
                 <div className="bg-gray-900 rounded-lg w-16 h-16 flex items-center justify-center mr-4">
-                  {useCase.icon} {/* Icon color changed to blue-500 above */}
+                  {useCase.icon} {/* Original purple icon color */}
                 </div>
                 <h3 className="text-xl font-semibold text-white">{useCase.title}</h3>
               </div>
@@ -235,22 +236,22 @@ const Section2 = ({ scrollYProgress }: { scrollYProgress: any }) => {
               <ul className="space-y-2 mb-6">
                 {useCase.features.map((feature, i) => (
                   <li key={i} className="flex items-center text-gray-300">
-                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500 mr-2"></span> {/* Dot color changed to blue */}
+                    <span className="h-1.5 w-1.5 rounded-full bg-purple-500 mr-2"></span> {/* Original purple dot color */}
                     {feature}
                   </li>
                 ))}
               </ul>
-              {/* Wrap Button with Link, remove asChild from Button */}
-              <Link
-                href="/use-cases"
-                prefetch={false}
-                data-barba-prevent="false"
-                className="inline-block" // Add display block/inline-block if needed for layout
-              >
-                <Button variant="outline" className="text-white border-blue-500 hover:bg-blue-500/10"> {/* Button border/hover changed to blue */}
+              {/* Reverted to original Button/Link with asChild and exact classes */}
+              <Button variant="outline" className="text-white border-purple-500 hover:bg-purple-500/10" asChild>
+                <Link
+                  href="/use-cases"
+                  className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                  prefetch={false}
+                  data-barba-prevent="false"
+                >
                   Learn More
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </motion.div>
           ))}
         </div>

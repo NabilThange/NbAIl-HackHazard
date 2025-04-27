@@ -32,7 +32,7 @@ export default function Navbar() {
   });
 
   return (
-    <motion.div
+            <motion.div
       variants={{
         visible: { y: 0 },
         hidden: { y: "-110%" },
@@ -91,7 +91,7 @@ const Tab = ({
     >
       <Link href={href} passHref legacyBehavior>
         <a>{children}</a>
-      </Link>
+    </Link>
     </li>
   );
 };

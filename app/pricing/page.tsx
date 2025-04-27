@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useState } from "react"
 import { SparklesCore } from "@/components/sparkles"
+import { VelocityScroll } from "@/components/magicui/scroll-based-velocity";
 
 export default function PricingPage() {
   const [annual, setAnnual] = useState(true)
@@ -150,77 +151,84 @@ export default function PricingPage() {
                   const bgColor = colors[index % colors.length]; // Use modulo for safety
 
                   return (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
                       style={{ backgroundColor: bgColor }}
                       className={`rounded-xl p-6 border ${ 
-                        plan.popular ? "border-purple-500" : "border-gray-700"
-                      } relative hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300`}
-                    >
-                      {plan.popular && (
-                        <div className="absolute top-0 right-0 bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">
-                          MOST POPULAR
-                        </div>
-                      )}
-                      <div className="text-center mb-6">
-                        <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-                        <p className="text-gray-400 text-sm">{plan.description}</p>
-                        <div className="mt-4">
-                          {typeof plan.price[annual ? "annual" : "monthly"] === "number" ? (
-                            <>
-                              <span className="text-4xl font-bold text-white">
-                                {plan.price[annual ? "annual" : "monthly"] === 0
-                                  ? "Free"
-                                  : `₹${plan.price[annual ? "annual" : "monthly"]}`}
-                              </span>
-                              {plan.price[annual ? "annual" : "monthly"] !== 0 && (
-                                <span className="text-gray-400 ml-1">/mo</span>
-                              )}
-                            </>
-                          ) : (
+                      plan.popular ? "border-purple-500" : "border-gray-700"
+                    } relative hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300`}
+                  >
+                    {plan.popular && (
+                      <div className="absolute top-0 right-0 bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">
+                        MOST POPULAR
+                      </div>
+                    )}
+                    <div className="text-center mb-6">
+                      <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
+                      <p className="text-gray-400 text-sm">{plan.description}</p>
+                      <div className="mt-4">
+                        {typeof plan.price[annual ? "annual" : "monthly"] === "number" ? (
+                          <>
                             <span className="text-4xl font-bold text-white">
-                              {plan.price[annual ? "annual" : "monthly"]}
+                              {plan.price[annual ? "annual" : "monthly"] === 0
+                                ? "Free"
+                                : `₹${plan.price[annual ? "annual" : "monthly"]}`}
                             </span>
-                          )}
-                          {annual && typeof plan.price.annual === "number" && plan.price.annual > 0 && (
-                            <p className="text-sm text-gray-400 mt-1">Billed annually</p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="space-y-4 mb-8">
-                        {plan.features.map((feature, i) => (
-                          <div key={i} className="flex items-start">
-                            {feature.included ? (
-                              <Check className="h-5 w-5 text-purple-500 mt-0.5 mr-3 flex-shrink-0" />
-                            ) : (
-                              <X className="h-5 w-5 text-gray-500 mt-0.5 mr-3 flex-shrink-0" />
+                            {plan.price[annual ? "annual" : "monthly"] !== 0 && (
+                              <span className="text-gray-400 ml-1">/mo</span>
                             )}
-                            <span className={feature.included ? "text-gray-300" : "text-gray-500"}>{feature.name}</span>
-                          </div>
-                        ))}
+                          </>
+                        ) : (
+                          <span className="text-4xl font-bold text-white">
+                            {plan.price[annual ? "annual" : "monthly"]}
+                          </span>
+                        )}
+                        {annual && typeof plan.price.annual === "number" && plan.price.annual > 0 && (
+                          <p className="text-sm text-gray-400 mt-1">Billed annually</p>
+                        )}
                       </div>
+                    </div>
 
-                      <Button
-                        className={`w-full ${ 
-                          plan.popular
-                            ? "bg-purple-600 hover:bg-purple-700 text-white"
-                            : "bg-gray-700 hover:bg-gray-600 text-white" 
-                        } transition-all duration-300 hover:shadow-md hover:shadow-purple-500/20`}
-                        asChild
-                      >
-                        <Link href={plan.name === "Enterprise" ? "/contact" : "/signup"}>{plan.cta}</Link>
-                      </Button>
-                    </motion.div>
+                    <div className="space-y-4 mb-8">
+                      {plan.features.map((feature, i) => (
+                        <div key={i} className="flex items-start">
+                          {feature.included ? (
+                            <Check className="h-5 w-5 text-purple-500 mt-0.5 mr-3 flex-shrink-0" />
+                          ) : (
+                            <X className="h-5 w-5 text-gray-500 mt-0.5 mr-3 flex-shrink-0" />
+                          )}
+                          <span className={feature.included ? "text-gray-300" : "text-gray-500"}>{feature.name}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <Button
+                      className={`w-full ${
+                        plan.popular
+                          ? "bg-purple-600 hover:bg-purple-700 text-white"
+                          : "bg-gray-700 hover:bg-gray-600 text-white"
+                      } transition-all duration-300 hover:shadow-md hover:shadow-purple-500/20`}
+                      asChild
+                    >
+                      <Link href={plan.name === "Enterprise" ? "/contact" : "/signup"}>{plan.cta}</Link>
+                    </Button>
+                  </motion.div>
                   );
                 })}
               </div>
             </div>
           </section>
+
+          {/* New Solid Section - Moved to be the third section */}
+          <div className="bg-black/90 h-64 w-full flex items-center justify-center text-white">
+            <VelocityScroll defaultVelocity={2} className="text-center text-4xl font-bold tracking-[-0.02em] drop-shadow-sm md:text-7xl md:leading-[5rem]">
+              NbAIl. Smarter. Faster.
+            </VelocityScroll>
+          </div>
 
           {/* FAQ */}
           <section className="py-16 bg-gray-900/80 backdrop-blur-md">

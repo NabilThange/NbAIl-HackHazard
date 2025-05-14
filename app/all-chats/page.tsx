@@ -1,45 +1,75 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Brain, ArrowLeft, MessageSquare, Search, Plus, Trash2, MoreHorizontal, Star } from "lucide-react"
+import { Brain, ArrowLeft, MessageSquare, Search, Plus, Trash2, MoreHorizontal, Star, AlertTriangle } from "lucide-react"
 import { SparklesCore } from "@/components/sparkles"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { chatService } from "@/lib/chat-service"
+
+// Error component
+const ChatError = ({ message }: { message: string }) => (
+  <div className="flex flex-col items-center justify-center h-screen bg-black/[0.96] text-white">
+    <div className="text-red-500 text-xl mb-4 flex items-center">
+      <AlertTriangle className="mr-2" />
+      Error
+    </div>
+    <p className="mb-4 text-center">{message}</p>
+    <div className="flex space-x-4">
+      <Button 
+        onClick={() => window.location.reload()}
+        className="bg-gray-700 hover:bg-gray-600"
+      >
+        Try Again
+      </Button>
+      <Link href="/">
+        <Button className="bg-purple-600 hover:bg-purple-700">
+          Go to Home
+        </Button>
+      </Link>
+    </div>
+  </div>
+)
 
 export default function AllChatsPage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [chatHistory, setChatHistory] = useState<any[]>([])
 
-  // // Mock chat history - REMOVED
-  // const chatHistory = [
-  //   {
-  //     id: "1",
-  //     title: "Research on quantum computing",
-  //     date: "Today",
-  //     time: "10:23 AM",
-  //     preview: "I need to understand the basics of quantum computing for my research project...",
-  //     pinned: true,
-  //   },
-  //   // ... other mock chats
-  // ]
+  // Fetch chats from the database
+  useEffect(() => {
+    const fetchChats = async () => {
+      try {
+        const chats = await chatService.getChats()
+        setChatHistory(chats)
+        setIsLoading(false)
+      } catch (error) {
+        console.error("Error fetching chats:", error)
+        setError("Unable to load chats. Database connection may be unavailable.")
+        setIsLoading(false)
+      }
+    }
 
-  // TODO: Replace with actual chat data fetching and filtering logic
-  const filteredChats = [] // Placeholder
-  const pinnedChats = [] // Placeholder
-  const unpinnedChats = [] // Placeholder
+    fetchChats()
+  }, [])
 
-  // // Filter chats based on search query - Depends on chatHistory
-  // const filteredChats = chatHistory.filter(
-  //   (chat) =>
-  //     chat.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-  //     chat.preview.toLowerCase().includes(searchQuery.toLowerCase()),
-  // )
+  // Filter chats based on search query
+  const filteredChats = chatHistory.filter(
+    (chat) =>
+      chat.title?.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
-  // // Separate pinned and unpinned chats - Depends on filteredChats
-  // const pinnedChats = filteredChats.filter((chat) => chat.pinned)
-  // const unpinnedChats = filteredChats.filter((chat) => !chat.pinned)
+  // Separate pinned and unpinned chats
+  const pinnedChats = filteredChats.filter((chat) => chat.pinned)
+  const unpinnedChats = filteredChats.filter((chat) => !chat.pinned)
+
+  if (error) {
+    return <ChatError message={error} />
+  }
 
   return (
     <div className="min-h-screen bg-black/[0.96] antialiased bg-grid-white/[0.02] relative overflow-x-hidden">
@@ -87,14 +117,16 @@ export default function AllChatsPage() {
                 className="pl-9 bg-gray-800 border-gray-700 text-white"
               />
             </div>
-            <Button className="ml-4 bg-purple-600 hover:bg-purple-700 text-white">
-              <Plus className="h-4 w-4 mr-2" />
-              New Chat
-            </Button>
+            <Link href="/chat">
+              <Button className="ml-4 bg-purple-600 hover:bg-purple-700 text-white">
+                <Plus className="h-4 w-4 mr-2" />
+                New Chat
+              </Button>
+            </Link>
           </div>
 
-          {/* Pinned Chats - Needs real data */}
-          {/* {pinnedChats.length > 0 && (
+          {/* Pinned Chats */}
+          {pinnedChats.length > 0 && (
             <div className="mb-8">
               <h2 className="text-white font-medium mb-4 flex items-center">
                 <Star className="h-4 w-4 text-purple-500 mr-2" />
@@ -106,25 +138,25 @@ export default function AllChatsPage() {
                 ))}
               </div>
             </div>
-          )} */}
+          )}
 
-          {/* Recent Chats - Needs real data */}
+          {/* Recent Chats */}
           <div>
             <h2 className="text-white font-medium mb-4">Recent Chats</h2>
-            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {unpinnedChats.length > 0 ? (
                 unpinnedChats.map((chat) => <ChatCard key={chat.id} chat={chat} />)
               ) : (
-                <p className="text-gray-400 col-span-2">No chats found.</p>
-                // Display message if search yielded no results
-                // searchQuery && chatHistory.length > 0 ? (
-                //    <p className="text-gray-400 col-span-2">No chats found matching your search.</p>
-                // ) : (
-                //    <p className="text-gray-400 col-span-2">You have no recent chats.</p>
-                // )
+                <p className="text-gray-400 col-span-2">
+                  {isLoading 
+                    ? "Loading chats..." 
+                    : searchQuery && chatHistory.length > 0 
+                      ? "No chats found matching your search." 
+                      : "You have no recent chats."
+                  }
+                </p>
               )}
-            </div> */}
-            <p className="text-gray-400 col-span-2">Chat history loading not implemented yet.</p> {/* Placeholder message */}
+            </div>
           </div>
         </div>
       </main>
@@ -140,7 +172,8 @@ function ChatCard({ chat }: { chat: any }) {
           <CardTitle className="text-white text-lg">{chat.title}</CardTitle>
           <div className="flex items-center mt-1">
             <span className="text-xs text-gray-400">
-              {chat.date} • {chat.time}
+              {new Date(chat.updated_at || chat.created_at).toLocaleDateString()} • 
+              {new Date(chat.updated_at || chat.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
             {chat.pinned && (
               <span className="ml-2 bg-purple-500/20 text-purple-400 text-xs px-2 py-0.5 rounded-full">Pinned</span>
@@ -166,7 +199,9 @@ function ChatCard({ chat }: { chat: any }) {
         </DropdownMenu>
       </CardHeader>
       <CardContent className="p-4 pt-0">
-        <p className="text-gray-300 text-sm line-clamp-2">{chat.preview}</p>
+        <p className="text-gray-300 text-sm line-clamp-2">
+          {chat.preview || "Start a new conversation with NbAIl..."}
+        </p>
       </CardContent>
     </Card>
   )

@@ -20,6 +20,20 @@ const ChatLoading = () => (
   </div>
 )
 
+// Error component
+const ChatError = ({ message }: { message: string }) => (
+  <div className="flex flex-col items-center justify-center h-screen bg-black/[0.96] text-white">
+    <div className="text-red-500 text-xl mb-4">⚠️ Error</div>
+    <p className="mb-4 text-center">{message}</p>
+    <button 
+      onClick={() => window.location.href = '/'}
+      className="px-4 py-2 bg-purple-600 rounded hover:bg-purple-700 transition-colors"
+    >
+      Go to Home
+    </button>
+  </div>
+)
+
 // Update the Message type to include attachments
 type Message = {
   id: string
@@ -51,6 +65,8 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [isMicActive, setIsMicActive] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [redirectAttempts, setRedirectAttempts] = useState(0)
 
   // Add mock files for the picker
   const mockFiles = [
@@ -183,6 +199,13 @@ export default function ChatPage() {
   useEffect(() => {
     const createOrRedirectToChat = async () => {
       try {
+        // Set a maximum number of redirect attempts to prevent infinite loops
+        if (redirectAttempts >= 3) {
+          throw new Error("Unable to connect to chat service. Database connection may be unavailable.")
+        }
+        
+        setRedirectAttempts(prev => prev + 1)
+        
         // Check if there are any existing chats
         const chats = await chatService.getChats()
 
@@ -194,17 +217,20 @@ export default function ChatPage() {
           const newChat = await chatService.createChat("New Chat")
           if (newChat) {
             router.push(`/chat/${newChat.id}`)
+          } else {
+            throw new Error("Failed to create a new chat")
           }
         }
       } catch (error) {
         console.error("Failed to load or create chat:", error)
+        setError(error instanceof Error ? error.message : "Failed to connect to the chat service")
       } finally {
         setIsLoading(false)
       }
     }
 
     createOrRedirectToChat()
-  }, [router])
+  }, [router, redirectAttempts])
 
   const createNewChat = () => {
     const newChatId = Date.now().toString()
@@ -231,6 +257,10 @@ export default function ChatPage() {
 
   if (isLoading) {
     return <ChatLoading />
+  }
+
+  if (error) {
+    return <ChatError message={error} />
   }
 
   return (

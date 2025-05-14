@@ -4,7 +4,8 @@ export type Chat = {
   created_at: string
   updated_at: string
   pinned: boolean
-  icon: string
+  icon?: string
+  user_id?: string
 }
 
 export type Message = {

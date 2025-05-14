@@ -39,6 +39,27 @@ declare global {
 }
 // --------------------------------------------
 
+const ChatError = ({ message, onRetry }: { message: string; onRetry: () => void }) => (
+  <div className="flex flex-col items-center justify-center h-screen bg-black/[0.96] text-white">
+    <div className="text-red-500 text-xl mb-4">⚠️ Error</div>
+    <p className="mb-4 text-center">{message}</p>
+    <div className="flex gap-3">
+      <button 
+        onClick={onRetry}
+        className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 transition-colors"
+      >
+        Try Again
+      </button>
+      <button 
+        onClick={() => window.location.href = '/'}
+        className="px-4 py-2 bg-purple-600 rounded hover:bg-purple-700 transition-colors"
+      >
+        Go to Home
+      </button>
+    </div>
+  </div>
+)
+
 export default function ChatPage() {
   const params = useParams()
   const router = useRouter()
@@ -73,6 +94,7 @@ export default function ChatPage() {
   const [isAssistantSpeaking, setIsAssistantSpeaking] = useState(false);
   const vapiInstance = useRef<Vapi | null>(null);
   const userSpeakingTimerRef = useRef<NodeJS.Timeout | null>(null); // Timer for user speaking indicator
+  const [error, setError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
@@ -93,6 +115,7 @@ export default function ChatPage() {
   useEffect(() => {
     const loadChat = async () => {
       setIsLoading(true)
+      setError(null)
       try {
         const chatData = await chatService.getChatById(chatId)
         if (chatData) {
@@ -106,6 +129,7 @@ export default function ChatPage() {
       } catch (error) {
         console.error("Failed to load chat:", error)
         router.push("/chat")
+        setError(error instanceof Error ? error.message : "Failed to load chat")
       } finally {
         setIsLoading(false)
       }
@@ -878,6 +902,53 @@ export default function ChatPage() {
   };
   // --------------------------------------------
 
+  // Add this useEffect to fetch chat data
+  useEffect(() => {
+    const fetchChatData = async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        if (!params.id) {
+          throw new Error("Chat ID is undefined")
+        }
+        
+        // Fetch chat and messages
+        const chat = await chatService.getChatById(params.id as string)
+        if (!chat) {
+          throw new Error("Chat not found")
+        }
+        
+        const chatMessages = await chatService.getMessages(params.id as string)
+        if (chatMessages.length > 0) {
+          setMessages(chatMessages.map(msg => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content,
+            timestamp: new Date(msg.created_at),
+            attachment: msg.attachment_type ? {
+              type: msg.attachment_type as "image" | "file",
+              name: msg.attachment_name,
+              url: msg.attachment_url
+            } : undefined
+          })))
+        }
+        
+        setIsLoading(false)
+      } catch (err) {
+        console.error("Error loading chat:", err)
+        setError(err instanceof Error ? err.message : "Failed to load chat")
+        setIsLoading(false)
+      }
+    }
+    
+    fetchChatData()
+  }, [params.id])
+
+  // Add this to handle retry
+  const handleRetry = () => {
+    window.location.reload()
+  }
+
   // If still loading or no chat is found, show loading
   if (isLoading) {
     return (
@@ -885,6 +956,10 @@ export default function ChatPage() {
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-purple-500"></div>
       </div>
     )
+  }
+
+  if (error) {
+    return <ChatError message={error} onRetry={handleRetry} />
   }
 
   if (!chat) {

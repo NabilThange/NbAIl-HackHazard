@@ -41,12 +41,12 @@ export default function RootLayout({
         <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.85/build/spline-viewer.js" async></script>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           {process.env.NODE_ENV === 'development' && <StagewiseToolbar config={{ plugins: [] }} />}
-          <LenisProvider>
+          {/* <LenisProvider> */}
             <ScrollToTop />
             <PageTransitionWrapper>
               {children}
             </PageTransitionWrapper>
-          </LenisProvider>
+          {/* </LenisProvider> */}
           <SpeedInsights />
         </ThemeProvider>
         <Analytics />

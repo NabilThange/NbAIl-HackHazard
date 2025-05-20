@@ -1009,11 +1009,7 @@ export default function ChatPage() {
                 className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} chat-bubble-in`}
               >
                 <div
-                  className={`max-w-[80%] rounded-lg p-4 ${
-                    message.role === "user"
-                      ? "bg-gray-700/80 text-white"
-                      : "bg-gray-800/90 backdrop-blur-sm border border-gray-700 text-white"
-                  }`}
+                  className={`max-w-[90%] rounded-lg p-4 bg-gray-800/80 backdrop-blur-sm border border-gray-700 text-white`}
                 >
                   {/* --- Render Markdown for AI messages --- */}
                   {message.role === 'assistant' ? (

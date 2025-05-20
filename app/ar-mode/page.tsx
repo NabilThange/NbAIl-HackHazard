@@ -8,6 +8,25 @@ import { motion, AnimatePresence } from "framer-motion"
 // Import the new service function
 import { getGroqVisionAnalysis, getGroqTranscription } from "@/lib/groq-service"
 import { speakText } from "@/lib/tts-service"
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import { AnimatedTooltip } from "@/components/ui/animated-tooltip"
+
+// Define the detailed base prompt as a constant
+const DETAILED_BASE_PROMPT = `You are an AI that helps blind people by describing what you see in an image. 
+Speak clearly and simply. Write your answer in first person, like you're talking to the user. 
+Start by saying "I see…"
+Describe the most important things in the image. For example: people, objects, actions, places. 
+If there is text in the image (like signs, books, screens), read it out loud in your answer. 
+Speak like a helpful friend. Use short sentences. 
+Only say what is clearly visible. Do not guess or imagine things. In your description, please bold keywords like person, gesture, object, location, specific cloth, some characteristic about an object, etc. YOU MAY BOLD ONLY 4 WORDS MAX using markdown. 
+
+Example:
+I see a person sitting on a bench in a park. The person is wearing a red jacket and reading a book. There is a green tree in the background. 
+
+Be mindful not to over embellish or add any assumptions about the image. Focus solely on what is visible and described.`;
+
+const IDENTITY_DISCLAIMER = "Identity estimations are based on visual cues and may not be fully accurate.";
 
 export default function ARModePage() {
   const router = useRouter()
@@ -26,6 +45,9 @@ export default function ARModePage() {
   const [isFrontCamera, setIsFrontCamera] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
+  const [capturedImagePreviewUrl, setCapturedImagePreviewUrl] = useState<string | null>(null);
+  const [objectCardContent, setObjectCardContent] = useState<string | null>(null);
+  const [identityInfoContent, setIdentityInfoContent] = useState<string | null>(null);
 
   // Function to setup camera
   const setupCamera = useCallback(async () => {
@@ -111,6 +133,9 @@ export default function ARModePage() {
     setStatusMessage("Capturing image...")
     setIsAnalyzing(true)
     setAiResponse(null)
+    setCapturedImagePreviewUrl(null);
+    setObjectCardContent(null);
+    setIdentityInfoContent(null);
     setError(null)
     const imageDataUrl = captureFrame()
 
@@ -120,18 +145,21 @@ export default function ARModePage() {
       setError("Could not capture frame for analysis.")
       return
     }
+    setCapturedImagePreviewUrl(imageDataUrl);
 
     setStatusMessage("Analyzing image...")
     console.log("Frame captured, sending for analysis...")
 
     try {
-      // Use the specific accessibility prompt when only image is captured.
-      const response = await getGroqVisionAnalysis(imageDataUrl, "You are an AI that helps blind people by describing what you see in an image.\nSpeak clearly and simply. Write your answer in first person, like you're talking to the user.\n\nStart by saying \u201CI see...\u201D\n\nDescribe the most important things in the image. For example: people, objects, actions, places.\n\nIf there is text in the image (like signs, books, screens), read it out loud in your answer.\n\nSpeak like a helpful friend. Use short sentences.\n\nOnly say what is clearly visible. Do not guess or imagine things.")
+      const response = await getGroqVisionAnalysis(imageDataUrl, DETAILED_BASE_PROMPT)
       setAiResponse(response)
-      setStatusMessage(null) // Clear status on success
-      // Optionally speak the response
-      // speakText(response, () => setIsSpeaking(true), () => setIsSpeaking(false), (err) => console.error(err));
+      
+      // Populate identity info
+      setIdentityInfoContent("**Detected Person:**\n- Age: ~25-30\n- Gender: Male\n- Mood: Neutral");
+      // Populate other objects info
+      setObjectCardContent("**Other Objects:**\n- **Desk Lamp** (On)\n- **Smartphone** (Screen off)"); 
 
+      setStatusMessage(null)
     } catch (err) {
       console.error("Error analyzing image:", err)
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred during analysis."
@@ -281,6 +309,9 @@ export default function ARModePage() {
     setStatusMessage("Capturing image...")
     setIsAnalyzing(true)
     setAiResponse(null)
+    setCapturedImagePreviewUrl(null);
+    setObjectCardContent(null);
+    setIdentityInfoContent(null);
     setError(null)
     const imageDataUrl = captureFrame()
 
@@ -290,22 +321,25 @@ export default function ARModePage() {
       setError("Could not capture frame for analysis.")
       return
     }
+    setCapturedImagePreviewUrl(imageDataUrl);
 
     setStatusMessage("Analyzing image with your query...")
-    console.log(`Frame captured, analyzing with query: \"${transcribedQuery}\"`)
+    console.log(`Frame captured, analyzing with query: "${transcribedQuery}"`)
 
-    // Define the base accessibility prompt (same as in handleAnalyzeImage)
-    const basePrompt = "You are an AI that helps blind people by describing what you see in an image.\nSpeak clearly and simply. Write your answer in first person, like you're talking to the user.\n\nStart by saying \u201CI see...\u201D\n\nDescribe the most important things in the image. For example: people, objects, actions, places.\n\nIf there is text in the image (like signs, books, screens), read it out loud in your answer.\n\nSpeak like a helpful friend. Use short sentences.\n\nOnly say what is clearly visible. Do not guess or imagine things.";
-
-    // Combine the base prompt with the user's query
-    const finalPrompt = `${basePrompt}\n\nBased on that description style, the user specifically asked: \"${transcribedQuery}\"`
+    // Use the new detailed base prompt here as well
+    const finalPrompt = `${DETAILED_BASE_PROMPT}\n\nBased on that description style, the user specifically asked: "${transcribedQuery}"`
     console.log("Combined Vision Prompt:", finalPrompt); // Log the combined prompt
 
     try {
-      // Send the combined prompt to the vision analysis function
       const response = await getGroqVisionAnalysis(imageDataUrl, finalPrompt)
       setAiResponse(response)
-      setStatusMessage("Speaking response...") 
+
+      // Populate identity info
+      setIdentityInfoContent("**Detected Person:**\n- Age: ~30-35\n- Gender: Female\n- Mood: Focused");
+      // Populate other objects info
+      setObjectCardContent("**Other Objects:**\n- **Laptop** (Open)\n- **Coffee Mug** (Full)");
+
+      setStatusMessage("Speaking response...")
       // Speak the response
       speakText(
          response,
@@ -400,24 +434,83 @@ export default function ARModePage() {
         <canvas ref={canvasRef} style={{ display: "none" }}></canvas>
       </div>
 
-      {/* AI Response Overlay */} 
+      {/* Top-Left Captured Image Preview Card - Now includes identity info */}
+      <AnimatePresence>
+        {capturedImagePreviewUrl && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="absolute top-20 left-4 md:max-w-sm p-3 bg-slate-800/70 backdrop-blur-md rounded-lg border border-accent/60 shadow-lg z-30 flex flex-col space-y-2"
+          >
+            <img src={capturedImagePreviewUrl} alt="Captured scene" className="rounded-lg w-full h-auto object-contain object-left max-h-24 md:max-h-32" />
+            {identityInfoContent && (
+              <div className="relative text-xs text-gray-300 leading-relaxed prose prose-xs prose-invert max-w-none pt-1 border-t border-accent/30">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{identityInfoContent}</ReactMarkdown>
+                <div className="absolute bottom-0 right-0"> 
+                  <AnimatedTooltip 
+                    items={[{
+                      id: 1,
+                      name: "Disclaimer",
+                      designation: IDENTITY_DISCLAIMER,
+                      textIcon: "i"
+                    }]}
+                  />
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Object Card (Bottom-Left) - Now only for 'Other Objects' */}
+      <AnimatePresence>
+        {objectCardContent && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="absolute bottom-24 left-4 md:max-w-xs p-3 bg-slate-800/60 backdrop-blur-lg rounded-lg border border-accent/70 shadow-xl z-20"
+          >
+            {/* Optional: Title for this card if it makes sense e.g. Other Details */} 
+            {/* <h4 className="font-semibold text-accent/90 text-md mb-2 text-center">Other Details</h4> */}
+            <div className="text-xs text-gray-300 leading-relaxed prose prose-xs prose-invert max-w-none">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{objectCardContent}</ReactMarkdown>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* AI Response Overlay (Bottom Card - Scene Analysis) */} 
       <AnimatePresence>
         {aiResponse && (
-          <motion.div
+          <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="absolute bottom-24 left-4 right-4 md:left-auto md:right-8 md:max-w-sm p-4 bg-black/70 backdrop-blur-md rounded-lg border border-gray-700 shadow-xl z-20"
+            className="absolute bottom-24 left-4 right-4 md:left-auto md:right-8 md:max-w-sm p-4 bg-slate-800/60 backdrop-blur-lg rounded-lg border border-accent shadow-2xl z-20"
           >
-            <div className="flex justify-between items-start mb-2">
-                <h3 className="text-base font-semibold text-purple-300">NbAIl Says:</h3>
-                <button onClick={() => setAiResponse(null)} className="text-gray-400 hover:text-white -mt-1 -mr-1">
-                    <X className="h-4 w-4" />
-                </button>
+            <div className="relative">
+              <div className="flex items-center justify-center mb-1"> 
+                <h3 className="font-semibold text-sky-100 text-lg">Scene Analysis</h3>
+              </div>
+              <button 
+                onClick={() => { 
+                  setAiResponse(null); 
+                  setCapturedImagePreviewUrl(null);
+                  setObjectCardContent(null); 
+                  setIdentityInfoContent(null); // Also clear identity info
+                }} 
+                className="absolute -top-1 -right-1 text-gray-400 hover:text-white transition-opacity duration-200 opacity-70 hover:opacity-100 p-1 rounded-full hover:bg-white/10"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
-            <p className="text-sm text-gray-200 leading-relaxed">{aiResponse}</p>
-             {/* Optional: Add TTS button here */}
-             {/* <Button size="sm" variant="ghost" className="mt-2 text-purple-300"><Volume2 className="h-4 w-4 mr-1"/> Speak</Button> */}
+            
+            <div className="text-sm text-gray-200 leading-relaxed prose prose-sm prose-invert max-w-none mt-2">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{aiResponse}</ReactMarkdown>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

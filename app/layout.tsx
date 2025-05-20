@@ -8,6 +8,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import PageTransitionWrapper from "@/components/PageTransitionWrapper"
 import { SmoothCursor } from "@/components/ui/smooth-cursor"
 import { LenisProvider } from "@/context/LenisProvider"
+import { StagewiseToolbar } from '@stagewise/toolbar-next'
 
 const inter = Inter({ subsets: ["latin"], display: "swap" })
 
@@ -38,6 +39,7 @@ export default function RootLayout({
         <SmoothCursor />
         <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.85/build/spline-viewer.js" async></script>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          {process.env.NODE_ENV === 'development' && <StagewiseToolbar config={{ plugins: [] }} />}
           <LenisProvider>
             <ScrollToTop />
             <PageTransitionWrapper>

@@ -9,6 +9,7 @@ import PageTransitionWrapper from "@/components/PageTransitionWrapper"
 import { SmoothCursor } from "@/components/ui/smooth-cursor"
 import { LenisProvider } from "@/context/LenisProvider"
 import { StagewiseToolbar } from '@stagewise/toolbar-next'
+import { Analytics } from "@vercel/analytics/next"
 
 const inter = Inter({ subsets: ["latin"], display: "swap" })
 
@@ -48,6 +49,7 @@ export default function RootLayout({
           </LenisProvider>
           <SpeedInsights />
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   )

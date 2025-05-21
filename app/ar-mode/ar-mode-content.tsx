@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from "framer-motion"
 // Import the new service function
 import { getGroqVisionAnalysis, getGroqTranscription } from "@/lib/groq-service"
 import { speakText } from "@/lib/tts-service"
+import ReactMarkdown from 'react-markdown'
+import InfoWidget from '@/components/ar/InfoWidget'
 
 // THESE IMPORTS ARE LIKELY NEEDED BASED ON LINTER ERRORS - ADDING THEM HERE
 import * as faceapi from 'face-api.js';
@@ -15,7 +17,7 @@ import { FilesetResolver, ObjectDetector, GestureRecognizer, GestureRecognizerRe
 
 
 // Placeholder for DETAILED_BASE_PROMPT if not defined elsewhere
-const DETAILED_BASE_PROMPT = "Describe the scene in detail, focusing on objects, people, and their actions or expressions. If there is text, read it. Be comprehensive.";
+const DETAILED_BASE_PROMPT = "You are a compassionate and intuitive vision assistant AI, designed to help individuals understand their surroundings through detailed descriptions. Your task is to guide me, as I am visually impaired, in perceiving the environment around me by providing insights about people, locations, objects, and more. \n\nPlease describe the scene around me, focusing on the following elements:  \n\nPeople: __________  \nLocation: __________  \nObjects: __________  \nActivities: __________\n\n\nOutput Format:Begin your response with the phrase \"I see...\" followed by a vivid description of the surroundings. Use bold text to emphasize important details or actions. \n\nDetails:  \n\nProvide sensory details that evoke a sense of the environment, including sounds, smells, temperatures, and textures.  \nBe empathetic and supportive, as if you are my companion, ensuring that your tone is warm and encouraging.  \nConsider the context of the location and the activities happening around me.\n\n\nExamples:  \n\n\"I see a group of people laughing and talking near a vibrant café, the aroma of freshly brewed coffee fills the air.\"  \n\"I see a park with children playing; the sound of laughter mixes with the rustling of leaves in the gentle breeze.\"\n\n\nConstraints:  \n\nAvoid using overly technical language; keep the descriptions clear and relatable.  \nEnsure that the descriptions are not overwhelming; focus on providing a balanced overview of the surroundings.  \nDo not assume prior knowledge; provide context where necessary for clarity.";
 
 
 export default function ARModeContent() { // Renamed from ARModePage
@@ -56,11 +58,6 @@ export default function ARModeContent() { // Renamed from ARModePage
   const [isRecording, setIsRecording] = useState(false);
 
 
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
   // Face-API model loading options
   const getTinyFaceDetectorOptions = useCallback(() => {
     return new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
@@ -95,59 +92,49 @@ export default function ARModeContent() { // Renamed from ARModePage
 
   // Load FaceAPI models on mount
   useEffect(() => {
-    if (isClient) {
-      loadModels();
-    }
-  }, [isClient, loadModels]);
+    loadModels();
+  }, [loadModels]);
 
   // Load MediaPipe Models on mount
   useEffect(() => {
-    if (isClient) {
-      const initializeMediaPipe = async () => {
-        try {
-          console.log("Initializing MediaPipe Vision Tasks...");
-          const vision = await FilesetResolver.forVisionTasks(
-            "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
-          );
-          
-          // Object Detector
-          const newObjectDetector = await ObjectDetector.createFromOptions(vision, {
-            baseOptions: { modelAssetPath: `/mediapipe-models/efficientdet_lite0.tflite`, delegate: "GPU" },
-            scoreThreshold: 0.5,
-            runningMode: "VIDEO",
-          });
-          setObjectDetectorState(newObjectDetector);
-          console.log("MediaPipe Object Detector created.");
+    const initializeMediaPipe = async () => {
+      try {
+        console.log("Initializing MediaPipe Vision Tasks...");
+        const vision = await FilesetResolver.forVisionTasks(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+        );
+        
+        // Object Detector
+        const newObjectDetector = await ObjectDetector.createFromOptions(vision, {
+          baseOptions: { modelAssetPath: `/mediapipe-models/efficientdet_lite0.tflite`, delegate: "GPU" },
+          scoreThreshold: 0.5,
+          runningMode: "VIDEO",
+        });
+        setObjectDetectorState(newObjectDetector);
+        console.log("MediaPipe Object Detector created.");
 
-          // Gesture Recognizer
-          const newGestureRecognizer = await GestureRecognizer.createFromOptions(vision, {
-            baseOptions: { modelAssetPath: `/mediapipe-models/gesture_recognizer.task`, delegate: "GPU" },
-            runningMode: "VIDEO",
-            numHands: 2,
-          });
-          setGestureRecognizerState(newGestureRecognizer);
-          console.log("MediaPipe Gesture Recognizer created.");
+        // Gesture Recognizer
+        const newGestureRecognizer = await GestureRecognizer.createFromOptions(vision, {
+          baseOptions: { modelAssetPath: `/mediapipe-models/gesture_recognizer.task`, delegate: "GPU" },
+          runningMode: "VIDEO",
+          numHands: 2,
+        });
+        setGestureRecognizerState(newGestureRecognizer);
+        console.log("MediaPipe Gesture Recognizer created.");
 
-          setMediaPipeModelsReady(true);
-          setMediaPipeError(null);
-          console.log("MediaPipe models initialized successfully.");
-        } catch (err) {
-          console.error("Error initializing MediaPipe models:", err);
-          const message = err instanceof Error ? err.message : "Unknown error loading MediaPipe models";
-          setMediaPipeError(`Failed to load MediaPipe models: ${message}.`);
-          setMediaPipeModelsReady(false);
-        }
-      };
-      initializeMediaPipe();
-    }
-  }, [isClient, setMediaPipeModelsReady, setMediaPipeError, setObjectDetectorState, setGestureRecognizerState]);
+        setMediaPipeModelsReady(true);
+        setMediaPipeError(null);
+        console.log("MediaPipe models initialized successfully.");
+      } catch (err) {
+        console.error("Error initializing MediaPipe models:", err);
+        const message = err instanceof Error ? err.message : "Unknown error loading MediaPipe models";
+        setMediaPipeError(`Failed to load MediaPipe models: ${message}.`);
+        setMediaPipeModelsReady(false);
+      }
+    };
+    initializeMediaPipe();
+  }, [setMediaPipeModelsReady, setMediaPipeError, setObjectDetectorState, setGestureRecognizerState]);
 
-
-  // Early return if not on client-side to prevent SSR/SSG errors with client-only logic
-  // This guard MUST come AFTER all state and model loading useEffects that need to run on client initialization.
-  if (!isClient) {
-    return null; // Or a loading skeleton component
-  }
 
   // Function to setup camera
   const setupCamera = useCallback(async () => {
@@ -188,9 +175,7 @@ export default function ARModeContent() { // Renamed from ARModePage
 
   // Setup camera on mount and when isFrontCamera changes
   useEffect(() => {
-    if (isClient) { // Ensure this runs only on client-side
-      setupCamera();
-    }
+    setupCamera();
     // Cleanup stream on unmount
     return () => {
       setStream(currentStream => {
@@ -201,7 +186,7 @@ export default function ARModeContent() { // Renamed from ARModePage
         return null; // Ensure stream state is reset
       });
     }
-  }, [setupCamera, isClient]);
+  }, [setupCamera]);
 
   // Function to capture frame
   const captureFrame = useCallback((): string | null => {
@@ -561,7 +546,7 @@ export default function ARModeContent() { // Renamed from ARModePage
       console.error("Error in performFaceApiAnalysis for handleAnalyzeImage:", err);
     }
 
-    let mediaPipeAnalysisResult = { objectsText: null, gesturesText: null };
+    let mediaPipeAnalysisResult: { objectsText: string | null; gesturesText: string | null } = { objectsText: null, gesturesText: null };
     try {
       mediaPipeAnalysisResult = await performMediaPipeAnalysis(videoRef.current);
       let combinedObjectGestureContent = "";
@@ -767,7 +752,7 @@ export default function ARModeContent() { // Renamed from ARModePage
       console.error("Error in performFaceApiAnalysis for handleAnalyzeVoice:", err);
     }
 
-    let mediaPipeAnalysisResult = { objectsText: null, gesturesText: null };
+    let mediaPipeAnalysisResult: { objectsText: string | null; gesturesText: string | null } = { objectsText: null, gesturesText: null };
     try {
       mediaPipeAnalysisResult = await performMediaPipeAnalysis(videoRef.current);
       let combinedObjectGestureContent = "";
@@ -828,18 +813,50 @@ export default function ARModeContent() { // Renamed from ARModePage
     }
   }, [captureFrame, modelsReady, mediaPipeModelsReady, DETAILED_BASE_PROMPT, performFaceApiAnalysis, performMediaPipeAnalysis, getGroqVisionAnalysis, speakText, videoRef, setCapturedImagePreviewUrl, setObjectCardContent, setIdentityInfoContent, setAiResponse, setError, setFaceApiError, setMediaPipeError, setShowCards, setStatusMessage, setIsAnalyzing, setIsSpeaking]);
 
-  // Clean up intervals on unmount
+  // Main prediction loop and drawing logic
   useEffect(() => {
-    return () => {
-      if (recordingIntervalRef.current) {
-        clearInterval(recordingIntervalRef.current);
-        console.log("Cleaned up recordingIntervalRef on unmount");
+    const videoElement = videoRef.current;
+    const canvasElement = canvasRef.current;
+    let animationFrameId: number | null = null;
+
+    const predictWebcam = async () => {
+      if (!videoElement || !canvasElement || !objectDetector || !gestureRecognizer || !modelsReady || !mediaPipeModelsReady || document.hidden) {
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        return;
       }
-      if (captureIntervalRef.current) {
-        clearInterval(captureIntervalRef.current);
-        console.log("Cleaned up captureIntervalRef on unmount");
+
+      // Ensure this block and its contents are not causing issues.
+      // The face-api.js drawing part seems to be removed in latest versions, let's assume it's intentional.
+      // If MediaPipe drawing is needed, it would be here.
+
+      // Request next frame
+      if (!document.hidden) { // Check if document is visible before requesting new frame
+        animationFrameId = requestAnimationFrame(predictWebcam);
       }
     };
+    
+    // Start prediction loop if models are ready and video is available
+    if (modelsReady && mediaPipeModelsReady && videoRef.current && videoRef.current.readyState >= 2) { // readyState 2 means HAVE_CURRENT_DATA
+        predictWebcam();
+    }
+
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      // Clear canvas on component unmount or when dependencies change
+      if (canvasElement) {
+        const context = canvasElement.getContext('2d');
+        if (context) {
+            context.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        }
+      }
+    };
+  }, [objectDetector, gestureRecognizer, modelsReady, mediaPipeModelsReady, videoRef, canvasRef, getTinyFaceDetectorOptions, areModelsLoaded, identityInfoContent, objectCardContent]);
+
+  const handleAnalyze = useCallback(async (query?: string) => {
+    // ... existing code ...
   }, []);
 
   return (
@@ -847,7 +864,7 @@ export default function ARModeContent() { // Renamed from ARModePage
     // So, this JSX assumes it's client-side.
       <div className="flex flex-col h-screen bg-black text-white relative overflow-hidden">
         {/* Header */} 
-        <header className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 z-20 bg-gradient-to-b from-black/50 to-transparent">
+        <header className="absolute top-0 left-0 right-0 flex items-start justify-between p-4 z-20 bg-gradient-to-b from-black/50 to-transparent">
           <Button
             variant="ghost"
             size="icon"
@@ -857,15 +874,17 @@ export default function ARModeContent() { // Renamed from ARModePage
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-lg font-semibold">AR Mode</h1>
-          {/* Recording Timer */}
-          {isRecording && (
-            <div className="flex items-center space-x-2 bg-black/40 px-3 py-1 rounded-full">
-              <span className="h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
-              <span className="text-sm font-mono">{formatRecordingTime(recordingTime)}</span>
-            </div>
-          )}
-          {!isRecording && <div className="w-10"></div>}
+          <h1 className="text-lg font-semibold mt-1.5">AR Mode</h1>
+          {/* Recording Timer / Info Widget Container */}
+          <div className="flex flex-col items-end space-y-2">
+            {isRecording && (
+              <div className="flex items-center space-x-2 bg-black/40 px-3 py-1 rounded-full">
+                <span className="h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
+                <span className="text-sm font-mono">{formatRecordingTime(recordingTime)}</span>
+              </div>
+            )}
+            <InfoWidget />
+          </div>
         </header>
 
         {/* Camera View */} 
@@ -1042,8 +1061,8 @@ export default function ARModeContent() { // Renamed from ARModePage
                     </button>
                 )}
             </div>
-            <div className="text-xs text-slate-200 bg-black/20 p-2 rounded-md whitespace-pre-wrap leading-relaxed">
-                {aiResponse}
+            <div className="text-xs text-slate-200 bg-black/20 p-2 rounded-md whitespace-pre-wrap leading-relaxed prose prose-sm prose-invert">
+                <ReactMarkdown>{aiResponse}</ReactMarkdown>
             </div>
           </motion.div>
         )}

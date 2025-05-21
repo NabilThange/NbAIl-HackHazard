@@ -8,34 +8,6 @@ import { motion, AnimatePresence } from "framer-motion"
 // Import the new service function
 import { getGroqVisionAnalysis, getGroqTranscription } from "@/lib/groq-service"
 import { speakText } from "@/lib/tts-service"
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import { AnimatedTooltip } from "@/components/ui/animated-tooltip"
-import * as faceapi from 'face-api.js';
-import { loadModels, getTinyFaceDetectorOptions, areModelsLoaded } from "../../lib/face-service";
-import {
-  ObjectDetector,
-  GestureRecognizer,
-  FilesetResolver,
-  Detection,
-  GestureRecognizerResult
-} from "@mediapipe/tasks-vision";
-
-// Define the detailed base prompt as a constant
-const DETAILED_BASE_PROMPT = `You are an AI that helps blind people by describing what you see in an image. 
-Speak clearly and simply. Write your answer in first person, like you're talking to the user. 
-Start by saying "I see…"
-Describe the most important things in the image. For example: people, objects, actions, places. 
-If there is text in the image (like signs, books, screens), read it out loud in your answer. 
-Speak like a helpful friend. Use short sentences. 
-Only say what is clearly visible. Do not guess or imagine things. In your description, please bold keywords like person, gesture, object, location, specific cloth, some characteristic about an object, etc. YOU MAY BOLD ONLY 4 WORDS MAX using markdown. 
-
-Example:
-I see a person sitting on a bench in a park. The person is wearing a red jacket and reading a book. There is a green tree in the background. 
-
-Be mindful not to over embellish or add any assumptions about the image. Focus solely on what is visible and described.`;
-
-const IDENTITY_DISCLAIMER = "Identity estimations are based on visual cues and may not be fully accurate.";
 
 export default function ARModePage() {
   const router = useRouter()
@@ -54,145 +26,6 @@ export default function ARModePage() {
   const [isFrontCamera, setIsFrontCamera] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
-  const [capturedImagePreviewUrl, setCapturedImagePreviewUrl] = useState<string | null>(null);
-  const [objectCardContent, setObjectCardContent] = useState<string | null>(null);
-  const [identityInfoContent, setIdentityInfoContent] = useState<string | null>(null);
-  const [modelsReady, setModelsReady] = useState(false);
-  const [faceApiError, setFaceApiError] = useState<string | null>(null);
-  const [isClient, setIsClient] = useState(false);
-
-  // MediaPipe specific states
-  const [objectDetector, setObjectDetector] = useState<ObjectDetector | null>(null);
-  const [gestureRecognizer, setGestureRecognizer] = useState<GestureRecognizer | null>(null);
-  const [mediaPipeModelsReady, setMediaPipeModelsReady] = useState(false);
-  const [mediaPipeError, setMediaPipeError] = useState<string | null>(null);
-  const lastVideoTimeRef = useRef(-1);
-
-  // Smart Record feature - new states
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [recordStartTime, setRecordStartTime] = useState<number | null>(null);
-  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const captureIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  
-  // Card visibility states - explicitly track whether cards should be shown
-  const [showCards, setShowCards] = useState(false);
-  const [lastAnalysisTime, setLastAnalysisTime] = useState<number | null>(null);
-
-  // Effect to set client-side flag and prevent hydration mismatches
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // Modify existing model loading effect
-  useEffect(() => {
-    const initFaceApi = async () => {
-      // Only attempt to load on client
-      if (!isClient) return;
-
-      try {
-        setStatusMessage("Loading AI models...");
-        setError(null);
-        setFaceApiError(null);
-        
-        // Check if models are already loaded to prevent redundant loading
-        if (!areModelsLoaded()) {
-          await loadModels();
-        }
-        
-        setModelsReady(true);
-        setStatusMessage(null);
-        console.log("Face-API models loaded and ready.");
-      } catch (err) {
-        console.error("Failed to load face-API models:", err);
-        const errorMessage = err instanceof Error 
-          ? err.message 
-          : "Unknown error loading face models";
-        
-        setFaceApiError(errorMessage);
-        setError(`Failed to initialize AI features: ${errorMessage}. Please try refreshing the page.`);
-        setStatusMessage(null);
-      }
-    };
-
-    initFaceApi();
-  }, [isClient]); // Depend on isClient to ensure client-side only
-
-  // Effect to load MediaPipe models
-  useEffect(() => {
-    const initMediaPipe = async () => {
-      if (!isClient) return; // Only run on client
-
-      // Ensure Face-API models are loaded or had a chance to load first
-      // This helps in sequencing the loading messages
-      if (!modelsReady && !faceApiError) {
-         // If Face-API is still loading, wait for it.
-         // This effect will re-run when modelsReady changes.
-        return;
-      }
-      
-      setStatusMessage("Loading MediaPipe models...");
-      setMediaPipeError(null);
-
-      try {
-        const vision = await FilesetResolver.forVisionTasks(
-          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
-        );
-
-        // Initialize Object Detector
-        const loadedObjectDetector = await ObjectDetector.createFromOptions(vision, {
-          baseOptions: {
-            modelAssetPath: `/mediapipe-models/efficientdet_lite0.tflite`, // Corrected path
-            delegate: "GPU"
-          },
-          scoreThreshold: 0.5,
-          runningMode: "VIDEO", // Corrected: Use "VIDEO" for detectForVideo
-        });
-        setObjectDetector(loadedObjectDetector);
-        console.log("MediaPipe Object Detector loaded.");
-
-        // Initialize Gesture Recognizer
-        const loadedGestureRecognizer = await GestureRecognizer.createFromOptions(vision, {
-          baseOptions: {
-            modelAssetPath: `/mediapipe-models/gesture_recognizer.task`, // Corrected path
-            delegate: "GPU"
-          },
-          runningMode: "VIDEO", // Corrected: Use "VIDEO" for recognizeForVideo
-          numHands: 2
-        });
-        setGestureRecognizer(loadedGestureRecognizer);
-        console.log("MediaPipe Gesture Recognizer loaded.");
-
-        setMediaPipeModelsReady(true);
-        setStatusMessage(null); // All models loaded
-        console.log("All AI models (Face-API & MediaPipe) are ready.");
-
-      } catch (err) {
-        console.error("Failed to load MediaPipe models:", err);
-        const errorMessage = err instanceof Error ? err.message : "Unknown error loading MediaPipe models";
-        setMediaPipeError(errorMessage);
-        setError(prevError => prevError ? `${prevError} & MediaPipe failed: ${errorMessage}` : `MediaPipe models failed: ${errorMessage}. Try refreshing.`);
-        setStatusMessage(null);
-      }
-    };
-
-    initMediaPipe();
-
-    // Cleanup MediaPipe tasks on unmount
-    return () => {
-      console.log("Closing MediaPipe tasks...");
-      if (objectDetector) {
-        objectDetector.close();
-        setObjectDetector(null);
-      }
-      if (gestureRecognizer) {
-        gestureRecognizer.close();
-        setGestureRecognizer(null);
-      }
-      setMediaPipeModelsReady(false);
-    };
-  // Add modelsReady and faceApiError to dependencies to run after face-api init.
-  }, [isClient, modelsReady, faceApiError]);
 
   // Function to setup camera
   const setupCamera = useCallback(async () => {
@@ -579,58 +412,30 @@ export default function ARModePage() {
 
   // Handle Analyze Image (one-time capture)
   const handleAnalyzeImage = useCallback(async () => {
-    if (!modelsReady || !mediaPipeModelsReady) { // Check both Face-API and MediaPipe models
-      setError("AI models are not ready yet. Please wait or refresh.");
-      return;
-    }
-    setStatusMessage("Processing...");
-    setIsAnalyzing(true);
-    setAiResponse(null);
-    setCapturedImagePreviewUrl(null);
-    setObjectCardContent(null);
-    setIdentityInfoContent(null); // Clear previous identity info for new analysis
-    setError(null);
-    setFaceApiError(null); 
-    setMediaPipeError(null); // Clear MediaPipe error
-    setShowCards(false); // Reset card visibility until analysis completes
+    setStatusMessage("Capturing image...")
+    setIsAnalyzing(true)
+    setAiResponse(null)
+    setError(null)
+    const imageDataUrl = captureFrame()
 
-    // Capture frame
-    const imageDataUrl = captureFrame();
     if (!imageDataUrl) {
-      setIsAnalyzing(false);
-      setStatusMessage(null);
-      setError("Could not capture frame for analysis.");
-      return;
+      setIsAnalyzing(false)
+      setStatusMessage(null)
+      setError("Could not capture frame for analysis.")
+      return
     }
-    
-    // Always ensure image preview is visible
-    setCapturedImagePreviewUrl(imageDataUrl);
 
-    // Run face analysis
-    setStatusMessage("Analyzing faces...");
+    setStatusMessage("Analyzing image...")
+    console.log("Frame captured, sending for analysis...")
+
     try {
-      await performFaceApiAnalysis(videoRef.current);
-    } catch (err) {
-      console.error("Face analysis error:", err);
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      setFaceApiError(`Face analysis failed: ${errorMessage}`);
-    }
-    
-    // Run MediaPipe analysis
-    setStatusMessage("Analyzing objects & gestures...");
-    try {
-    const { objectsText, gesturesText } = await performMediaPipeAnalysis(videoRef.current);
-    
-    let combinedObjectGestureContent = "";
-    if (objectsText) combinedObjectGestureContent += objectsText;
-    if (gesturesText) {
-      if (combinedObjectGestureContent) combinedObjectGestureContent += "\n\n";
-      combinedObjectGestureContent += gesturesText;
-    }
-     if (!combinedObjectGestureContent) {
-      combinedObjectGestureContent = "**Objects & Gestures:**\n- None detected or analysis issue.";
-    }
-    setObjectCardContent(combinedObjectGestureContent);
+      // Use the specific accessibility prompt when only image is captured.
+      const response = await getGroqVisionAnalysis(imageDataUrl, "You are an AI that helps blind people by describing what you see in an image.\nSpeak clearly and simply. Write your answer in first person, like you're talking to the user.\n\nStart by saying \u201CI see...\u201D\n\nDescribe the most important things in the image. For example: people, objects, actions, places.\n\nIf there is text in the image (like signs, books, screens), read it out loud in your answer.\n\nSpeak like a helpful friend. Use short sentences.\n\nOnly say what is clearly visible. Do not guess or imagine things.")
+      setAiResponse(response)
+      setStatusMessage(null) // Clear status on success
+      // Optionally speak the response
+      // speakText(response, () => setIsSpeaking(true), () => setIsSpeaking(false), (err) => console.error(err));
+
     } catch (err) {
       console.error("MediaPipe analysis error:", err);
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
@@ -801,63 +606,35 @@ export default function ARModePage() {
 
   // --- Analysis Function (Voice Input) ---
   const handleAnalyzeVoice = useCallback(async (transcribedQuery: string) => {
-    if (!modelsReady || !mediaPipeModelsReady) { // Check both
-      setError("AI models are not ready yet. Please wait or refresh.");
-      return;
-    }
-    setStatusMessage("Processing your request...");
-    setIsAnalyzing(true);
-    setAiResponse(null);
-    setCapturedImagePreviewUrl(null);
-    setObjectCardContent(null);
-    setIdentityInfoContent(null); // Clear previous identity info for new analysis
-    setError(null);
-    setFaceApiError(null);
-    setMediaPipeError(null); // Clear MediaPipe error
+    setStatusMessage("Capturing image...")
+    setIsAnalyzing(true)
+    setAiResponse(null)
+    setError(null)
+    const imageDataUrl = captureFrame()
 
-    const imageDataUrl = captureFrame(); // Capture frame first
     if (!imageDataUrl) {
-      setIsAnalyzing(false);
-      setStatusMessage(null);
-      setError("Could not capture frame for analysis.");
-      return;
+      setIsAnalyzing(false)
+      setStatusMessage(null)
+      setError("Could not capture frame for analysis.")
+      return
     }
-    setCapturedImagePreviewUrl(imageDataUrl);
 
-    // Perform Face-API analysis on the current video frame
-    setStatusMessage("Analyzing faces...");
-    await performFaceApiAnalysis(videoRef.current); // Updates identityInfoContent
+    setStatusMessage("Analyzing image with your query...")
+    console.log(`Frame captured, analyzing with query: \"${transcribedQuery}\"`)
 
-    // Perform MediaPipe Analysis
-    setStatusMessage("Analyzing objects & gestures...");
-    const { objectsText, gesturesText } = await performMediaPipeAnalysis(videoRef.current);
-    
-    let combinedObjectGestureContent = "";
-    if (objectsText) combinedObjectGestureContent += objectsText;
-    if (gesturesText) {
-      if (combinedObjectGestureContent) combinedObjectGestureContent += "\n\n";
-      combinedObjectGestureContent += gesturesText;
-    }
-     if (!combinedObjectGestureContent) {
-      combinedObjectGestureContent = "**Objects & Gestures:**\n- None detected or analysis issue.";
-    }
-    setObjectCardContent(combinedObjectGestureContent);
+    // Define the base accessibility prompt (same as in handleAnalyzeImage)
+    const basePrompt = "You are an AI that helps blind people by describing what you see in an image.\nSpeak clearly and simply. Write your answer in first person, like you're talking to the user.\n\nStart by saying \u201CI see...\u201D\n\nDescribe the most important things in the image. For example: people, objects, actions, places.\n\nIf there is text in the image (like signs, books, screens), read it out loud in your answer.\n\nSpeak like a helpful friend. Use short sentences.\n\nOnly say what is clearly visible. Do not guess or imagine things.";
 
-    setStatusMessage("Analyzing scene with Groq...");
-    console.log(`Frame captured, analyzing with Groq query: "${transcribedQuery}"`);
-
-    const finalPrompt = `${DETAILED_BASE_PROMPT}\n\nBased on that description style, the user specifically asked: "${transcribedQuery}"`;
-    console.log("Combined Vision Prompt for Groq:", finalPrompt);
+    // Combine the base prompt with the user's query
+    const finalPrompt = `${basePrompt}\n\nBased on that description style, the user specifically asked: \"${transcribedQuery}\"`
+    console.log("Combined Vision Prompt:", finalPrompt); // Log the combined prompt
 
     try {
-      const response = await getGroqVisionAnalysis(imageDataUrl, finalPrompt);
-      setAiResponse(response);
-
-      // Placeholder for other objects - Now handled by MediaPipe
-      // setObjectCardContent("**Detected Objects:**\n- **Desk Lamp** (On)\n- **Smartphone** (Screen off)\n\n**Gesture:**\n- Hand raised\n- Open palm");
-
-      // TTS part
-      setStatusMessage("Speaking response...");
+      // Send the combined prompt to the vision analysis function
+      const response = await getGroqVisionAnalysis(imageDataUrl, finalPrompt)
+      setAiResponse(response)
+      setStatusMessage("Speaking response...") 
+      // Speak the response
       speakText(
          response,
          () => { console.log("TTS started"); setIsSpeaking(true); setStatusMessage("Speaking..."); },
@@ -1045,103 +822,27 @@ export default function ARModePage() {
           <canvas ref={canvasRef} style={{ display: "none" }}></canvas>
         </div>
 
-        {/* Top-Left Captured Image Preview Card - Now includes identity info */}
-        <AnimatePresence>
-          {showCards && capturedImagePreviewUrl && (
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="absolute top-20 left-4 md:max-w-sm p-3 bg-slate-800/20 backdrop-blur-xl rounded-lg border border-accent/20 shadow-lg z-30 flex flex-col space-y-2 max-h-[calc(100vh-10rem-5rem)] overflow-y-auto"
-            >
-              <img src={capturedImagePreviewUrl} alt="Captured scene" className="rounded-md w-full h-auto object-contain object-left max-h-24 md:max-h-32" />
-              {identityInfoContent && (
-                <div className="relative text-xs text-gray-300 leading-relaxed prose prose-xs prose-invert max-w-none pt-1 border-t border-accent/30">
-                  <div className="bg-black/20 p-1.5 rounded-md">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{identityInfoContent}</ReactMarkdown>
-                  </div>
-                  {(identityInfoContent && !identityInfoContent.toLowerCase().includes("error") && !identityInfoContent.toLowerCase().includes("no human faces detected")) && (
-                    <div className="absolute bottom-0 right-0"> 
-                      <AnimatedTooltip 
-                        items={[{
-                          id: 1,
-                          name: "Disclaimer",
-                          designation: IDENTITY_DISCLAIMER,
-                          textIcon: "i" // Make sure AnimatedTooltip can render a simple text icon or use a small info icon
-                        }]}
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
-              {isRecording && lastAnalysisTime && (
-                <div className="absolute top-2 right-2 bg-black/50 px-2 py-1 rounded-md text-xs">
-                  Updated {Math.floor((Date.now() - lastAnalysisTime) / 1000)}s ago
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Object Card (Bottom-Left) - Now only for 'Other Objects' */}
-        <AnimatePresence>
-          {showCards && objectCardContent && (
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="absolute bottom-24 left-4 md:max-w-xs p-3 bg-slate-800/20 backdrop-blur-lg rounded-lg border border-accent/20 shadow-xl z-20 max-h-[calc(50vh-5rem)] overflow-y-auto"
-            >
-              {/* Optional: Title for this card if it makes sense e.g. Other Details */} 
-              {/* <h4 className="font-semibold text-accent/90 text-md mb-2 text-center">Other Details</h4> */}
-              <div className="text-xs text-gray-300 leading-relaxed prose prose-xs prose-invert max-w-none">
-                <div className="bg-black/20 p-1.5 rounded-md">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{objectCardContent}</ReactMarkdown>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* AI Response Overlay (Bottom Card - Scene Analysis) */} 
-        <AnimatePresence>
-          {showCards && aiResponse && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="absolute bottom-24 left-4 right-4 md:left-auto md:right-8 md:max-w-sm p-4 bg-slate-800/20 backdrop-blur-lg rounded-lg border border-accent/20 shadow-2xl z-20"
-              style={{ maxHeight: "calc(100vh - 10rem - 5rem)", overflowY: "auto" }}
-            >
-              <div className="relative">
-                <div className="flex items-center justify-center mb-1"> 
-                  <h3 className="font-semibold text-sky-100 text-lg">Scene Analysis</h3>
-                </div>
-                {!isRecording && (
-                <button 
-                  onClick={() => { 
-                    setAiResponse(null); 
-                    setCapturedImagePreviewUrl(null);
-                    setObjectCardContent(null); 
-                    setIdentityInfoContent(null); // Also clear identity info
-                      setShowCards(false);
-                  }} 
-                  className="absolute -top-1 -right-1 text-gray-400 hover:text-white transition-opacity duration-200 opacity-70 hover:opacity-100 p-1 rounded-full hover:bg-white/10"
-                  aria-label="Close"
-                >
-                  <X className="h-5 w-5" />
+      {/* AI Response Overlay */} 
+      <AnimatePresence>
+        {aiResponse && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="absolute bottom-24 left-4 right-4 md:left-auto md:right-8 md:max-w-sm p-4 bg-black/70 backdrop-blur-md rounded-lg border border-gray-700 shadow-xl z-20"
+          >
+            <div className="flex justify-between items-start mb-2">
+                <h3 className="text-base font-semibold text-purple-300">NbAIl Says:</h3>
+                <button onClick={() => setAiResponse(null)} className="text-gray-400 hover:text-white -mt-1 -mr-1">
+                    <X className="h-4 w-4" />
                 </button>
-                )}
-              </div>
-              
-              <div className="text-sm text-gray-200 leading-relaxed prose prose-sm prose-invert max-w-none mt-2">
-                <div className="bg-black/20 p-1.5 rounded-md">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{aiResponse}</ReactMarkdown>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+            <p className="text-sm text-gray-200 leading-relaxed">{aiResponse}</p>
+             {/* Optional: Add TTS button here */}
+             {/* <Button size="sm" variant="ghost" className="mt-2 text-purple-300"><Volume2 className="h-4 w-4 mr-1"/> Speak</Button> */}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
         {/* Controls */} 
         <footer className="absolute bottom-0 left-0 right-0 flex items-center justify-center p-6 space-x-6 z-20 bg-gradient-to-t from-black/50 to-transparent">

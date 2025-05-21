@@ -160,7 +160,7 @@ export default function ARModeContent() { // Renamed from ARModePage
       }
       return null;
     });
-    console.log(\`Attempting to access \${isFrontCamera ? 'front' : 'rear'} camera...\`)
+    console.log(`Attempting to access ${isFrontCamera ? 'front' : 'rear'} camera...`)
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: isFrontCamera ? "user" : "environment" },
@@ -178,7 +178,7 @@ export default function ARModeContent() { // Renamed from ARModePage
         } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
             setError("No suitable camera found. Please ensure a camera is connected and enabled.");
         } else {
-           setError(\`Error accessing camera: \${err.message}\`)
+           setError(`Error accessing camera: ${err.message}`)
         }
       } else {
          setError("An unknown error occurred while accessing the camera.")
@@ -233,14 +233,14 @@ export default function ARModeContent() { // Renamed from ARModePage
   const performFaceApiAnalysis = useCallback(async (mediaElement: HTMLVideoElement | HTMLImageElement | HTMLCanvasElement | null) => {
     if (!modelsReady || !mediaElement) {
       console.warn("Face-API models not ready or media element not available for analysis.");
-      setIdentityInfoContent(prev => prev === null ? \`**Identity:**\\n- Models not ready\` : prev); 
+      setIdentityInfoContent(prev => prev === null ? `**Identity:**\n- Models not ready` : prev); 
       return null;
     }
     
     // Check if it's a video element and if it's ready
     if (mediaElement instanceof HTMLVideoElement && (mediaElement.readyState < mediaElement.HAVE_METADATA || mediaElement.paused || mediaElement.ended)) {
       console.warn("Video element not ready, paused, or ended for Face-API analysis.");
-      setIdentityInfoContent(prev => prev === null ? \`**Identity:**\\n- Video not ready\` : prev);
+      setIdentityInfoContent(prev => prev === null ? `**Identity:**\n- Video not ready` : prev);
       return null;
     }
 
@@ -273,13 +273,13 @@ export default function ARModeContent() { // Renamed from ARModePage
           }
         }
 
-        const identityText = \`**Detected Person:**\\n- Age: ~\${Math.round(age)} years\\n- Gender: \${gender.charAt(0).toUpperCase() + gender.slice(1)}\\n- Mood: \${dominantExpression.charAt(0).toUpperCase() + dominantExpression.slice(1)}\`;
+        const identityText = `**Detected Person:**\n- Age: ~${Math.round(age)} years\n- Gender: ${gender.charAt(0).toUpperCase() + gender.slice(1)}\n- Mood: ${dominantExpression.charAt(0).toUpperCase() + dominantExpression.slice(1)}`;
         setIdentityInfoContent(identityText);
         console.log("One-time Face-API Analysis Result:", { age: Math.round(age), gender, mood: dominantExpression });
         return { age: Math.round(age), gender, mood: dominantExpression }; 
       } else {
         // Improved message for no face detection
-        const blurryMessage = "**No Clear Face Detected:**\\n- Image might be blurry\\n- Face not in frame\\n- Poor lighting conditions\\n\\n*Cannot conclude identity details*";
+        const blurryMessage = "**No Clear Face Detected:**\n- Image might be blurry\n- Face not in frame\n- Poor lighting conditions\n\n*Cannot conclude identity details*";
         setIdentityInfoContent(blurryMessage);
         console.log("No human faces detected by Face-API in the captured image.");
         return null;
@@ -289,7 +289,7 @@ export default function ARModeContent() { // Renamed from ARModePage
       const errorMessage = err instanceof Error ? err.message : "Face detection failed on captured image";
       
       // Specific error handling message
-      const errorText = \`**Detection Error:**\\n- \${errorMessage}\\n- Try adjusting camera\\n- Ensure good lighting\`;
+      const errorText = `**Detection Error:**\n- ${errorMessage}\n- Try adjusting camera\n- Ensure good lighting`;
       
       setFaceApiError(errorMessage);
       setIdentityInfoContent(errorText);
@@ -301,12 +301,12 @@ export default function ARModeContent() { // Renamed from ARModePage
   const performMediaPipeAnalysis = useCallback(async (videoElement: HTMLVideoElement | null): Promise<{ objectsText: string | null; gesturesText: string | null }> => {
     if (!mediaPipeModelsReady || !objectDetector || !gestureRecognizer || !videoElement) {
       console.warn("MediaPipe models not ready or video element not available for analysis.");
-      return { objectsText: \`**Objects/Gestures:**\\n- MediaPipe not ready\`, gesturesText: null };
+      return { objectsText: `**Objects/Gestures:**\n- MediaPipe not ready`, gesturesText: null };
     }
 
     if (videoElement.readyState < videoElement.HAVE_METADATA || videoElement.paused || videoElement.ended) {
       console.warn("Video element not ready, paused, or ended for MediaPipe analysis.");
-      return { objectsText: \`**Objects/Gestures:**\\n- Video not ready\`, gesturesText: null };
+      return { objectsText: `**Objects/Gestures:**\n- Video not ready`, gesturesText: null };
     }
     
     lastVideoTimeRef.current = videoElement.currentTime;
@@ -324,13 +324,13 @@ export default function ARModeContent() { // Renamed from ARModePage
           .filter((name, index, self) => self.indexOf(name) === index); // Unique names
 
         if (detectedObjectNames.length > 0) {
-          objectsText = \`**Detected Objects:**\\n- \${detectedObjectNames.join('\\n- ')}\`;
+          objectsText = `**Detected Objects:**\n- ${detectedObjectNames.join('\n- ')}`;
         } else {
-          objectsText = "**Detected Objects:**\\n- None clearly identified";
+          objectsText = "**Detected Objects:**\n- None clearly identified";
         }
         console.log("MediaPipe Object Detection Result:", detectedObjectNames);
       } else {
-        objectsText = "**Detected Objects:**\\n- None";
+        objectsText = "**Detected Objects:**\n- None";
         console.log("No objects detected by MediaPipe.");
       }
 
@@ -352,18 +352,18 @@ export default function ARModeContent() { // Renamed from ARModePage
         const recognizedGestures = gestureRecognitionResult.gestures
           .map(gestureData => {
             const categoryName = gestureData[0]?.categoryName || "Unknown";
-            return gestureMap[categoryName] || \`\${categoryName} (Unknown)\`; // Fallback for unmapped gestures
+            return gestureMap[categoryName] || `${categoryName} (Unknown)`; // Fallback for unmapped gestures
           })
           .filter((name, index, self) => self.indexOf(name) === index && name !== "None"); // Unique and not "None"
 
         if (recognizedGestures.length > 0) {
-          gesturesText = \`**Detected Gestures:**\\n- \${recognizedGestures.join('\\n- ')}\`;
+          gesturesText = `**Detected Gestures:**\n- ${recognizedGestures.join('\n- ')}`;
         } else {
-          gesturesText = "**Detected Gestures:**\\n- None clearly identified";
+          gesturesText = "**Detected Gestures:**\n- None clearly identified";
         }
         console.log("MediaPipe Gesture Recognition Result:", recognizedGestures);
       } else {
-        gesturesText = "**Detected Gestures:**\\n- None";
+        gesturesText = "**Detected Gestures:**\n- None";
         console.log("No gestures detected by MediaPipe.");
       }
       
@@ -372,8 +372,8 @@ export default function ARModeContent() { // Renamed from ARModePage
       const mediaPipeErrorMessage = err instanceof Error ? err.message : "MediaPipe analysis failed";
       setMediaPipeError(mediaPipeErrorMessage); // Set specific MediaPipe error
       // Optionally, update objectsText/gesturesText to show error
-      objectsText = \`**Object Detection Error:**\\n- \${mediaPipeErrorMessage}\`;
-      gesturesText = \`**Gesture Recognition Error:**\\n- \${mediaPipeErrorMessage}\`;
+      objectsText = `**Object Detection Error:**\n- ${mediaPipeErrorMessage}`;
+      gesturesText = `**Gesture Recognition Error:**\n- ${mediaPipeErrorMessage}`;
     }
 
     return { objectsText, gesturesText };
@@ -383,7 +383,7 @@ export default function ARModeContent() { // Renamed from ARModePage
   const formatRecordingTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
     const secs = (seconds % 60).toString().padStart(2, '0');
-    return \`\${mins}:\${secs}\`;
+    return `${mins}:${secs}`;
   };
 
   // Capture and analyze a single frame
@@ -411,11 +411,11 @@ export default function ARModeContent() { // Renamed from ARModePage
       let combinedObjectGestureContent = "";
       if (objectsText) combinedObjectGestureContent += objectsText;
       if (gesturesText) {
-        if (combinedObjectGestureContent) combinedObjectGestureContent += "\\n\\n";
+        if (combinedObjectGestureContent) combinedObjectGestureContent += "\n\n";
         combinedObjectGestureContent += gesturesText;
       }
       if (!combinedObjectGestureContent) {
-        combinedObjectGestureContent = "**Objects & Gestures:**\\n- None detected or analysis issue.";
+        combinedObjectGestureContent = "**Objects & Gestures:**\n- None detected or analysis issue.";
       }
       setObjectCardContent(combinedObjectGestureContent);
       console.log("[captureAndAnalyzeFrame] MediaPipe analysis complete. Content:", combinedObjectGestureContent);
@@ -567,13 +567,13 @@ export default function ARModeContent() { // Renamed from ARModePage
       let combinedObjectGestureContent = "";
       if (mediaPipeAnalysisResult.objectsText) combinedObjectGestureContent += mediaPipeAnalysisResult.objectsText;
       if (mediaPipeAnalysisResult.gesturesText) {
-        if (combinedObjectGestureContent) combinedObjectGestureContent += "\\n\\n";
+        if (combinedObjectGestureContent) combinedObjectGestureContent += "\n\n";
         combinedObjectGestureContent += mediaPipeAnalysisResult.gesturesText;
       }
-      setObjectCardContent(combinedObjectGestureContent || "**Objects & Gestures:**\\n- None detected.");
+      setObjectCardContent(combinedObjectGestureContent || "**Objects & Gestures:**\n- None detected.");
     } catch (err) {
       console.error("Error in performMediaPipeAnalysis for handleAnalyzeImage:", err);
-      setObjectCardContent("**Objects & Gestures:**\\n- Analysis failed.");
+      setObjectCardContent("**Objects & Gestures:**\n- Analysis failed.");
     }
     
     try {
@@ -583,7 +583,7 @@ export default function ARModeContent() { // Renamed from ARModePage
     } catch (err) {
       console.error("Error analyzing image with Groq (handleAnalyzeImage):", err);
       const groqErrorMessage = err instanceof Error ? err.message : "An unknown error occurred during Groq analysis.";
-      setError(\`Groq analysis failed: \${groqErrorMessage}\`);
+      setError(`Groq analysis failed: ${groqErrorMessage}`);
       setAiResponse("Scene analysis failed."); // Show error in AI response card
     }
     
@@ -660,7 +660,7 @@ export default function ARModeContent() { // Renamed from ARModePage
         const mimeType = mediaRecorderRef.current?.mimeType || 'audio/webm';
         const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
         const blobSize = audioBlob.size;
-        console.log(\`Audio Blob Size: \${blobSize} bytes, Type: \${mimeType}\`);
+        console.log(`Audio Blob Size: ${blobSize} bytes, Type: ${mimeType}`);
         
         // Stop tracks *immediately* after creating blob
         audioStream.getTracks().forEach(track => track.stop());
@@ -757,7 +757,7 @@ export default function ARModeContent() { // Renamed from ARModePage
 
 
     setStatusMessage("Analyzing image with your query...")
-    console.log(\`Frame captured, analyzing with query: \\"\${transcribedQuery}\\"\`)
+    console.log(`Frame captured, analyzing with query: "${transcribedQuery}"`)
 
     // Perform all analyses for voice query as well
     let faceAnalysisResult = null;
@@ -773,20 +773,20 @@ export default function ARModeContent() { // Renamed from ARModePage
       let combinedObjectGestureContent = "";
       if (mediaPipeAnalysisResult.objectsText) combinedObjectGestureContent += mediaPipeAnalysisResult.objectsText;
       if (mediaPipeAnalysisResult.gesturesText) {
-        if (combinedObjectGestureContent) combinedObjectGestureContent += "\\n\\n"; // Add space if both exist
+        if (combinedObjectGestureContent) combinedObjectGestureContent += "\n\n";
         combinedObjectGestureContent += mediaPipeAnalysisResult.gesturesText;
       }
-      setObjectCardContent(combinedObjectGestureContent || "**Objects & Gestures:**\\n- None detected.");
+      setObjectCardContent(combinedObjectGestureContent || "**Objects & Gestures:**\n- None detected.");
     } catch (err) {
       console.error("Error in performMediaPipeAnalysis for handleAnalyzeVoice:", err);
-      setObjectCardContent("**Objects & Gestures:**\\n- Analysis failed.");
+      setObjectCardContent("**Objects & Gestures:**\n- Analysis failed.");
     }
     
     // Define the base accessibility prompt (same as in handleAnalyzeImage)
-    const basePrompt = "You are an AI that helps blind people by describing what you see in an image.\\nSpeak clearly and simply. Write your answer in first person, like you're talking to the user.\\n\\nStart by saying \\u201CI see...\\u201D\\n\\nDescribe the most important things in the image. For example: people, objects, actions, places.\\n\\nIf there is text in the image (like signs, books, screens), read it out loud in your answer.\\n\\nSpeak like a helpful friend. Use short sentences.\\n\\nOnly say what is clearly visible. Do not guess or imagine things.";
+    const basePrompt = "You are an AI that helps blind people by describing what you see in an image.\nSpeak clearly and simply. Write your answer in first person, like you're talking to the user.\n\nStart by saying \u201CI see...\u201D\n\nDescribe the most important things in the image. For example: people, objects, actions, places.\n\nIf there is text in the image (like signs, books, screens), read it out loud in your answer.\n\nSpeak like a helpful friend. Use short sentences.\n\nOnly say what is clearly visible. Do not guess or imagine things.";
 
     // Combine the base prompt with the user's query
-    const finalPrompt = \`\${basePrompt}\\n\\nBased on that description style, the user specifically asked: "\${transcribedQuery}"\`
+    const finalPrompt = `${basePrompt}\n\nBased on that description style, the user specifically asked: "${transcribedQuery}"`
     console.log("Combined Vision Prompt:", finalPrompt); // Log the combined prompt
 
     try {
@@ -820,7 +820,7 @@ export default function ARModeContent() { // Renamed from ARModePage
     } catch (err) {
       console.error("Error analyzing image with Groq (voice query):", err);
       const groqErrorMessage = err instanceof Error ? err.message : "An unknown error occurred during Groq analysis.";
-      setError(\`Groq analysis failed: \${groqErrorMessage}\`);
+      setError(`Groq analysis failed: ${groqErrorMessage}`);
       setStatusMessage(null);
     } finally {
       setIsAnalyzing(false); 
@@ -893,12 +893,12 @@ export default function ARModeContent() { // Renamed from ARModePage
                            if (!mediaPipeModelsReady) {
                                 const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm");
                                 const reloadedObjectDetector = await ObjectDetector.createFromOptions(vision, {
-                                  baseOptions: { modelAssetPath: \`/mediapipe-models/efficientdet_lite0.tflite\`, delegate: "GPU" },
+                                  baseOptions: { modelAssetPath: `/mediapipe-models/efficientdet_lite0.tflite`, delegate: "GPU" },
                                   scoreThreshold: 0.5, runningMode: "VIDEO",
                                 });
                                 setObjectDetectorState(reloadedObjectDetector); // Use correct setter
                                 const reloadedGestureRecognizer = await GestureRecognizer.createFromOptions(vision, {
-                                  baseOptions: { modelAssetPath: \`/mediapipe-models/gesture_recognizer.task\`, delegate: "GPU" },
+                                  baseOptions: { modelAssetPath: `/mediapipe-models/gesture_recognizer.task`, delegate: "GPU" },
                                   runningMode: "VIDEO", numHands: 2
                                 });
                                 setGestureRecognizerState(reloadedGestureRecognizer); // Use correct setter
@@ -910,7 +910,7 @@ export default function ARModeContent() { // Renamed from ARModePage
                            console.error("Failed to reload models:", errCatch);
                            const eMsg = errCatch instanceof Error ? errCatch.message : "Model reload failed";
                            // Determine which set of models failed or set a general error
-                           if (faceApiError) setFaceApiError(eMsg); else if (mediaPipeError) setMediaPipeError(eMsg); else setError(\`AI features reload failed: \${eMsg}.\`);
+                           if (faceApiError) setFaceApiError(eMsg); else if (mediaPipeError) setMediaPipeError(eMsg); else setError(`AI features reload failed: ${eMsg}.`);
                            setStatusMessage(null);
                          }
                        
@@ -934,7 +934,7 @@ export default function ARModeContent() { // Renamed from ARModePage
             playsInline
             muted 
             // Use absolute positioning to fill the container more reliably
-            className={\`absolute inset-0 w-full h-full object-cover \${stream ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300\`} 
+            className={`absolute inset-0 w-full h-full object-cover ${stream ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`} 
           />
            {/* Loading overlay */} 
            {!stream && !error && !faceApiError && !mediaPipeError && (!modelsReady || !mediaPipeModelsReady) && ( // Show loader if stream not ready OR models not ready and no errors
@@ -969,7 +969,7 @@ export default function ARModeContent() { // Renamed from ARModePage
             <div className="absolute top-0 left-0 right-0 h-1 bg-red-500/30 z-30">
               <div 
                 className="h-full bg-red-500 transition-all duration-1000" 
-                style={{ width: \`\${(recordingTime % 60) / 60 * 100}%\` }}
+                style={{ width: `${(recordingTime % 60) / 60 * 100}%` }}
               ></div>
             </div>
           )}
@@ -1076,7 +1076,7 @@ export default function ARModeContent() { // Renamed from ARModePage
                <>
                  <Camera className="h-6 w-6 transition-transform duration-200 group-hover:scale-110" />
                  {/* Adjust pulse condition - ensure it pulses when enabled and not doing other actions */}
-                 <span className={\`absolute inset-0 rounded-full border-2 \${!isAnalyzing && !isMicListening && !isTranscribing && !isSpeaking && !isRecording && stream && modelsReady && mediaPipeModelsReady && !error && !faceApiError && !mediaPipeError ? 'border-white/50 group-hover:border-purple-400 animate-pulse' : 'border-transparent'}\`}></span>
+                 <span className={`absolute inset-0 rounded-full border-2 ${!isAnalyzing && !isMicListening && !isTranscribing && !isSpeaking && !isRecording && stream && modelsReady && mediaPipeModelsReady && !error && !faceApiError && !mediaPipeError ? 'border-white/50 group-hover:border-purple-400 animate-pulse' : 'border-transparent'}`}></span>
                </>
              )}
            </Button>
@@ -1086,11 +1086,11 @@ export default function ARModeContent() { // Renamed from ARModePage
             size="lg"
             onClick={handleRecordToggle}
             disabled={!stream || isAnalyzing || isMicListening || isTranscribing || isSpeaking || !!error || !modelsReady || !mediaPipeModelsReady || !!faceApiError || !!mediaPipeError}
-            className={\`group rounded-full w-16 h-16 p-0 border transition-all duration-200 relative shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 \${
+            className={`group rounded-full w-16 h-16 p-0 border transition-all duration-200 relative shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 ${
               isRecording 
-                ? 'bg-red-600/50 border-red-500/70 text-white animate-pulse- yoğun' // Custom intense pulse
+                ? 'bg-red-600/50 border-red-500/70 text-white animate-pulse-yoğun' // Custom intense pulse
                 : 'bg-red-600/30 hover:bg-red-600/50 border-red-500/50 text-red-300 hover:text-white'
-            }\`}
+            }`}
             aria-label={isRecording ? "Stop Recording" : "Start Recording"}
            >
             <CircleDot className="h-6 w-6 transition-transform duration-200 group-hover:scale-110" />
@@ -1105,11 +1105,11 @@ export default function ARModeContent() { // Renamed from ARModePage
              size="lg"
              onClick={handleMicToggle} 
              disabled={!stream || isAnalyzing || isTranscribing || isSpeaking || !!error || !modelsReady || !mediaPipeModelsReady || !!faceApiError || !!mediaPipeError || isRecording}
-             className={\`group rounded-full w-12 h-12 p-0 border transition-all duration-200 relative shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 \${ 
+             className={`group rounded-full w-12 h-12 p-0 border transition-all duration-200 relative shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 ${ 
                isMicListening 
                  ? 'bg-red-600/50 border-red-500/70 text-white animate-pulse' 
                  : 'bg-purple-600/30 hover:bg-purple-600/50 border-purple-500/50 text-purple-300 hover:text-white'
-             }\`}
+             }`}
              aria-label={isMicListening ? "Stop Listening" : "Start Listening"}
            >
              {isTranscribing ? (

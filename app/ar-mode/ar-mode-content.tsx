@@ -3,13 +3,14 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Camera, Mic, Loader2, AlertTriangle, Volume2, X, RefreshCw, CircleDot } from "lucide-react"
+import { ArrowLeft, Camera, Mic, Loader2, AlertTriangle, Volume2, X, RefreshCw, CircleDot, ArrowRight } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 // Import the new service function
 import { getGroqVisionAnalysis, getGroqTranscription } from "@/lib/groq-service"
 import { speakText } from "@/lib/tts-service"
 import ReactMarkdown from 'react-markdown'
 import InfoWidget from '@/components/ar/InfoWidget'
+import React from 'react'
 
 // THESE IMPORTS ARE LIKELY NEEDED BASED ON LINTER ERRORS - ADDING THEM HERE
 import * as faceapi from 'face-api.js';
@@ -258,13 +259,13 @@ export default function ARModeContent() { // Renamed from ARModePage
           }
         }
 
-        const identityText = `**Detected Person:**\n- Age: ~${Math.round(age)} years\n- Gender: ${gender.charAt(0).toUpperCase() + gender.slice(1)}\n- Mood: ${dominantExpression.charAt(0).toUpperCase() + dominantExpression.slice(1)}`;
+        const identityText = `🎂 Age: ~${Math.round(age)} years\n👤 Gender: ${gender.charAt(0).toUpperCase() + gender.slice(1)}\n😀 Mood: ${dominantExpression.charAt(0).toUpperCase() + dominantExpression.slice(1)}`;
         setIdentityInfoContent(identityText);
         console.log("One-time Face-API Analysis Result:", { age: Math.round(age), gender, mood: dominantExpression });
         return { age: Math.round(age), gender, mood: dominantExpression }; 
       } else {
-        // Improved message for no face detection
-        const blurryMessage = "**No Clear Face Detected:**\n- Image might be blurry\n- Face not in frame\n- Poor lighting conditions\n\n*Cannot conclude identity details*";
+        // Simplified message for no face detection
+        const blurryMessage = "No Clear Face Detected Check the Lighting";
         setIdentityInfoContent(blurryMessage);
         console.log("No human faces detected by Face-API in the captured image.");
         return null;
@@ -274,7 +275,7 @@ export default function ARModeContent() { // Renamed from ARModePage
       const errorMessage = err instanceof Error ? err.message : "Face detection failed on captured image";
       
       // Specific error handling message
-      const errorText = `**Detection Error:**\n- ${errorMessage}\n- Try adjusting camera\n- Ensure good lighting`;
+      const errorText = `**Detection Error:**\n🤔 ${errorMessage}\n🤔 Try adjusting camera\n🤔 Ensure good lighting`;
       
       setFaceApiError(errorMessage);
       setIdentityInfoContent(errorText);
@@ -309,7 +310,7 @@ export default function ARModeContent() { // Renamed from ARModePage
           .filter((name, index, self) => self.indexOf(name) === index); // Unique names
 
         if (detectedObjectNames.length > 0) {
-          objectsText = `**Detected Objects:**\n- ${detectedObjectNames.join('\n- ')}`;
+          objectsText = `**Detected Objects:**\n${detectedObjectNames.map(name => `📦 ${name}`).join('\n')}`;
         } else {
           objectsText = "**Detected Objects:**\n- None clearly identified";
         }
@@ -342,7 +343,7 @@ export default function ARModeContent() { // Renamed from ARModePage
           .filter((name, index, self) => self.indexOf(name) === index && name !== "None"); // Unique and not "None"
 
         if (recognizedGestures.length > 0) {
-          gesturesText = `**Detected Gestures:**\n- ${recognizedGestures.join('\n- ')}`;
+          gesturesText = `**Detected Gestures:**\n${recognizedGestures.map(gesture => `🤚 ${gesture}`).join('\n')}`;
         } else {
           gesturesText = "**Detected Gestures:**\n- None clearly identified";
         }
@@ -885,21 +886,27 @@ export default function ARModeContent() { // Renamed from ARModePage
               </div>
             )}
             {/* Info Widget with updated styling */}
-            <div className="bg-black/40 backdrop-blur-md text-white p-2 rounded-xl shadow-md border border-white/20 text-xs space-y-1 min-w-[180px]">
-               <InfoWidget /> {/* Assuming InfoWidget only provides content, not wrapping div */}
-             </div>
-           </div>
-         </header>
+            <div className="flex items-center space-x-2">
+              <div 
+                onClick={() => router.push('/chat')}
+                className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white text-xs cursor-pointer hover:bg-white/20 transition-colors"
+              >
+                <ArrowRight className="h-3 w-3" /> Chats
+              </div>
+              <InfoWidget />
+            </div>
+          </div>
+        </header>
 
-         {/* Camera View */}
-         <div className="flex-1 relative bg-black"> {/* Ensure container has a background */}
-           {(error || faceApiError || mediaPipeError) && ( // Display general error, faceApiError or mediaPipeError
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center p-4 bg-red-900/80 backdrop-blur-sm rounded-lg max-w-md mx-auto z-50 shadow-2xl border border-red-700">
-               <AlertTriangle className="h-8 w-8 text-red-300 mx-auto mb-2" />
-               <p className="text-red-100 font-semibold mb-1">Error Encountered</p>
-               <p className="text-red-200 text-sm">{error || faceApiError || mediaPipeError}</p>
-               {/* Show Try Again only for camera errors OR model loading errors */}
-               {( (error && error.includes("camera")) || faceApiError || mediaPipeError ) && 
+        {/* Camera View */}
+        <div className="flex-1 relative bg-black"> {/* Ensure container has a background */}
+          {(error || faceApiError || mediaPipeError) && ( // Display general error, faceApiError or mediaPipeError
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center p-4 bg-red-900/80 backdrop-blur-sm rounded-lg max-w-md mx-auto z-50 shadow-2xl border border-red-700">
+              <AlertTriangle className="h-8 w-8 text-red-300 mx-auto mb-2" />
+              <p className="text-red-100 font-semibold mb-1">Error Encountered</p>
+              <p className="text-red-200 text-sm">{error || faceApiError || mediaPipeError}</p>
+              {/* Show Try Again only for camera errors OR model loading errors */}
+              {( (error && error.includes("camera")) || faceApiError || mediaPipeError ) && 
                   <Button 
                     onClick={async () => { // Make async for await
                       if ((faceApiError && !modelsReady) || (mediaPipeError && !mediaPipeModelsReady) ) { // If models failed to load, try re-init
@@ -1000,77 +1007,186 @@ export default function ARModeContent() { // Renamed from ARModePage
            <canvas ref={canvasRef} style={{ display: "none" }}></canvas>
          </div>
 
-         {/* Cards Container - Positioned below camera or as overlay */}
-         <div className="absolute inset-x-0 bottom-24 z-20 flex justify-center p-4 pointer-events-none">
-            <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-4 pointer-events-auto">
-              {/* Detected Person Card */}
+         {/* Detected Person Card - Top Left */}
+         <div className="absolute top-4 left-4 z-20 pointer-events-none">
+            <div className="w-64 pointer-events-auto">
               <AnimatePresence>
                 {showCards && (capturedImagePreviewUrl || identityInfoContent) && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 20 }}
-                    className="p-2 md:p-3 bg-black/40 backdrop-blur-md rounded-xl border border-accent/30 shadow-md flex flex-col space-y-1 max-h-[calc(50vh-5rem)] overflow-y-auto"
+                    className="bg-black/29 backdrop-blur-sm rounded-3xl border border-white/20 shadow-md w-full max-w-xs p-4 h-64 overflow-y-auto"
                   >
-                    <h3 className="text-base font-bold text-white text-center">Detected Person:</h3>
-                    {capturedImagePreviewUrl &&
-                      <img src={capturedImagePreviewUrl} alt="Captured scene" className="rounded-md w-full h-auto object-contain max-h-24 md:max-h-32" />
-                    }
+                    {/* Image Section */}
+                    <div className="flex flex-col items-center">
+                      <div className="w-full flex justify-between items-center mb-1">
+                        <p className="text-sm font-semibold text-white text-center flex-grow">
+                          {capturedImagePreviewUrl ? "Identity Snapshot" : "Detecting..."}
+                        </p>
+                      </div>
+                      {capturedImagePreviewUrl && (
+                        <img 
+                          src={capturedImagePreviewUrl} 
+                          alt="Captured scene" 
+                          className="w-[calc(100%-8px)] h-[calc(100%-80px)] object-cover rounded-2xl border border-white/20 mx-auto" 
+                        />
+                      )}
+                    </div>
+
+                    {/* Identity Traits Pills */}
                     {identityInfoContent && (
-                      <div className="text-xs text-slate-200 bg-black/20 p-1.5 rounded-md whitespace-pre-wrap prose prose-sm prose-invert">
-                        <ReactMarkdown>{identityInfoContent}</ReactMarkdown>
+                      <div className="flex flex-wrap gap-2">
+                        {identityInfoContent.split('\n').map((trait, index) => {
+                          const cleanTrait = trait.replace('- ', '');
+                          let icon = '🤔';
+                          if (cleanTrait.includes('Age')) icon = '🎂';
+                          if (cleanTrait.includes('Gender')) icon = '👤';
+                          if (cleanTrait.includes('Mood')) icon = '😀';
+
+                          return (
+                            <div 
+                              key={index} 
+                              className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white text-xs backdrop:blur-md"
+                            >
+                              {icon} {cleanTrait}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
+
+                    {!identityInfoContent && (
+                      <div className="flex flex-wrap gap-2">
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white text-xs">
+                          🤔 No Clear Face Detected
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Footer */}
+                    <p className="text-[10px] text-gray-500 text-center mt-2">
+                      Detected by NbAIl
+                    </p>
                   </motion.div>
                 )}
               </AnimatePresence>
+            </div>
+         </div>
 
-              {/* Detected Objects/Gestures Card */}
+         {/* Objects & Gestures Card - Bottom Left */}
+         <div className="absolute bottom-4 left-4 z-20 pointer-events-none">
+            <div className="w-64 pointer-events-auto">
               <AnimatePresence>
                 {showCards && objectCardContent && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 20 }}
-                    className="p-2 md:p-3 bg-black/40 backdrop-blur-md rounded-xl border border-accent/30 shadow-md max-h-[calc(50vh-5rem)] overflow-y-auto"
+                    className="bg-black/29 backdrop-blur-sm rounded-3xl border border-white/20 shadow-md w-full max-w-xs p-4"
                   >
-                    <h3 className="text-base font-bold text-white text-center">Detected Objects/Gestures:</h3>
-                    <div className="text-xs text-slate-200 bg-black/20 p-1.5 rounded-md whitespace-pre-wrap prose prose-sm prose-invert">
-                      <ReactMarkdown>{objectCardContent}</ReactMarkdown>
+                    <h2 className="text-white text-sm font-semibold mb-2">Objects & Gestures</h2>
+
+                    {objectCardContent && (
+                      <>
+                        <h3 className="text-xs text-gray-300 mb-1">Detected Objects</h3>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {objectCardContent.includes("Detected Objects:") && 
+                            objectCardContent.split("\n")
+                              .filter(line => line.trim().startsWith("- "))
+                              .map((item, index) => (
+                                <span 
+                                  key={index} 
+                                  className="px-3 py-1 rounded-full bg-white/10 text-white text-xs"
+                                >
+                                  {item.replace("- ", "")}
+                                </span>
+                              ))
+                          }
                     </div>
+
+                        <h3 className="text-xs text-gray-300 mb-1">Detected Gestures</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {objectCardContent.includes("Detected Gestures:") && 
+                            objectCardContent.split("\n")
+                              .filter(line => line.trim().startsWith("- ") && line.trim() !== "- None")
+                              .map((item, index) => (
+                                <span 
+                                  key={index} 
+                                  className="px-3 py-1 rounded-full bg-white/10 text-white text-xs"
+                                >
+                                  {item.replace("- ", "")}
+                                </span>
+                              ))
+                          }
+                          {(!objectCardContent.includes("Detected Gestures:") || 
+                            objectCardContent.includes("- None")) && (
+                            <span className="px-3 py-1 rounded-full bg-white/10 text-white text-xs opacity-50">
+                              No gestures detected
+                            </span>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
+            </div>
+         </div>
 
-              {/* Scene Analysis Card */}
+         {/* Scene Analysis Card - Bottom Right */}
+         <div className="absolute bottom-4 right-4 z-20 pointer-events-none">
+            <div className="w-64 pointer-events-auto">
               <AnimatePresence>
                 {showCards && aiResponse && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 20 }}
-                    className="md:col-span-2 p-2 md:p-3 bg-black/40 backdrop-blur-md rounded-xl border border-accent/30 shadow-md max-h-[calc(50vh-5rem)] overflow-y-auto"
+                    className="bg-black/29 backdrop-blur-sm rounded-3xl border border-white/20 shadow-md w-full max-w-sm p-4 h-82 overflow-y-auto"
                   >
-                    <div className="flex justify-between items-start mb-1 space-x-2">
-                        <h3 className="text-base font-bold text-white">Scene Analysis:</h3>
-                        {/* Hide close button during recording for AI response card to prevent accidental closure */}
+                    <div className="flex justify-between items-start mb-2 space-x-2">
+                        <h3 className="text-sm font-semibold text-white">Scene Analysis</h3>
                         {!isRecording && (
                             <button
-                                onClick={() => {
-                                    setAiResponse(null);
-                                    // Optionally clear other related states if this card is closed independently
-                                    // setCapturedImagePreviewUrl(null);
-                                    // setObjectCardContent(null);
-                                    // setIdentityInfoContent(null);
-                                }}
+                                onClick={() => setAiResponse(null)}
                                 className="text-gray-400 hover:text-white -mt-1 -mr-1"
                             >
-                                <X className="h-4 w-4" />
+                                <X className="h-3 w-3" />
                             </button>
                         )}
                     </div>
-                    <div className="text-xs text-slate-200 bg-black/20 p-1.5 rounded-md whitespace-pre-wrap leading-relaxed prose prose-sm prose-invert">
-                          <ReactMarkdown>{aiResponse}</ReactMarkdown>
+                    <div className="text-white text-sm leading-snug max-h-40 overflow-y-auto">
+                      {aiResponse && (
+                        <ReactMarkdown 
+                          components={{
+                            p: ({node, children, ...props}) => {
+                              // Safely handle children
+                              const processText = (text: string) => 
+                                text.split(/\s+/).map((word, wordIndex) => 
+                                  word.length > 5 
+                                    ? <span key={`word-${wordIndex}`} className="font-semibold">{word} </span>
+                                    : <span key={`word-${wordIndex}`}>{word} </span>
+                                );
+
+                              const processChild = (child: React.ReactNode, index: number) => {
+                                if (typeof child === 'string') {
+                                  return processText(child);
+                                }
+                                return child;
+                              };
+
+                              return (
+                                <p className="mb-2 font-normal">
+                                  {React.Children.map(children, processChild)}
+                                </p>
+                              );
+                            }
+                          }}
+                        >
+                          {aiResponse}
+                        </ReactMarkdown>
+                      )}
                         </div>
                    </motion.div>
                  )}
@@ -1124,7 +1240,7 @@ export default function ARModeContent() { // Renamed from ARModePage
              >
               <CircleDot className="h-6 w-6 transition-transform duration-200 group-hover:scale-110" />
               {/* Pulsing effect when idle and enabled (and not recording) */}
-              {!isAnalyzing && !isMicListening && !isTranscribing && !isSpeaking && !isRecording && !error && stream && modelsReady && mediaPipeModelsReady && !faceApiError && !mediaPipeError && (
+              {!isAnalyzing && !isMicListening && !isTranscribing && !isSpeaking && !error && stream && modelsReady && mediaPipeModelsReady && !isRecording && !faceApiError && !mediaPipeError && (
                   <span className="absolute inset-0 rounded-full border-2 border-red-500/80 animate-pulse group-hover:border-white/50"></span>
                )}
              </Button>

@@ -114,10 +114,9 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-gray-300 text-xl mb-8 max-w-2xl mx-auto"
+            className="text-gray-300 text-[17px] font-light mb-8 max-w-2xl mx-auto"
           >
-            Designed to understand text, voice, and screen in real-time. Built for creators, researchers, and everyday
-            users.
+            Real-time understanding of text, voice, and screen—made for creators, researchers, and everyone.
           </motion.p>
 
           <motion.div

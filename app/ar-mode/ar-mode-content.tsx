@@ -535,6 +535,7 @@ export default function ARModeContent() { // Renamed from ARModePage
     }
     setCapturedImagePreviewUrl(imageDataUrl); // Show captured image immediately
 
+
     setStatusMessage("Analyzing image...")
     console.log("Frame captured, sending for analysis...")
 
@@ -863,14 +864,14 @@ export default function ARModeContent() { // Renamed from ARModePage
     // Conditional rendering based on isClient is handled by the early return
     // So, this JSX assumes it's client-side.
       <div className="flex flex-col h-screen bg-black text-white relative overflow-hidden">
-        {/* Header */} 
+        {/* Header */}
         <header className="absolute top-0 left-0 right-0 flex items-start justify-between p-4 z-20 bg-gradient-to-b from-black/50 to-transparent">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => router.back()}
             className="text-white bg-white/10 hover:bg-white/20 rounded-full"
-            disabled={(!modelsReady && !mediaPipeModelsReady && !error && !mediaPipeError) || isRecording} 
+            disabled={(!modelsReady && !mediaPipeModelsReady && !error && !mediaPipeError) || isRecording}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -883,266 +884,275 @@ export default function ARModeContent() { // Renamed from ARModePage
                 <span className="text-sm font-mono">{formatRecordingTime(recordingTime)}</span>
               </div>
             )}
-            <InfoWidget />
-          </div>
-        </header>
+            {/* Info Widget with updated styling */}
+            <div className="bg-black/40 backdrop-blur-md text-white p-2 rounded-xl shadow-md border border-white/20 text-xs space-y-1 min-w-[180px]">
+               <InfoWidget /> {/* Assuming InfoWidget only provides content, not wrapping div */}
+             </div>
+           </div>
+         </header>
 
-        {/* Camera View */} 
-        <div className="flex-1 relative bg-black"> {/* Ensure container has a background */} 
-          {(error || faceApiError || mediaPipeError) && ( // Display general error, faceApiError or mediaPipeError
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center p-4 bg-red-900/80 backdrop-blur-sm rounded-lg max-w-md mx-auto z-50 shadow-2xl border border-red-700">
-              <AlertTriangle className="h-8 w-8 text-red-300 mx-auto mb-2" />
-              <p className="text-red-100 font-semibold mb-1">Error Encountered</p>
-              <p className="text-red-200 text-sm">{error || faceApiError || mediaPipeError}</p>
-              {/* Show Try Again only for camera errors OR model loading errors */}
-              {( (error && error.includes("camera")) || faceApiError || mediaPipeError ) && 
-                 <Button 
-                   onClick={async () => { // Make async for await
-                     if ((faceApiError && !modelsReady) || (mediaPipeError && !mediaPipeModelsReady) ) { // If models failed to load, try re-init
-                       try {
-                           setStatusMessage("Reloading AI models...");
-                           setError(null); 
-                           setFaceApiError(null);
-                           setMediaPipeError(null);
-                           
-                           if (!modelsReady) { // Check specific to face-api
-                            await loadModels(); 
-                           }
-                           // Re-init MediaPipe (simplified, assumes paths are correct)
-                           if (!mediaPipeModelsReady) {
-                                const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm");
-                                const reloadedObjectDetector = await ObjectDetector.createFromOptions(vision, {
-                                  baseOptions: { modelAssetPath: `/mediapipe-models/efficientdet_lite0.tflite`, delegate: "GPU" },
-                                  scoreThreshold: 0.5, runningMode: "VIDEO",
-                                });
-                                setObjectDetectorState(reloadedObjectDetector); // Use correct setter
-                                const reloadedGestureRecognizer = await GestureRecognizer.createFromOptions(vision, {
-                                  baseOptions: { modelAssetPath: `/mediapipe-models/gesture_recognizer.task`, delegate: "GPU" },
-                                  runningMode: "VIDEO", numHands: 2
-                                });
-                                setGestureRecognizerState(reloadedGestureRecognizer); // Use correct setter
-                                setMediaPipeModelsReady(true);
-                                console.log("MediaPipe models reloaded.");
-                           }
-                           setStatusMessage(null);
-                         } catch (errCatch) {
-                           console.error("Failed to reload models:", errCatch);
-                           const eMsg = errCatch instanceof Error ? errCatch.message : "Model reload failed";
-                           // Determine which set of models failed or set a general error
-                           if (faceApiError) setFaceApiError(eMsg); else if (mediaPipeError) setMediaPipeError(eMsg); else setError(`AI features reload failed: ${eMsg}.`);
-                           setStatusMessage(null);
-                         }
-                       
-                     } else if (error && error.includes("camera")) { // If it's a camera error
-                       setupCamera();
-                     }
-                   }} 
-                   size="sm" 
-                   variant="destructive" 
-                   className="mt-3 bg-red-600 hover:bg-red-500 text-white"
-                 >
-                   Try Again
-                 </Button>
-              }
-            </div>
-          )}
-          {/* Video element must be rendered even if there's an error for setupCamera to attach to */}
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted 
-            // Use absolute positioning to fill the container more reliably
-            className={`absolute inset-0 w-full h-full object-cover ${stream ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`} 
-          />
-           {/* Loading overlay */} 
-           {!stream && !error && !faceApiError && !mediaPipeError && (!modelsReady || !mediaPipeModelsReady) && ( // Show loader if stream not ready OR models not ready and no errors
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 z-40">
-                  <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                  <p className="text-gray-400 mt-2 text-sm">Initializing AI models & camera...</p>
-              </div>
-          )}
-          {/* Status Overlay - Modified to show recording status */} 
-          <AnimatePresence>
-            {(statusMessage || isRecording) && (
-              <motion.div
-                key="status-overlay"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-x-0 top-16 flex justify-center z-30 pointer-events-none"
-              >
-                <div className="bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm flex items-center space-x-2">
-                  {isMicListening && <Mic className="h-4 w-4 text-red-500 animate-pulse" />} 
-                  {isTranscribing && <Loader2 className="h-4 w-4 animate-spin" />} 
-                  {isAnalyzing && !isSpeaking && !isRecording && <Loader2 className="h-4 w-4 animate-spin" />} 
-                  {isSpeaking && <Volume2 className="h-4 w-4 text-green-400 animate-pulse" />}
-                  {isRecording && statusMessage?.startsWith("Smart recording") && <span className="h-3 w-3 bg-red-500 rounded-full animate-pulse"></span>}
-                  <span>{statusMessage || (isRecording ? "Recording..." : "")}</span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          {/* Recording Progress Bar */}
-          {isRecording && (
-            <div className="absolute top-0 left-0 right-0 h-1 bg-red-500/30 z-30">
-              <div 
-                className="h-full bg-red-500 transition-all duration-1000" 
-                style={{ width: `${(recordingTime % 60) / 60 * 100}%` }}
-              ></div>
-            </div>
-          )}
-          {/* Hidden canvas for frame capture */}
-          <canvas ref={canvasRef} style={{ display: "none" }}></canvas>
-        </div>
+         {/* Camera View */}
+         <div className="flex-1 relative bg-black"> {/* Ensure container has a background */}
+           {(error || faceApiError || mediaPipeError) && ( // Display general error, faceApiError or mediaPipeError
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center p-4 bg-red-900/80 backdrop-blur-sm rounded-lg max-w-md mx-auto z-50 shadow-2xl border border-red-700">
+               <AlertTriangle className="h-8 w-8 text-red-300 mx-auto mb-2" />
+               <p className="text-red-100 font-semibold mb-1">Error Encountered</p>
+               <p className="text-red-200 text-sm">{error || faceApiError || mediaPipeError}</p>
+               {/* Show Try Again only for camera errors OR model loading errors */}
+               {( (error && error.includes("camera")) || faceApiError || mediaPipeError ) && 
+                  <Button 
+                    onClick={async () => { // Make async for await
+                      if ((faceApiError && !modelsReady) || (mediaPipeError && !mediaPipeModelsReady) ) { // If models failed to load, try re-init
+                        try {
+                            setStatusMessage("Reloading AI models...");
+                            setError(null); 
+                            setFaceApiError(null);
+                            setMediaPipeError(null);
+                            
+                            if (!modelsReady) { // Check specific to face-api
+                             await loadModels(); 
+                            }
+                            // Re-init MediaPipe (simplified, assumes paths are correct)
+                            if (!mediaPipeModelsReady) {
+                                 const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm");
+                                 const reloadedObjectDetector = await ObjectDetector.createFromOptions(vision, {
+                                   baseOptions: { modelAssetPath: `/mediapipe-models/efficientdet_lite0.tflite`, delegate: "GPU" },
+                                   scoreThreshold: 0.5, runningMode: "VIDEO",
+                                 });
+                                 setObjectDetectorState(reloadedObjectDetector); // Use correct setter
+                                 const reloadedGestureRecognizer = await GestureRecognizer.createFromOptions(vision, {
+                                   baseOptions: { modelAssetPath: `/mediapipe-models/gesture_recognizer.task`, delegate: "GPU" },
+                                   runningMode: "VIDEO", numHands: 2
+                                 });
+                                 setGestureRecognizerState(reloadedGestureRecognizer); // Use correct setter
+                                 setMediaPipeModelsReady(true);
+                                 console.log("MediaPipe models reloaded.");
+                            }
+                            setStatusMessage(null);
+                          } catch (errCatch) {
+                            console.error("Failed to reload models:", errCatch);
+                            const eMsg = errCatch instanceof Error ? errCatch.message : "Model reload failed";
+                            // Determine which set of models failed or set a general error
+                            if (faceApiError) setFaceApiError(eMsg); else if (mediaPipeError) setMediaPipeError(eMsg); else setError(`AI features reload failed: ${eMsg}.`);
+                            setStatusMessage(null);
+                          }
+                        
+                      } else if (error && error.includes("camera")) { // If it's a camera error
+                        setupCamera();
+                      }
+                    }} 
+                    size="sm" 
+                    variant="destructive" 
+                    className="mt-3 bg-red-600 hover:bg-red-500 text-white"
+                  >
+                    Try Again
+                  </Button>
+               }
+             </div>
+           )}
+           {/* Video element must be rendered even if there's an error for setupCamera to attach to */}
+           <video
+             ref={videoRef}
+             autoPlay
+             playsInline
+             muted 
+             // Use absolute positioning to fill the container more reliably
+             className={`absolute inset-0 w-full h-full object-cover ${stream ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`} 
+           />
+            {/* Loading overlay */} 
+            {!stream && !error && !faceApiError && !mediaPipeError && (!modelsReady || !mediaPipeModelsReady) && ( // Show loader if stream not ready OR models not ready and no errors
+               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 z-40">
+                   <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                   <p className="text-gray-400 mt-2 text-sm">Initializing AI models & camera...</p>
+               </div>
+           )}
+           {/* Status Overlay - Modified to show recording status */} 
+           <AnimatePresence>
+             {(statusMessage || isRecording) && (
+               <motion.div
+                 key="status-overlay"
+                 initial={{ opacity: 0 }}
+                 animate={{ opacity: 1 }}
+                 exit={{ opacity: 0 }}
+                 className="absolute inset-x-0 top-16 flex justify-center z-30 pointer-events-none"
+               >
+                 <div className="bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm flex items-center space-x-2">
+                   {isMicListening && <Mic className="h-4 w-4 text-red-500 animate-pulse" />} 
+                   {isTranscribing && <Loader2 className="h-4 w-4 animate-spin" />} 
+                   {isAnalyzing && !isSpeaking && !isRecording && <Loader2 className="h-4 w-4 animate-spin" />} 
+                   {isSpeaking && <Volume2 className="h-4 w-4 text-green-400 animate-pulse" />}
+                   {isRecording && statusMessage?.startsWith("Smart recording") && <span className="h-3 w-3 bg-red-500 rounded-full animate-pulse"></span>}
+                   <span>{statusMessage || (isRecording ? "Recording..." : "")}</span>
+                 </div>
+               </motion.div>
+             )}
+           </AnimatePresence>
+           {/* Recording Progress Bar */}
+           {isRecording && (
+             <div className="absolute top-0 left-0 right-0 h-1 bg-red-500/30 z-30">
+               <div 
+                 className="h-full bg-red-500 transition-all duration-1000" 
+                 style={{ width: `${(recordingTime % 60) / 60 * 100}%` }}
+               ></div>
+             </div>
+           )}
+           {/* Hidden canvas for frame capture */}
+           <canvas ref={canvasRef} style={{ display: "none" }}></canvas>
+         </div>
 
-        {/* Top-Left Captured Image Preview Card - Now includes identity info */}
-        <AnimatePresence>
-          {showCards && (capturedImagePreviewUrl || identityInfoContent) && ( // Show if either image OR identity info is present
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="absolute top-20 left-4 md:max-w-sm p-3 bg-slate-800/30 backdrop-blur-xl rounded-lg border border-accent/30 shadow-lg z-30 flex flex-col space-y-2 max-h-[calc(100vh-10rem-5rem)] overflow-y-auto"
-            >
-              {capturedImagePreviewUrl && 
-                <img src={capturedImagePreviewUrl} alt="Captured scene" className="rounded-md w-full h-auto object-contain object-left max-h-24 md:max-h-32" />
-              }
-              {identityInfoContent && (
-                <div className="text-xs text-slate-200 bg-black/20 p-2 rounded-md whitespace-pre-wrap">
-                  {identityInfoContent}
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Object Card (Bottom-Left) */}
-        <AnimatePresence>
-          {showCards && objectCardContent && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="absolute bottom-24 left-4 md:max-w-xs p-3 bg-slate-800/30 backdrop-blur-lg rounded-lg border border-accent/30 shadow-xl z-20 max-h-[calc(50vh-5rem)] overflow-y-auto"
-            >
-              <div className="text-xs text-slate-200 bg-black/20 p-2 rounded-md whitespace-pre-wrap">
-                {objectCardContent}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-
-      {/* AI Response Overlay (Bottom-Right Scene Analysis) */} 
-      <AnimatePresence>
-        {showCards && aiResponse && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="absolute bottom-24 right-4 md:max-w-sm p-3 bg-slate-800/30 backdrop-blur-lg rounded-lg border border-accent/30 shadow-2xl z-20 max-h-[calc(50vh-5rem)] overflow-y-auto"
-          >
-            <div className="flex justify-between items-start mb-1">
-                <h3 className="text-sm font-semibold text-purple-300">Scene Analysis:</h3>
-                {/* Hide close button during recording for AI response card to prevent accidental closure */}
-                {!isRecording && (
-                    <button 
-                        onClick={() => {
-                            setAiResponse(null); 
-                            // Optionally clear other related states if this card is closed independently
-                            // setCapturedImagePreviewUrl(null); 
-                            // setObjectCardContent(null); 
-                            // setIdentityInfoContent(null);
-                        }} 
-                        className="text-gray-400 hover:text-white -mt-1 -mr-1"
-                    >
-                        <X className="h-4 w-4" />
-                    </button>
+         {/* Cards Container - Positioned below camera or as overlay */}
+         <div className="absolute inset-x-0 bottom-24 z-20 flex justify-center p-4 pointer-events-none">
+            <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-4 pointer-events-auto">
+              {/* Detected Person Card */}
+              <AnimatePresence>
+                {showCards && (capturedImagePreviewUrl || identityInfoContent) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    className="p-2 md:p-3 bg-black/40 backdrop-blur-md rounded-xl border border-accent/30 shadow-md flex flex-col space-y-1 max-h-[calc(50vh-5rem)] overflow-y-auto"
+                  >
+                    <h3 className="text-base font-bold text-white text-center">Detected Person:</h3>
+                    {capturedImagePreviewUrl &&
+                      <img src={capturedImagePreviewUrl} alt="Captured scene" className="rounded-md w-full h-auto object-contain max-h-24 md:max-h-32" />
+                    }
+                    {identityInfoContent && (
+                      <div className="text-xs text-slate-200 bg-black/20 p-1.5 rounded-md whitespace-pre-wrap prose prose-sm prose-invert">
+                        <ReactMarkdown>{identityInfoContent}</ReactMarkdown>
+                      </div>
+                    )}
+                  </motion.div>
                 )}
+              </AnimatePresence>
+
+              {/* Detected Objects/Gestures Card */}
+              <AnimatePresence>
+                {showCards && objectCardContent && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    className="p-2 md:p-3 bg-black/40 backdrop-blur-md rounded-xl border border-accent/30 shadow-md max-h-[calc(50vh-5rem)] overflow-y-auto"
+                  >
+                    <h3 className="text-base font-bold text-white text-center">Detected Objects/Gestures:</h3>
+                    <div className="text-xs text-slate-200 bg-black/20 p-1.5 rounded-md whitespace-pre-wrap prose prose-sm prose-invert">
+                      <ReactMarkdown>{objectCardContent}</ReactMarkdown>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Scene Analysis Card */}
+              <AnimatePresence>
+                {showCards && aiResponse && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    className="md:col-span-2 p-2 md:p-3 bg-black/40 backdrop-blur-md rounded-xl border border-accent/30 shadow-md max-h-[calc(50vh-5rem)] overflow-y-auto"
+                  >
+                    <div className="flex justify-between items-start mb-1 space-x-2">
+                        <h3 className="text-base font-bold text-white">Scene Analysis:</h3>
+                        {/* Hide close button during recording for AI response card to prevent accidental closure */}
+                        {!isRecording && (
+                            <button
+                                onClick={() => {
+                                    setAiResponse(null);
+                                    // Optionally clear other related states if this card is closed independently
+                                    // setCapturedImagePreviewUrl(null);
+                                    // setObjectCardContent(null);
+                                    // setIdentityInfoContent(null);
+                                }}
+                                className="text-gray-400 hover:text-white -mt-1 -mr-1"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
+                    </div>
+                    <div className="text-xs text-slate-200 bg-black/20 p-1.5 rounded-md whitespace-pre-wrap leading-relaxed prose prose-sm prose-invert">
+                          <ReactMarkdown>{aiResponse}</ReactMarkdown>
+                        </div>
+                   </motion.div>
+                 )}
+              </AnimatePresence>
             </div>
-            <div className="text-xs text-slate-200 bg-black/20 p-2 rounded-md whitespace-pre-wrap leading-relaxed prose prose-sm prose-invert">
-                <ReactMarkdown>{aiResponse}</ReactMarkdown>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
 
-        {/* Controls */} 
-        <footer className="absolute bottom-0 left-0 right-0 flex items-center justify-center p-6 space-x-3 md:space-x-4 z-20 bg-gradient-to-t from-black/50 to-transparent">
-           {/* Camera Toggle Button */}
-           <Button
-             size="lg"
-             onClick={handleFlipCamera}
-             disabled={!stream || isAnalyzing || isMicListening || isTranscribing || isSpeaking || !!error || !modelsReady || !mediaPipeModelsReady || !!faceApiError || !!mediaPipeError || isRecording}
-             className="group rounded-full w-12 h-12 p-0 bg-white/20 hover:bg-white/30 border border-white/30 text-white disabled:opacity-50 transition-all duration-200 relative shadow-lg hover:shadow-purple-500/30 hover:border-purple-400"
-             aria-label="Toggle Camera"
-           >
-             <RefreshCw className="h-5 w-5" />
-           </Button>
+          {/* Controls */}
+          <footer className="absolute bottom-0 left-0 right-0 flex items-center justify-center p-6 space-x-3 md:space-x-4 z-20 bg-gradient-to-t from-black/50 to-transparent">
+             {/* Camera Toggle Button */}
+             <Button
+               size="lg"
+               onClick={handleFlipCamera}
+               disabled={!stream || isAnalyzing || isMicListening || isTranscribing || isSpeaking || !!error || !modelsReady || !mediaPipeModelsReady || !!faceApiError || !!mediaPipeError || isRecording}
+               className="group rounded-full w-12 h-12 p-0 bg-white/20 hover:bg-white/30 border border-white/30 text-white disabled:opacity-50 transition-all duration-200 relative shadow-lg hover:shadow-purple-500/30 hover:border-purple-400"
+               aria-label="Toggle Camera"
+             >
+               <RefreshCw className="h-5 w-5" />
+             </Button>
 
-           {/* Camera Button (Analyze Image) */} 
-           <Button
-             size="lg"
-             onClick={handleAnalyzeImage}
-             disabled={!stream || isAnalyzing || isMicListening || isTranscribing || isSpeaking || !!error || !modelsReady || !mediaPipeModelsReady || !!faceApiError || !!mediaPipeError || isRecording}
-             className="group rounded-full w-16 h-16 p-0 bg-white/20 hover:bg-white/30 border border-white/30 text-white disabled:opacity-50 transition-all duration-200 relative shadow-lg hover:shadow-purple-500/30 hover:border-purple-400"
-             aria-label="Analyze Image"
-           >
-             {isAnalyzing && !isMicListening && !isTranscribing && !isSpeaking && !isRecording ? (
-               <Loader2 className="h-6 w-6 animate-spin" />
-             ) : (
-               <>
-                 <Camera className="h-6 w-6 transition-transform duration-200 group-hover:scale-110" />
-                 {/* Adjust pulse condition - ensure it pulses when enabled and not doing other actions */}
-                 <span className={`absolute inset-0 rounded-full border-2 ${!isAnalyzing && !isMicListening && !isTranscribing && !isSpeaking && !isRecording && stream && modelsReady && mediaPipeModelsReady && !error && !faceApiError && !mediaPipeError ? 'border-white/50 group-hover:border-purple-400 animate-pulse' : 'border-transparent'}`}></span>
-               </>
-             )}
-           </Button>
+             {/* Camera Button (Analyze Image) */} 
+             <Button
+               size="lg"
+               onClick={handleAnalyzeImage}
+               disabled={!stream || isAnalyzing || isMicListening || isTranscribing || isSpeaking || !!error || !modelsReady || !mediaPipeModelsReady || !!faceApiError || !!mediaPipeError || isRecording}
+               className="group rounded-full w-16 h-16 p-0 bg-white/20 hover:bg-white/30 border border-white/30 text-white disabled:opacity-50 transition-all duration-200 relative shadow-lg hover:shadow-purple-500/30 hover:border-purple-400"
+               aria-label="Analyze Image"
+             >
+               {isAnalyzing && !isMicListening && !isTranscribing && !isSpeaking && !isRecording ? (
+                 <Loader2 className="h-6 w-6 animate-spin" />
+               ) : (
+                 <>
+                   <Camera className="h-6 w-6 transition-transform duration-200 group-hover:scale-110" />
+                   {/* Adjust pulse condition - ensure it pulses when enabled and not doing other actions */}
+                   <span className={`absolute inset-0 rounded-full border-2 ${!isAnalyzing && !isMicListening && !isTranscribing && !isSpeaking && !isRecording && stream && modelsReady && mediaPipeModelsReady && !error && !faceApiError && !mediaPipeError ? 'border-white/50 group-hover:border-purple-400 animate-pulse' : 'border-transparent'}`}></span>
+                 </>
+               )}
+             </Button>
 
-           {/* Record Button */}
-           <Button
-            size="lg"
-            onClick={handleRecordToggle}
-            disabled={!stream || isAnalyzing || isMicListening || isTranscribing || isSpeaking || !!error || !modelsReady || !mediaPipeModelsReady || !!faceApiError || !!mediaPipeError}
-            className={`group rounded-full w-16 h-16 p-0 border transition-all duration-200 relative shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 ${
-              isRecording 
-                ? 'bg-red-600/50 border-red-500/70 text-white animate-pulse-yoğun' // Custom intense pulse
-                : 'bg-red-600/30 hover:bg-red-600/50 border-red-500/50 text-red-300 hover:text-white'
-            }`}
-            aria-label={isRecording ? "Stop Recording" : "Start Recording"}
-           >
-            <CircleDot className="h-6 w-6 transition-transform duration-200 group-hover:scale-110" />
-            {/* Pulsing effect when idle and enabled (and not recording) */}
-            {!isAnalyzing && !isMicListening && !isTranscribing && !isSpeaking && !isRecording && !error && stream && modelsReady && mediaPipeModelsReady && !faceApiError && !mediaPipeError && (
-                <span className="absolute inset-0 rounded-full border-2 border-red-500/80 animate-pulse group-hover:border-white/50"></span>
-             )}
-           </Button>
+             {/* Record Button */}
+             <Button
+              size="lg"
+              onClick={handleRecordToggle}
+              disabled={!stream || isAnalyzing || isMicListening || isTranscribing || isSpeaking || !!error || !modelsReady || !mediaPipeModelsReady || !!faceApiError || !!mediaPipeError}
+              className={`group rounded-full w-16 h-16 p-0 border transition-all duration-200 relative shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 ${
+                isRecording 
+                  ? 'bg-red-600/50 border-red-500/70 text-white animate-pulse-yoğun' // Custom intense pulse
+                  : 'bg-red-600/30 hover:bg-red-600/50 border-red-500/50 text-red-300 hover:text-white'
+              }`}
+              aria-label={isRecording ? "Stop Recording" : "Start Recording"}
+             >
+              <CircleDot className="h-6 w-6 transition-transform duration-200 group-hover:scale-110" />
+              {/* Pulsing effect when idle and enabled (and not recording) */}
+              {!isAnalyzing && !isMicListening && !isTranscribing && !isSpeaking && !isRecording && !error && stream && modelsReady && mediaPipeModelsReady && !faceApiError && !mediaPipeError && (
+                  <span className="absolute inset-0 rounded-full border-2 border-red-500/80 animate-pulse group-hover:border-white/50"></span>
+               )}
+             </Button>
 
-           {/* Voice Input Toggle Button */} 
-           <Button
-             size="lg"
-             onClick={handleMicToggle} 
-             disabled={!stream || isAnalyzing || isTranscribing || isSpeaking || !!error || !modelsReady || !mediaPipeModelsReady || !!faceApiError || !!mediaPipeError || isRecording}
-             className={`group rounded-full w-12 h-12 p-0 border transition-all duration-200 relative shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 ${ 
-               isMicListening 
-                 ? 'bg-red-600/50 border-red-500/70 text-white animate-pulse' 
-                 : 'bg-purple-600/30 hover:bg-purple-600/50 border-purple-500/50 text-purple-300 hover:text-white'
-             }`}
-             aria-label={isMicListening ? "Stop Listening" : "Start Listening"}
-           >
-             {isTranscribing ? (
-               <Loader2 className="h-5 w-5 animate-spin" /> 
-             ) : (
-               <Mic className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" /> 
-             )}
-             {/* Pulsing effect when idle and enabled */}
-             {!isAnalyzing && !isMicListening && !isTranscribing && !isSpeaking && !error && stream && modelsReady && mediaPipeModelsReady && !isRecording && !faceApiError && !mediaPipeError &&(
-                 <span className="absolute inset-0 rounded-full border-2 border-purple-500/80 animate-pulse group-hover:border-white/50"></span>
-             )}
-           </Button>
+             {/* Voice Input Toggle Button */} 
+             <Button
+               size="lg"
+               onClick={handleMicToggle} 
+               disabled={!stream || isAnalyzing || isTranscribing || isSpeaking || !!error || !modelsReady || !mediaPipeModelsReady || !!faceApiError || !!mediaPipeError || isRecording}
+               className={`group rounded-full w-12 h-12 p-0 border transition-all duration-200 relative shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 ${ 
+                 isMicListening 
+                   ? 'bg-red-600/50 border-red-500/70 text-white animate-pulse' 
+                   : 'bg-purple-600/30 hover:bg-purple-600/50 border-purple-500/50 text-purple-300 hover:text-white'
+               }`}
+               aria-label={isMicListening ? "Stop Listening" : "Start Listening"}
+             >
+               {isTranscribing ? (
+                 <Loader2 className="h-5 w-5 animate-spin" /> 
+               ) : (
+                 <Mic className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" /> 
+               )}
+               {/* Pulsing effect when idle and enabled */}
+               {!isAnalyzing && !isMicListening && !isTranscribing && !isSpeaking && !error && stream && modelsReady && mediaPipeModelsReady && !isRecording && !faceApiError && !mediaPipeError &&(
+                   <span className="absolute inset-0 rounded-full border-2 border-purple-500/80 animate-pulse group-hover:border-white/50"></span>
+               )}
+             </Button>
 
-        </footer>
-      </div>
-  )
+          </footer>
+        </div>
+    )
 } 

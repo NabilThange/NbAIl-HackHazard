@@ -1151,32 +1151,11 @@ export default function ChatPage() {
       )}
 
       {/* Input area & Image Preview */} 
-      <div className="border-t border-gray-800 p-4 relative z-10">
-        {/* Image Preview Section */} 
-        {imageBase64 && (
-          <div className="max-w-3xl mx-auto mb-2">
-            <div className="relative inline-block bg-gray-800/80 backdrop-blur-md border border-gray-700 rounded-lg p-1">
-              <img 
-                src={imageBase64} 
-                alt="Selected preview" 
-                className="h-16 w-auto max-w-xs rounded object-contain"
-              />
-              <button 
-                onClick={handleRemoveImage} 
-                className="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 h-5 w-5 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 shadow"
-                aria-label="Remove image"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          </div>
-        )}
-        {/* End Image Preview Section */} 
-
+      <div className="p-4 relative z-10">
         <div className="max-w-3xl mx-auto">
           <div className="relative">
             {/* Main input container - ChatGPT style rounded pill */}
-            <div className="flex items-center justify-between bg-gray-900/80 backdrop-blur-md rounded-full border border-gray-800 hover:border-purple-500/50 transition-all duration-200">
+            <div className="flex items-center justify-between bg-gray-900/80 backdrop-blur-md rounded-full hover:border-purple-500/50 transition-all duration-200">
               {/* Left side buttons */}
               <div className="flex items-center pl-2 space-x-1 sm:space-x-2">
                 <TooltipProvider>
@@ -1230,7 +1209,7 @@ export default function ChatPage() {
               </div>
 
               {/* Input field */}
-              <div className="flex-1 px-2">
+              <div className="flex-1 px-4 py-1">
                 <Input
                   type="text"
                   placeholder={

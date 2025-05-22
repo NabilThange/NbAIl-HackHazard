@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Brain, ArrowLeft, MessageSquare, Search, Plus, Trash2, MoreHorizontal, Star, AlertTriangle } from "lucide-react"
 import { SparklesCore } from "@/components/sparkles"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import ChatOptionsCard from "@/components/chat/ChatOptionsCard"
 import { chatService } from "@/lib/chat-service"
 
 // Error component
@@ -40,6 +40,18 @@ export default function AllChatsPage() {
   const [error, setError] = useState<string | null>(null)
   const [chatHistory, setChatHistory] = useState<any[]>([])
 
+  // Placeholder for pinning/unpinning a chat
+  const handlePinToggle = (chatId: string, pinned: boolean) => {
+    console.log(`Attempting to ${pinned ? 'pin' : 'unpin'} chat ${chatId}`);
+    // TODO: Implement actual pin/unpin logic here
+  };
+
+  // Placeholder for deleting a chat
+  const handleDeleteChat = (chatId: string) => {
+    console.log(`Attempting to delete chat ${chatId}`);
+    // TODO: Implement actual delete logic here
+  };
+
   // Fetch chats from the database
   useEffect(() => {
     const fetchChats = async () => {
@@ -69,6 +81,14 @@ export default function AllChatsPage() {
 
   if (error) {
     return <ChatError message={error} />
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black/[0.96] antialiased bg-grid-white/[0.02] relative flex items-center justify-center text-white">
+        Loading chats...
+      </div>
+    );
   }
 
   return (
@@ -134,7 +154,12 @@ export default function AllChatsPage() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {pinnedChats.map((chat) => (
-                  <ChatCard key={chat.id} chat={chat} />
+                  <ChatCard 
+                    key={chat.id} 
+                    chat={chat} 
+                    onPinToggle={handlePinToggle}
+                    onDelete={handleDeleteChat}
+                  />
                 ))}
               </div>
             </div>
@@ -145,7 +170,12 @@ export default function AllChatsPage() {
             <h2 className="text-white font-medium mb-4">Recent Chats</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {unpinnedChats.length > 0 ? (
-                unpinnedChats.map((chat) => <ChatCard key={chat.id} chat={chat} />)
+                unpinnedChats.map((chat) => <ChatCard 
+                  key={chat.id} 
+                  chat={chat} 
+                  onPinToggle={handlePinToggle}
+                  onDelete={handleDeleteChat}
+                />)
               ) : (
                 <p className="text-gray-400 col-span-2">
                   {isLoading 
@@ -164,7 +194,7 @@ export default function AllChatsPage() {
   )
 }
 
-function ChatCard({ chat }: { chat: any }) {
+function ChatCard({ chat, onPinToggle, onDelete }: { chat: any; onPinToggle: (chatId: string, pinned: boolean) => void; onDelete: (chatId: string) => void }) {
   return (
     <Card className="bg-gray-800/90 backdrop-blur-md border border-gray-700 hover:border-purple-500/50 transition-all duration-300">
       <CardHeader className="flex flex-row items-start justify-between p-4">
@@ -180,23 +210,7 @@ function ChatCard({ chat }: { chat: any }) {
             )}
           </div>
         </Link>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700 text-white">
-            <DropdownMenuItem className="cursor-pointer">
-              <Star className="mr-2 h-4 w-4" />
-              <span>{chat.pinned ? "Unpin" : "Pin"}</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer text-red-400">
-              <Trash2 className="mr-2 h-4 w-4" />
-              <span>Delete</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ChatOptionsCard chat={chat} onPinToggle={onPinToggle} onDelete={onDelete} />
       </CardHeader>
       <CardContent className="p-4 pt-0">
         <p className="text-gray-300 text-sm line-clamp-2">

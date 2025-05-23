@@ -11,8 +11,9 @@ import { speakText } from "@/lib/tts-service"
 import ReactMarkdown from 'react-markdown'
 import InfoWidget from '@/components/ar/InfoWidget'
 import React from 'react'
-import Carousel from "@/src/components/ui/carousel"
+import Carousel from "@/components/ui/carousel-new"
 import { FiLayers, FiCode, FiFileText } from 'react-icons/fi'
+import MobileCarousel from './MobileCarousel'  // Import the MobileCarousel component
 
 // THESE IMPORTS ARE LIKELY NEEDED BASED ON LINTER ERRORS - ADDING THEM HERE
 import * as faceapi from 'face-api.js';
@@ -909,14 +910,16 @@ export default function ARModeContent() { // Renamed from ARModePage
                 <span className="text-sm font-mono">{formatRecordingTime(recordingTime)}</span>
               </div>
             )}
-            {/* Info Widget with updated styling */}
-            <div className="flex items-center space-x-2">
+            <div className="flex flex-wrap items-center justify-end space-x-2">
+              <InfoWidget />
+            </div>
+            <div className="flex flex-wrap items-center justify-end space-x-2">
               {/* AI Provider Selector */}
-              <div className="relative group">
+              <div className="relative group max-w-[120px] w-full">
                 <select 
                   value={aiProvider}
                   onChange={(e) => setAiProvider(e.target.value as AIProvider)}
-                  className="bg-white/10 text-white text-xs px-2 py-1 rounded-full appearance-none pr-6 cursor-pointer hover:bg-white/20 transition-colors"
+                  className="w-full bg-white/10 text-white text-xs px-2 py-1 rounded-full appearance-none pr-6 cursor-pointer hover:bg-white/20 transition-colors truncate"
                 >
                   <option value={AIProvider.GROQ}>Groq AI</option>
                   <option value={AIProvider.MISTRAL}>Mistral AI</option>
@@ -927,7 +930,6 @@ export default function ARModeContent() { // Renamed from ARModePage
                   </svg>
                 </div>
               </div>
-              <InfoWidget />
             </div>
           </div>
         </header>
@@ -1058,22 +1060,7 @@ export default function ARModeContent() { // Renamed from ARModePage
          </div>
 
          {/* Carousel Section - Mobile Only */}
-         <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none md:hidden translate-y-[5px]">
-           <div className="w-full max-w-md px-4 pointer-events-auto">
-             <AnimatePresence>
-               {showCards && (
-                 <motion.div
-                   initial={{ opacity: 0, y: 20 }}
-                   animate={{ opacity: 1, y: 0 }}
-                   exit={{ opacity: 0, y: 20 }}
-                   className="w-full h-64 flex items-center justify-center"
-                 >
-                   <Carousel slides={arModeSlides} />
-                 </motion.div>
-               )}
-             </AnimatePresence>
-           </div>
-         </div>
+         <MobileCarousel showCards={showCards} slides={arModeSlides} />
 
          {/* Desktop/Tablet Info Cards - Hidden on Mobile */}
          <div className="hidden md:block">
@@ -1285,23 +1272,7 @@ export default function ARModeContent() { // Renamed from ARModePage
                  <span className="text-sm font-mono">{formatRecordingTime(recordingTime)}</span>
                </div>
              )}
-             <div className="flex items-center space-x-2">
-               {/* AI Provider Selector */}
-               <div className="relative group">
-                 <select 
-                   value={aiProvider}
-                   onChange={(e) => setAiProvider(e.target.value as AIProvider)}
-                   className="bg-white/10 text-white text-xs px-2 py-1 rounded-full appearance-none pr-6 cursor-pointer hover:bg-white/20 transition-colors"
-                 >
-                   <option value={AIProvider.GROQ}>Groq AI</option>
-                   <option value={AIProvider.MISTRAL}>Mistral AI</option>
-                 </select>
-                 <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                   <svg className="w-4 h-4 fill-current text-white/50" viewBox="0 0 20 20">
-                     <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                   </svg>
-                 </div>
-               </div>
+             <div className="flex flex-wrap items-center justify-end space-x-2">
                <InfoWidget />
              </div>
            </div>
@@ -1352,7 +1323,7 @@ export default function ARModeContent() { // Renamed from ARModePage
               aria-label={isRecording ? "Stop Recording" : "Start Recording"}
              >
               <CircleDot className="h-6 w-6 transition-transform duration-200 group-hover:scale-110" />
-              {/* Pulsing effect when idle and enabled (and not recording) */}
+              {/* Pulsing effect when idle and enabled */}
               {!isAnalyzing && !isMicListening && !isTranscribing && !isSpeaking && !error && stream && modelsReady && mediaPipeModelsReady && !isRecording && !faceApiError && !mediaPipeError && (
                   <span className="absolute inset-0 rounded-full border-2 border-red-500/80 animate-pulse group-hover:border-white/50"></span>
                )}

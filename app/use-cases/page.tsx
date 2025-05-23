@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import LenisWrapper from '@/components/LenisWrapper';
+import { LenisProvider } from "@/context/LenisProvider";
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import React, { ReactNode, useRef } from "react"; 
@@ -281,7 +281,7 @@ export default function UseCasesPage() {
   ]
 
   return (
-    <LenisWrapper>
+    <LenisProvider>
       <main
         className="min-h-screen bg-black/[0.96] antialiased bg-grid-white/[0.02] relative overflow-hidden"
         data-barba="container"
@@ -448,6 +448,6 @@ export default function UseCasesPage() {
           <Footer />
         </div>
       </main>
-    </LenisWrapper>
+    </LenisProvider>
   )
 }

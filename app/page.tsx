@@ -19,38 +19,41 @@ import { Mic, Monitor, FileText, Glasses, Brain, History } from "lucide-react";
 import { GraduationCap, Code, Palette, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { LenisProvider } from "@/context/LenisProvider";
 
 export default function Home() {
   return (
-    <main
-      className="min-h-screen bg-black/[0.96] antialiased bg-grid-white/[0.02] relative overflow-hidden"
-      data-barba="container"
-      data-barba-namespace="home"
-    >
-      {/* Interactive background with moving particles -  Version 1 wala */}
-      <div className="h-full w-full absolute inset-0 z-0">
-        <SparklesCore
-          id="tsparticlesfullpage"
-          background="transparent"
-          minSize={0.6}
-          maxSize={1.4}
-          particleDensity={100}
-          className="w-full h-full"
-          particleColor="#FFFFFF"
-        />
-      </div>
+    <LenisProvider>
+      <main
+        className="min-h-screen bg-black/[0.96] antialiased bg-grid-white/[0.02] relative overflow-hidden"
+        data-barba="container"
+        data-barba-namespace="home"
+      >
+        {/* Interactive background with moving particles -  Version 1 wala */}
+        <div className="h-full w-full absolute inset-0 z-0">
+          <SparklesCore
+            id="tsparticlesfullpage"
+            background="transparent"
+            minSize={0.6}
+            maxSize={1.4}
+            particleDensity={100}
+            className="w-full h-full"
+            particleColor="#FFFFFF"
+          />
+        </div>
 
-      <div className="relative z-10">
-        <Navbar />
-        <Hero />
-        <PerspectiveSections />
-        {/* <Features /> // Removed original Features section */}
-        {/* <UseCases /> // Removed original Use Cases section */}
-        <Testimonials />
-        <CTA />
-        <Footer />
-      </div>
-    </main>
+        <div className="relative z-10">
+          <Navbar />
+          <Hero />
+          <PerspectiveSections />
+          {/* <Features /> // Removed original Features section */}
+          {/* <UseCases /> // Removed original Use Cases section */}
+          <Testimonials />
+          <CTA />
+          <Footer />
+        </div>
+      </main>
+    </LenisProvider>
   )
 }
 

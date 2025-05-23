@@ -874,7 +874,7 @@ export default function ARModeContent() { // Renamed from ARModePage
       description: aiResponse || "Detailed description of the surrounding environment, capturing key visual elements and context.",
     },
     {
-      title: "Identity Card",
+      title: "Identity SnapShot",
       button: "View Traits",
       src: capturedImagePreviewUrl || "/images/identity-analysis.jpg",
       description: identityInfoContent || "Demographic and emotional insights about detected individuals."

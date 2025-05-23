@@ -7,6 +7,7 @@ import {
   FiFileText,
   FiLayers,
   FiLayout,
+  FiCreditCard,
 } from "react-icons/fi";
 
 export interface CarouselItem {
@@ -14,6 +15,8 @@ export interface CarouselItem {
   description: string;
   id: number;
   icon: JSX.Element;
+  image?: string;
+  data?: string | Record<string, any>;
 }
 
 export interface CarouselProps {
@@ -29,31 +32,33 @@ export interface CarouselProps {
 const DEFAULT_ITEMS: CarouselItem[] = [
   {
     title: "Text Animations",
-    description: "Cool text animations for your projects.",
+    description: "**Cool** text animations for your *projects*. ~~Lightweight~~ ##Powerful",
     id: 1,
-    icon: <FiFileText className="h-[16px] w-[16px] text-white" />,
+    icon: <FiCreditCard className="h-[16px] w-[16px] text-white" />,
+    image: "/path/to/sample/image.jpg",
+    data: "Sample data from Groq"
   },
   {
     title: "Animations",
-    description: "Smooth animations for your projects.",
+    description: "**Smooth** animations for your *projects*. ##Responsive design",
     id: 2,
     icon: <FiCircle className="h-[16px] w-[16px] text-white" />,
   },
   {
     title: "Components",
-    description: "Reusable components for your projects.",
+    description: "**Reusable** components for your *projects*. ~~Simple~~ ##Advanced",
     id: 3,
     icon: <FiLayers className="h-[16px] w-[16px] text-white" />,
   },
   {
     title: "Backgrounds",
-    description: "Beautiful backgrounds and patterns for your projects.",
+    description: "**Beautiful** backgrounds and *patterns* for your projects. ##Customizable",
     id: 4,
     icon: <FiLayout className="h-[16px] w-[16px] text-white" />,
   },
   {
     title: "Common UI",
-    description: "Common UI components are coming soon!",
+    description: "**Common** UI components are *coming soon*! ~~Basic~~ ##Innovative",
     id: 5,
     icon: <FiCode className="h-[16px] w-[16px] text-white" />,
   },
@@ -63,6 +68,23 @@ const DRAG_BUFFER = 0;
 const VELOCITY_THRESHOLD = 500;
 const GAP = 16;
 const SPRING_OPTIONS = { type: "spring", stiffness: 300, damping: 30 };
+
+// Markdown-like styling helper function
+const parseMarkdown = (text: string) => {
+  // Bold: **text**
+  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  
+  // Italic: *text*
+  text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  
+  // Light: ~~text~~
+  text = text.replace(/~~(.*?)~~/g, '<span className="text-gray-400">$1</span>');
+  
+  // Dark: ##text
+  text = text.replace(/##(.*?)(?=\s|$)/g, '<span className="text-gray-700">$1</span>');
+  
+  return text;
+}
 
 export default function Carousel({
   items = DEFAULT_ITEMS,
@@ -207,7 +229,7 @@ export default function Carousel({
               className={`relative shrink-0 flex flex-col ${
                 round
                   ? "items-center justify-center text-center bg-[#060606] border-0"
-                  : "items-start justify-between bg-[#222] border border-[#222] rounded-[12px]"
+                  : "items-start justify-between bg-black/29 backdrop-blur-sm border border-white/20 rounded-[12px]"
               } overflow-hidden cursor-grab active:cursor-grabbing`}
               style={{
                 width: itemWidth,
@@ -217,17 +239,44 @@ export default function Carousel({
               }}
               transition={effectiveTransition}
             >
-              <div className={`${round ? "p-0 m-0" : "mb-4 p-5"}`}>
-                <span className="flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[#060606]">
-                  {item.icon}
-                </span>
-              </div>
-              <div className={`p-5 ${round ? "" : "overflow-y-auto max-h-[200px]"}`}>
-                <div className="mb-1 font-black text-lg text-white">
-                  {item.title}
+              <div className={`${round ? "p-0 m-0" : "p-5"} flex flex-col`}>
+                <div className="flex items-center mb-3">
+                  <span className="flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[#060606] mr-3 shrink-0">
+                    {item.icon}
+                  </span>
+                  <h3 className="text-lg font-bold text-white">{item.title}</h3>
                 </div>
-                <p className="text-sm text-white">{item.description}</p>
+                
+                {item.image && (
+                  <div className="mb-3 w-full">
+                    <img 
+                      src={item.image} 
+                      alt={item.title} 
+                      className="w-full h-[188px] object-cover rounded-lg"
+                    />
+                  </div>
+                )}
+                
+                {item.data && (
+                  <div className="mb-3">
+                    <div className="bg-[#333] text-white text-xs px-3 py-1 rounded-full inline-block">
+                      {typeof item.data === 'string' 
+                        ? item.data 
+                        : JSON.stringify(item.data)}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex-grow max-h-[220px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
+                  <p 
+                    className="text-sm text-white pr-2" 
+                    dangerouslySetInnerHTML={{ 
+                      __html: parseMarkdown(item.description) 
+                    }} 
+                  />
+                </div>
               </div>
+              {!round && <div className="p-5 overflow-y-auto max-h-[200px]"></div>}
             </motion.div>
           );
         })}

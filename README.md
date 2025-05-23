@@ -20,7 +20,7 @@
 Today's AI assistants are *too slow*, *too basic*, or *too disconnected* from real user needs.  
 **NbAIl** solves this by combining **super-fast text, smooth voice conversation, intelligent command execution, and planned augmented reality (AR) capabilities** — all in a **single multimodal powerhouse**.
 
-One of NbAIl’s proudest innovations: **Command Mode**.  
+One of NbAIl's proudest innovations: **Command Mode**.  
 Simply type a command like `/open notepad and write hello world`, and our **Terminator Agent**, powered by **Groq** for understanding and **local Python automation**, will **open system apps, type messages, and perform actions** automatically.  
 **Zero manual work. Full smart automation.**  
 Built to behave like a *true futuristic assistant* — not just a chatbot.
@@ -68,7 +68,7 @@ Built to behave like a *true futuristic assistant* — not just a chatbot.
 - ✅ **Multi-mode Switcher** — instantly switch between chat, voice, command, and AR
 - ✅ **Error Handling & Fail-Safes** — graceful recovery when apps not found
 
-🚀 **NbAIl doesn’t just "chat." It "acts."**
+🚀 **NbAIl doesn't just "chat." It "acts."**
 
 ---
 
@@ -125,7 +125,7 @@ python terminator_agent.py
 ```bash
 ngrok http 8000
 
-(Replace 5000 with your local port if it’s different.)
+(Replace 5000 with your local port if it's different.)
 
 ```
 —
@@ -147,7 +147,7 @@ ngrok http 8000
 # 🔮 Future Scope of NbAIl
 
 While NbAIl already delivers a futuristic multimodal experience, the journey has just begun!  
-Here’s what’s planned for future versions:
+Here's what's planned for future versions:
 
 ---
 
@@ -190,7 +190,7 @@ Here’s what’s planned for future versions:
 # 📚 Resources / Credits
 
 This project would not have been possible without the amazing technologies, APIs, and open-source tools available to the community.  
-Here’s what powered NbAIl:
+Here's what powered NbAIl:
 
 ---
 
@@ -254,3 +254,29 @@ Bigger, smarter, and even crazier updates are on the way.
 
 > **"The ones who are crazy enough to think they can change the world are the ones who do."**  
 > — Apple, 1997
+
+## Environment Variables
+
+You'll need to set up the following environment variables in your `.env.local` file:
+
+- `NEXT_PUBLIC_GROQ_API_KEY`: Your Groq API key for AI analysis
+- `NEXT_PUBLIC_MISTRAL_API_KEY`: Your Mistral API key for alternative AI analysis (optional)
+
+### Obtaining API Keys
+
+1. **Groq API Key**:
+   - Visit [Groq's website](https://console.groq.com/)
+   - Create an account and generate an API key
+
+2. **Mistral API Key**:
+   - Visit [Mistral's website](https://mistral.ai/)
+   - Create an account and generate an API key
+   - Note: We're using the Pixtral 12B 2409 model for AR mode vision analysis
+
+Example `.env.local` file:
+```
+NEXT_PUBLIC_GROQ_API_KEY=your_groq_api_key_here
+NEXT_PUBLIC_MISTRAL_API_KEY=your_mistral_api_key_here
+```
+
+**Note**: Keep your API keys confidential and never commit them to version control.

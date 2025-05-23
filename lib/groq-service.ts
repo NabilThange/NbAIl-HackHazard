@@ -153,68 +153,165 @@ export const getGroqVisionCompletion = async (userPrompt: string, imageBase64: s
   }
 };
 
+// Enum for AI providers
+export enum AIProvider {
+  GROQ = 'groq',
+  MISTRAL = 'mistral'
+}
+
+// Configuration for AI providers
+const aiProviders = {
+  [AIProvider.GROQ]: {
+    client: new Groq({
+      apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
+      dangerouslyAllowBrowser: true,
+    }),
+    model: "meta-llama/llama-4-scout-17b-16e-instruct"
+  },
+  [AIProvider.MISTRAL]: {
+    model: "pixtral-12b-2409" // Specific Pixtral model
+  }
+};
+
+// Mistral Vision Analysis Function
+const getMistraiVisionAnalysis = async (base64ImageData: string, prompt: string) => {
+  if (!process.env.NEXT_PUBLIC_MISTRAL_API_KEY) {
+    throw new Error("Mistral API key not configured.");
+  }
+
+  try {
+    const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_MISTRAL_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "pixtral-12b-2409", // Specific Pixtral model
+        messages: [
+          {
+            role: "system",
+            content: "You are an AI assistant with vision capabilities designed for AR Mode. Analyze the provided image based on the user's query. Pay close attention to any text visible in the image (like human facial gesture,posture,book titles, signs, labels, or screen content) and include it accurately in your description. Provide a concise, informative response detailing what you see."
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: prompt
+              },
+              {
+                type: "image_url",
+                image_url: base64ImageData
+              }
+            ]
+          }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`Mistral API error: ${response.status} - ${errorBody}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0]?.message?.content || "Sorry, I could not process the image.";
+  } catch (error) {
+    console.error("Mistral Vision API error:", error);
+    throw error;
+  }
+};
+
 // Specific function for AR mode or general vision queries
 export const getGroqVisionAnalysis = async (
-  base64ImageData: string, // Expecting data URL like "data:image/jpeg;base64,..."
+  base64ImageData: string, 
   prompt: string,
+  provider: AIProvider = AIProvider.GROQ, 
+  maxRetries: number = 3
 ) => {
-  if (!process.env.NEXT_PUBLIC_GROQ_API_KEY) {
+  if (provider === AIProvider.GROQ && !process.env.NEXT_PUBLIC_GROQ_API_KEY) {
     throw new Error("Groq API key not configured.");
   }
+  if (provider === AIProvider.MISTRAL && !process.env.NEXT_PUBLIC_MISTRAL_API_KEY) {
+    throw new Error("Mistral API key not configured.");
+  }
+
+  // Validate image data
   if (!base64ImageData || !base64ImageData.startsWith("data:image")) {
-      throw new Error("Invalid image data provided.");
+    throw new Error("Invalid image data provided.");
   }
 
   // Extract base64 content and determine MIME type
   const mimeType = base64ImageData.substring(base64ImageData.indexOf(":") + 1, base64ImageData.indexOf(";"));
   const base64Content = base64ImageData.substring(base64ImageData.indexOf(",") + 1);
 
-  console.log(`Sending to Groq Vision: Prompt - "${prompt}", MimeType - ${mimeType}, Size approx ${Math.round(base64Content.length * 3/4 / 1024)} KB`);
+  console.log(`Sending to ${provider.toUpperCase()} Vision: Prompt - "${prompt}", MimeType - ${mimeType}, Size approx ${Math.round(base64Content.length * 3/4 / 1024)} KB`);
 
-  try {
-    const completion = await groq.chat.completions.create({
-      messages: [
-        {
-          role: "system",
-          content: "You are an AI assistant with vision capabilities designed for AR Mode. Analyze the provided image based on the user's query. Pay close attention to any text visible in the image (like human facial gesture,posture,book titles, signs, labels, or screen content) and include it accurately in your description. Provide a concise, informative response detailing what you see.",
-        },
-        {
-          role: "user",
-          content: [
-            {
-              type: "image_url",
-              image_url: {
-                url: base64ImageData, // Send the full data URL
+  let retries = 0;
+  while (retries < maxRetries) {
+    try {
+      let response: string;
+      
+      // Provider-specific API call
+      switch (provider) {
+        case AIProvider.GROQ:
+          const completion = await aiProviders[AIProvider.GROQ].client.chat.completions.create({
+            messages: [
+              {
+                role: "system",
+                content: "You are an AI assistant with vision capabilities designed for AR Mode. Analyze the provided image based on the user's query. Pay close attention to any text visible in the image (like human facial gesture,posture,book titles, signs, labels, or screen content) and include it accurately in your description. Provide a concise, informative response detailing what you see.",
               },
-            },
-            {
-              type: "text",
-              text: prompt,
-            },
-          ],
-        },
-      ],
-      model: "meta-llama/llama-4-scout-17b-16e-instruct",
-      // Optional: Add parameters like max_tokens, temperature if needed
-      // max_tokens: 150,
-    });
+              {
+                role: "user",
+                content: [
+                  {
+                    type: "image_url",
+                    image_url: {
+                      url: base64ImageData,
+                    },
+                  },
+                  {
+                    type: "text",
+                    text: prompt,
+                  },
+                ],
+              },
+            ],
+            model: aiProviders[AIProvider.GROQ].model,
+          });
+          response = completion.choices[0]?.message?.content || "Sorry, I could not process the image.";
+          break;
+        
+        case AIProvider.MISTRAL:
+          response = await getMistraiVisionAnalysis(base64ImageData, prompt);
+          break;
+        
+        default:
+          throw new Error(`Unsupported AI provider: ${provider}`);
+      }
 
-    const responseContent = completion.choices[0]?.message?.content;
-    console.log("Groq Vision API Response:", responseContent);
-
-    if (!responseContent) {
-      throw new Error("Received an empty response from Groq Vision API.");
-    }
-
-    return responseContent;
-
-  } catch (error) {
-    console.error("Error calling Groq Vision API:", error);
-    // Rethrow or handle appropriately
-    if (error instanceof Error) {
-       throw new Error(`Groq Vision API Error: ${error.message}`);
-    } else {
-       throw new Error("An unknown error occurred while contacting Groq Vision API.");
+      return response;
+    } catch (error) {
+      console.warn(`${provider.toUpperCase()} Vision API call failed (attempt ${retries + 1}):`, error);
+      
+      // Check if it's a 503 error or network-related issue
+      if (error instanceof Error && (error.message.includes('503') || error.message.includes('network'))) {
+        retries++;
+        // Exponential backoff
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retries)));
+        
+        if (retries >= maxRetries) {
+          console.error(`${provider.toUpperCase()} Vision API failed after maximum retries`);
+          return "Sorry, the image analysis service is temporarily unavailable. Please try again later.";
+        }
+      } else {
+        // For non-retryable errors, throw immediately
+        throw error;
+      }
     }
   }
+
+  // Fallback return (should not normally be reached)
+  return "Sorry, there was an error processing the image.";
 }; 
